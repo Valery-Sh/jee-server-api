@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE toc PUBLIC "-//Sun Microsystems Inc.//DTD JavaHelp TOC Version 2.0//EN" "http://java.sun.com/products/javahelp/toc_2_0.dtd">
+<toc version="2.0">
+    <tocitem text="Jetty Embedded Server">
+        <tocitem text="About" target="org.netbeans.modules.jeeserver.jetty.embedded.help.about"/>
+        <!--tocitem text="Getting Started" target="org.netbeans.modules.embedded.jetty9.getting-started"-->
+        <tocitem text="Getting Started">        
+            <tocitem text="Create Ebbedded Server Application" target="org.netbeans.modules.jeeserver.jetty.embedded.help.create-embedded-app"/>
+        </tocitem>    
+        
+        <tocitem text="Register Web Applications" target="org.netbeans.modules.jeeserver.jetty.embedded.help.register-web-apps"/>
+    </tocitem>
+    
+</toc>

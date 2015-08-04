@@ -1,0 +1,4 @@
+#
+# Initialize module Contexts and Dependency Injection (cdi)
+#
+--module=cdi
