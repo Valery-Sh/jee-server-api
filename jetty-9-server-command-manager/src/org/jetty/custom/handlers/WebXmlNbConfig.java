@@ -43,11 +43,13 @@ public class WebXmlNbConfig extends AbstractConfiguration
         
         EnumSet<DispatcherType> es = EnumSet.of(DispatcherType.REQUEST);
         context.addFilter(JsfFilter.class, "/", es); 
-
+        //context.getServletContext().setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "false");
         context.setParentLoaderPriority(true);
         context.addSystemClass("com.sun.faces.");
         context.addSystemClass("javax.faces.");
         
+        context.prependServerClass("-com.sun.faces.");
+        context.prependServerClass("-javax.faces.");        
     }
 
     /* ------------------------------------------------------------------------------- */

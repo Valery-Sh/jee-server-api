@@ -84,30 +84,8 @@ public class ServerInstanceAvailableModules<T extends AbstractModuleConfiguratio
         WebModuleConfig wmk = configMap.get(warPath);
         if (wmk != null) {
             configMap.remove(warPath);
-            BaseUtils.out("$$$$$$$$$$$$$$$ ModulesChangeEvent.moduleDispose wmk=" + wmk.getWebProjectPath());
-
             fireModulesChange(wmk, ModulesChangeEvent.DISPOSE);
         }
-
-        /*        for (Map.Entry<Path, WebModuleConfig> e : configMap.entrySet()) {
-         if (!contextPath.equals(e.getValue().getContextPath())) {
-         continue;
-         }
-         if (!warFile.equals(new File(e.getValue().getWebProjectPath()))) {
-         continue;
-         }
-         key = e.getKey();
-         wmKey = e.getValue();
-         break;
-         }
-         */
-        /*        if (key != null) {
-         WebModuleConfig wmk = configMap.get(key);
-         configMap.remove(key);
-         BaseUtils.out("$$$$$$$$$$$$$$$ ModulesChangeEvent.DISPOSE");
-         fireModulesChange(wmk, ModulesChangeEvent.DISPOSE);
-         }
-         */
     }
 
     public Map<Path, WebModuleConfig> getModules() {
@@ -153,19 +131,6 @@ public class ServerInstanceAvailableModules<T extends AbstractModuleConfiguratio
         String key = null;
         WebModuleConfig wmKey = configMap.get(warPath);
 
-        /*        for (Map.Entry<Path, WebModuleConfig> e : configMap.entrySet()) {
-         if (!contextPath.equals(e.getValue().getContextPath())) {
-         continue;
-         }
-
-         if (!warFile.equals(new File(e.getValue().getWebProjectPath()))) {
-         continue;
-         }
-         key = e.getKey();
-         wmKey = e.getValue();
-         break;
-         }
-         */
         if (wmKey == null) {
             File webFolder = module.getWebRoot();
             WebModuleConfig wmk = new WebModuleConfig(contextPath, war);

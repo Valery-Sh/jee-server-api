@@ -36,6 +36,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.server.ServerInstance;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
+import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.api.CommonServerBridge;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
@@ -67,6 +68,25 @@ import org.xml.sax.SAXException;
 public class BaseUtils {
 
     private static final Logger LOG = Logger.getLogger(BaseUtils.class.getName());
+    /**
+     * Return an instance of {@literal J2eeModule} for the specified web
+     * project.
+     *
+     * @param webProject the web project whose {@literal J2eeModule} is required
+     * @return an instance of {@literal J2eeModule} for the specified web
+     * project
+     */
+    public static J2eeModule getJ2eeModule(Project webProject) {
+        return getJ2eeModuleProvider(webProject).getJ2eeModule();
+    }
+    /**
+     *
+     * @param webProject
+     * @return
+     */
+    public static J2eeModuleProvider getJ2eeModuleProvider(Project webProject) {
+        return webProject.getLookup().lookup(J2eeModuleProvider.class);
+    }
     
     public static String getNbBundleMsg(Object obj, String bname) {
         String msg = NbBundle.getMessage(obj.getClass(),bname);

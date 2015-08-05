@@ -68,7 +68,7 @@ public class BaseIncrementalDeployment extends IncrementalDeployment implements 
 
     @Override
     public synchronized File getDirectoryForModule(TargetModuleID module) {
-        BaseUtils.out(" getDirectoryForModule module=" + module);
+        //BaseUtils.out(" getDirectoryForModule module=" + module);
         //if ( true ) return null;
         if (module == null) {
             return null;
@@ -76,9 +76,9 @@ public class BaseIncrementalDeployment extends IncrementalDeployment implements 
         if (module instanceof BaseTargetModuleID) {
             String cmd = BaseUtils.createCommand((BaseTargetModuleID) module, "getcopydir");
             String dir = execServerCommand(cmd);
-BaseUtils.out(" getDirectoryForModule dir=" + dir);                            
+//BaseUtils.out(" getDirectoryForModule dir=" + dir);                            
             if (dir != null && !dir.equals("inplace")) {
-BaseUtils.out(" getDirectoryForModule dir=" + dir);                
+//BaseUtils.out(" getDirectoryForModule dir=" + dir);                
                 return new File(dir);
             }
         }
@@ -87,7 +87,7 @@ BaseUtils.out(" getDirectoryForModule dir=" + dir);
 
     @Override
     public File getDirectoryForNewApplication(Target target, J2eeModule module, ModuleConfiguration configuration) {
-BaseUtils.out(" getDirectoryForNewApplication");                        
+//BaseUtils.out(" getDirectoryForNewApplication");                        
         if (module != null && module.getType().equals(J2eeModule.Type.WAR)) {
             return null;
         }
@@ -101,7 +101,7 @@ BaseUtils.out(" getDirectoryForNewApplication");
 
     @Override
     public ProgressObject initialDeploy(Target target, DeploymentContext context) {
-        BaseUtils.out(" initialDeploy");                                
+        BaseUtils.out(" initialDeploy");    
         BaseIncrementalProgressObject deployer = new BaseIncrementalProgressObject(manager);
         return deployer.initialDeploy(target, context);
     }

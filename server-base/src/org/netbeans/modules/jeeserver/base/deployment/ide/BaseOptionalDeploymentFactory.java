@@ -51,7 +51,7 @@ public class BaseOptionalDeploymentFactory extends OptionalDeploymentManagerFact
      */
     @Override
     public IncrementalDeployment getIncrementalDeployment(DeploymentManager dm) {
-        BaseUtils.out("getIncrementalDeployment ");
+        //BaseUtils.out("getIncrementalDeployment ");
         boolean b = false;
         InstanceProperties ip = InstanceProperties.getInstanceProperties(((BaseDeploymentManager) dm).getUri());
         if (ip == null) {

@@ -1,14 +1,14 @@
 /**
  * This file is part of Jetty Server support in NetBeans IDE.
  *
- * Jetty Server support in NetBeans IDE is free software: you can
- * redistribute it and/or modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation, either version 2 of the
- * License, or (at your option) any later version.
+ * Jetty Server support in NetBeans IDE is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the License,
+ * or (at your option) any later version.
  *
- * Jetty Server support in NetBeans IDE is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Jetty Server support in NetBeans IDE is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
  *
  * You should see the GNU General Public License here:
@@ -16,22 +16,32 @@
  */
 package org.netbeans.modules.jeeserver.jetty.project.nodes;
 
+import org.netbeans.modules.jeeserver.jetty.project.nodes.*;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Action;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectManager;
+import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
+import org.netbeans.modules.jeeserver.base.deployment.actions.WebAppCommandActions;
+import org.netbeans.modules.jeeserver.base.deployment.actions.WebAppNodeUtils;
 import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
-import org.netbeans.modules.jeeserver.jetty.project.nodes.WebAppNode.ProjectViewKeys;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
+import org.netbeans.modules.web.api.webmodule.WebModule;
 import org.netbeans.spi.java.project.support.ui.PackageView;
+import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.NodeFactory;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
 import org.netbeans.spi.project.ui.support.NodeList;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObjectNotFoundException;
+import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
+import org.openide.util.Utilities;
 
 /**
  * Factory class for distributed creation of project node's children. The
@@ -78,19 +88,17 @@ public class WebModulesNodeFactory implements NodeFactory {
 
     }
 
-    public static Node getNode(Project project, Object key) {
+    public static Node getNode(Project server, Object key) {
         Node node = null;
         try {
-            WebModuleConfig c = (WebModuleConfig)key;
-            Project webProject = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(c.getWebProjectPath()) ) );            
-            ProjectViewKeys vk = new ProjectViewKeys(project,webProject);
-            node = new WebAppNode(project, key, vk);
-        } catch (DataObjectNotFoundException ex) {
+            WebModuleConfig c = (WebModuleConfig) key;
+
+            Project webProject = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(c.getWebProjectPath())));
+            LogicalViewProvider lvp = webProject.getLookup().lookup(LogicalViewProvider.class);
+            node = lvp.createLogicalView();
+        } catch (Exception ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
         return node;
     }
-    
-    
-    
 }//class

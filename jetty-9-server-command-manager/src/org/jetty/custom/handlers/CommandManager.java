@@ -696,7 +696,6 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         webapp.setCopyWebDir(antiResource);
 
         ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
-
         System.out.println("deploy: success");
     }
 

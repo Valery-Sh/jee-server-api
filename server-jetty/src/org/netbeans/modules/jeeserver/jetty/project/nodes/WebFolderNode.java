@@ -1,5 +1,6 @@
 package org.netbeans.modules.jeeserver.jetty.project.nodes;
 
+import org.netbeans.modules.jeeserver.jetty.project.nodes.*;
 import java.awt.Image;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.nodes.FilterNode;
@@ -15,8 +16,7 @@ public class WebFolderNode extends FilterNode {
     @StaticResource
     private static final String FOLDER_BAG_IMAGE = "org/netbeans/modules/jeeserver/jetty/resources/web-pages-badge.png";
     
-    //private static final Logger LOG = Logger.getLogger(WebFolderNode.class.getName());
-    //LOG.log(Level.INFO, ex.getMessage());    
+
     private final Node original;
     
     public WebFolderNode(Node original) {

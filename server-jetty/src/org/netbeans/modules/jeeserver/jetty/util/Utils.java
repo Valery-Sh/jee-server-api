@@ -286,12 +286,12 @@ public class Utils {
                     switch (el.getAttribute("name")) {
                         case "contextPath":
                             result.setProperty("contextPath", el.getTextContent());
-                            BaseUtils.out("1. Utils.getContextProperties el.getTextContext()=" + el.getTextContent());
+                            //BaseUtils.out("1. Utils.getContextProperties el.getTextContext()=" + el.getTextContent());
                             found++;
                             break;
                         case "war":
                             result.setProperty("war", el.getTextContent());
-                            BaseUtils.out("2. Utils.getContextProperties el.getTextContext()=" + el.getTextContent());
+                            //BaseUtils.out("2. Utils.getContextProperties el.getTextContext()=" + el.getTextContent());
 
                             found++;
                             break;

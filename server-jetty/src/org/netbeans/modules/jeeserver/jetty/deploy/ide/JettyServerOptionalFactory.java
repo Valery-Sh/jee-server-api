@@ -52,7 +52,7 @@ public class JettyServerOptionalFactory   extends OptionalDeploymentManagerFacto
     protected void finalize() {
         try {
             super.finalize();
-BaseUtils.out(" FFFFFFFFFFFFF Finalize");
+//BaseUtils.out(" FFFFFFFFFFFFF Finalize");
         } catch (Throwable ex) {
             Exceptions.printStackTrace(ex);
         }

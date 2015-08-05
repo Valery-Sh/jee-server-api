@@ -107,10 +107,10 @@ public class HotBaseWebAppChildNode extends FilterNode {
     private void initContextProperies() {
         FileObject webappFo = serverProj.getProjectDirectory().getFileObject(getPath(webAppKey));
         if (webappFo == null) {
-            BaseUtils.out("BaseWebAppChildNode initContextProperies webappFo == NULL");
+//            BaseUtils.out("BaseWebAppChildNode initContextProperies webappFo == NULL");
             return;
         }
-        BaseUtils.out("BaseWebAppChildNode initContextProperies webappFo.ext =" + webappFo.getExt());
+//        BaseUtils.out("BaseWebAppChildNode initContextProperies webappFo.ext =" + webappFo.getExt());
 
         switch (webappFo.getExt()) {
             case "xml": {
