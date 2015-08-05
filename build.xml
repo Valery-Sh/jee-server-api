@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project name="jee-server-api" basedir=".">
-    <description>Builds the module suite jee-server-api.</description>
-    <import file="nbproject/build-impl.xml"/>
-</project>
