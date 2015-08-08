@@ -291,6 +291,7 @@
                 <package>org.netbeans.modules.jeeserver.jetty.project.actions</package>
                 <package>org.netbeans.modules.jeeserver.jetty.project.nodes</package>
                 <package>org.netbeans.modules.jeeserver.jetty.project.nodes.actions</package>
+                <package>org.netbeans.modules.jeeserver.jetty.project.nodes.libs</package>
                 <package>org.netbeans.modules.jeeserver.jetty.project.template</package>
                 <package>org.netbeans.modules.jeeserver.jetty.util</package>
             </public-packages>

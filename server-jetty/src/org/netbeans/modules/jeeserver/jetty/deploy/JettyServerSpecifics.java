@@ -43,6 +43,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyServerModuleConfiguration;
 import org.netbeans.modules.jeeserver.jetty.project.JettyProjectLogicalView;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode;
@@ -292,5 +293,9 @@ public class JettyServerSpecifics implements ServerSpecifics {
         }
 
     }
+    @Override
+    public Properties getContextPoperties(FileObject config) {
+        return JettyServerModuleConfiguration.getContextProperties(config);
+    }            
 
 }

@@ -31,9 +31,7 @@ public class JettyServerConfigurationFactory implements ModuleConfigurationFacto
 
     @Override
     public ModuleConfiguration create(J2eeModule module, String instanceUrl) throws ConfigurationException {
-        String[] paths = new String[] {"WEB-INF/jetty-web.xml","WEB-INF/web-jetty.xml"};
-        return JettyServerModuleConfiguration.getInstance(module, paths,instanceUrl);
-
+        return JettyServerModuleConfiguration.getInstance(module, DeploymentConfigPaths.getPaths(),instanceUrl);
     }
     
 }

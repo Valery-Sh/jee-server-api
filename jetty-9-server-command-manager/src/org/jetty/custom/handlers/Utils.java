@@ -47,6 +47,8 @@ import org.xml.sax.SAXException;
 public class Utils {
 
     private static final Logger LOG = Logger.getLogger(Utils.class.getName());
+    
+    public static final String JETTY_BASE = "jetty.base";
 
     public static final String WEBAPPS_DEFAULT_DIR_NAME = "web-apps";
     public static final String WEBAPPS_DIR_PROP = "deployWebapps";

@@ -12,21 +12,25 @@ import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
  * Is here as an example. Is not used.
+ *
  * @author Valery
  */
 public class StandardBinding implements AppLifeCycle.Binding {
 
     @Override
     public String[] getBindingTargets() {
+System.out.println(" !!!!!!!!!!!! getBindingTargets");        
         return new String[]{"deploying", "deployed", "starting", "started"};
     }
 
     @Override
     public void processBinding(Node node, App app) throws Exception {
         ContextHandler handler = app.getContextHandler();
+        System.out.println(" Procesing Bindings handler = " + handler);
         if (handler == null) {
             throw new NullPointerException("No Handler created for App: " + app);
         }
+System.out.println(" Procesing Bindings handler.class = " + handler.getClass());        
         if (handler instanceof WebAppContext) {
             WebAppContext webapp = (WebAppContext) handler;
             System.out.println(" Procesing Bindings webapp: " + webapp);
@@ -51,6 +55,13 @@ public class StandardBinding implements AppLifeCycle.Binding {
                     }
                 }
 
+            }
+            String[] wf = webapp.getWelcomeFiles();
+            if (wf != null) {
+                System.out.println("NODE = " + node.getName());                
+                for (String s : wf) {
+                    System.out.println("NODE = " + node.getName() + "; StandardBinding welcomeFile=" + s);
+                }
             }
 
         }

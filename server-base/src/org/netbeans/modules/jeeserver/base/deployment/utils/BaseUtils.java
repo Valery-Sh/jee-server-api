@@ -382,13 +382,7 @@ public class BaseUtils {
             if (!(f instanceof ServerSpecificsProvider)) {
                 continue;
             }
-/*            String[] ids = ((ServerSpecificsProvider) f).getSupportedServerIds();
-            for (String id : ids) {
-                if (serverId.equals(id)) {
-                    return ((ServerSpecificsProvider) f).getSpecifics();
-                }
-            }
-*/            
+
             if (serverId.equals(((ServerSpecificsProvider) f).getServerId())) {
                  return ((ServerSpecificsProvider) f).getSpecifics();
              }

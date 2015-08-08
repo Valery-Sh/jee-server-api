@@ -46,7 +46,6 @@ public class EmbServerPanelVisual extends JPanel implements DocumentListener, Ch
         this.panel = panel;
         // Register listener on the textFields to make the automatic updates
         addListeners();
-
     }
 
     private void addListeners() {

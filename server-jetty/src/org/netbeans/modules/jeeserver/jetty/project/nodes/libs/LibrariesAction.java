@@ -87,6 +87,7 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
             RP.post(new Runnable() {
                 @Override
                 public void run() {
+                    
                     Set<Library> libs = LibraryChooser.showDialog(LibraryManager.getDefault(), null, null);
                     if (libs != null) {
                         node.addLibraries(libs);

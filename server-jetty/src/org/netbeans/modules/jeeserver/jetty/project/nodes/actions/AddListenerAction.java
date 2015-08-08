@@ -29,6 +29,7 @@ import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.jetty.util.IniModules.JsfSupport;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.StartIni;
 import org.openide.awt.ActionID;
@@ -105,11 +106,17 @@ public final class AddListenerAction extends AbstractAction implements ContextAw
 
             if (enabled) {
 
-                File f = Paths.get(serverProject.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
+                //File f = Paths.get(serverProject.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
 
-                StartIni startIni = new StartIni(f);
+                //StartIni startIni = new StartIni(f);
 
-                String jsfModule = startIni.getEnabledJsfModuleName();
+                //String jsfModule = startIni.getEnabledJsfModuleName();
+                
+                File f = Paths.get(serverProject.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER).toFile();                
+                JsfSupport jsfSupport = new JsfSupport(f);
+
+                String jsfModule = jsfSupport.getEnabledJsfModuleName();
+                
                 enabled = jsfModule != null && !DDHelper.hasJsfListener(serverProject, webProject);
                 setEnabled(enabled);
 

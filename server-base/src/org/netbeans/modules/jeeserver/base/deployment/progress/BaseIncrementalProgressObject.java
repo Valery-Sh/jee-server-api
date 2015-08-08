@@ -16,12 +16,17 @@
  */
 package org.netbeans.modules.jeeserver.base.deployment.progress;
 
+import java.io.File;
 import javax.enterprise.deploy.shared.CommandType;
 import javax.enterprise.deploy.spi.Target;
 import javax.enterprise.deploy.spi.status.ProgressObject;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTargetModuleID;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.DeploymentContext;
+import org.netbeans.modules.jeeserver.base.deployment.BaseTarget;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.web.api.webmodule.WebModule;
+import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
 /**
@@ -43,6 +48,8 @@ public class BaseIncrementalProgressObject extends BaseDeployProgressObject {
         return start(module, false);
     }
     public BaseIncrementalProgressObject start(BaseTargetModuleID module, boolean completeImmediately) {
+        BaseUtils.out("BaseIncrementalProgressObject.start completeImmeduatly=" + completeImmediately);
+        
         setTargetModuleID(module);
         setCompleteImmediately(completeImmediately);
         
@@ -50,6 +57,8 @@ public class BaseIncrementalProgressObject extends BaseDeployProgressObject {
         this.setTargetModuleID(module);
         setMode(getManager().getCurrentDeploymentMode());
         if ( completeImmediately ) {
+BaseUtils.out("BaseIncrementalProgressObject.start is completeImmeduatly RETURN");
+            
             fireCompleted(CommandType.START, getManager().getDefaultTarget().getName());            
             return this;
         }
@@ -60,6 +69,8 @@ public class BaseIncrementalProgressObject extends BaseDeployProgressObject {
 
     /**
      * Stops web module.
+     * @param module
+     * @return 
      */
     public BaseIncrementalProgressObject stop(BaseTargetModuleID module) {
         return this.stop(module,false);
@@ -79,4 +90,5 @@ public class BaseIncrementalProgressObject extends BaseDeployProgressObject {
         BaseTargetModuleID module = getManager().getModule(FileUtil.toFileObject(context.getModuleFile()));
         return deploy(module);
     }
+    
 }

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.netbeans.modules.jeeserver.jetty.util;
 
 import java.io.File;
@@ -17,6 +12,10 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
+import org.netbeans.api.project.FileOwnerQuery;
+import org.netbeans.api.project.Project;
+import org.netbeans.modules.jeeserver.base.deployment.lc.LicenseWizardAction;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
@@ -33,27 +32,12 @@ public class IniModules {
 
     }
 
-    public static Map<String, List<String>> getEnabledModulesByIniName(String baseDir, String homeDir) {
-        Map<String, List<String>> byIniName = new HashMap<>();
-        getEnabledModules(baseDir, homeDir, byIniName);
-        return byIniName;
-    }
-
-    private static List<String> getEnabledModules(String baseDir, String homeDir, Map<String, List<String>> byIniName) {
+    public static List<String> getEnabledModules(String baseDir) {
         //
         // First get  all modules from start.ini in the baseDir
         //
         StartIni startIni = new StartIni(Paths.get(baseDir, "start.ini").toFile());
         final List<String> modules = startIni.getEnabledModules();
-
-        List<String> byIniList = new ArrayList<>();
-        if (byIniName != null) {
-            modules.forEach(modName -> {
-                byIniList.add(modName);
-            });
-            byIniName.put("start.ini", byIniList);    
-        }
-        
 
         Path startDPath = Paths.get(baseDir, "start.d");
 
@@ -69,10 +53,6 @@ public class IniModules {
                             modules.add(mod);
                         }
                     });
-                    if (byIniName != null) {
-                        byIniName.put(p.getFileName().toString(), list);
-                    }
-
                 }
             });
         } catch (IOException ex) {
@@ -81,91 +61,94 @@ public class IniModules {
         return modules;
 
     }
-
-    public static List<String> getEnabledModules(String baseDir, String homeDir) {
-        return getEnabledModules(baseDir, homeDir, null);
+    
+    public static boolean isModuleEnabled(File jettyBase, String moduleName) {
+        return getEnabledModules(jettyBase.getPath()).contains(moduleName);
     }
-
-    public static class StartdIni extends AbsractJettyConfig {
-
-        protected StartdIni(File file) {
-            setFile(file);
+    
+    public static class CDISupport {
+        private File jettyBase; 
+        private Project server;
+        
+        public CDISupport(Project server) {
+            this.server = server;
+            init();
         }
-
-        public StartdIni(FileObject fileObject) {
-            this(FileUtil.toFile(fileObject));
+        public CDISupport(File jettyBase) {
+            init(jettyBase);
         }
-
-        public boolean isEnabled(String moduleName) {
-            return moduleLine(moduleName) >= 0;
+        
+        private void init() {
+            Path p = Paths.get(server.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER);
+            this.jettyBase = p.toFile();
         }
-
-        public int moduleLine(String moduleName) {
-            int idx = -1;
-            for (int i = 0; i < lines().size(); i++) {
-                if (lines().get(i).startsWith("--module=" + moduleName)) {
-                    idx = i;
-                    break;
-                }
-            }
-            return idx;
+        private void init(File jettyBase) {
+            FileObject fo = FileUtil.toFileObject(jettyBase);
+            server =  FileOwnerQuery.getOwner(fo);
+            this.jettyBase = jettyBase;
         }
-
-        public List<String> getEnabledModules() {
-            List<String> list = new ArrayList<>();
-            for (int i = 0; i < lines().size(); i++) {
-                String ln = lines().get(i);
-                if (ln.startsWith("--module=")) {
-                    list.add(ln.substring("--module=".length()));
-                }
-            }
-            return list;
+        
+        protected void disableCDIModule() {
+            //Path p = Paths.get(jettyBase.getPath(),"start.ini");
+            StartIni ini = new StartIni(server, true);
+            ini.commentModule("cdi");
+            ini.save();
         }
-
-        @Override
-        public void commentLine(int idx) {
-            if (lines().isEmpty() || idx >= lines().size()) {
+        
+        public boolean isCDIEnabled() {
+            return getEnabledModules(jettyBase.getPath()).contains("cdi");
+        }
+        
+        public boolean isCdiLibExists() {
+            return Paths.get(jettyBase.getPath(), "lib/cdi").toFile().exists();
+        }
+        public boolean isLicenseAccepted() {
+            return isCDIEnabled() && isCdiLibExists();
+        }
+        public static boolean isLicenseAccepted(Project server) {
+            return new CDISupport(server).isLicenseAccepted();
+        }
+        
+        public static void showLicenseDialog(Project server) {
+            CDISupport cdi = new CDISupport(server);
+            cdi.showLicenseDialog();
+        }
+        
+        public void showLicenseDialog() {
+            if ( isLicenseAccepted() ) {
                 return;
             }
-            lines().set(idx, "#" + lines().get(idx));
-        }
-
-        public void removeModule(String moduleName) {
-            int idx = moduleLine(moduleName);
-            if (idx >= 0) {
-                lines().remove(idx);
+            LicenseWizardAction d = new LicenseWizardAction();
+            if ( d.showLicenceDialog() ) {
+                BaseUtils.out("!!!! showLicenseDialog TRUE"  );
+            } else {
+                BaseUtils.out("!!!! showLicenseDialog FALSE"  );
+                disableCDIModule();
             }
         }
-
-        public void commentModule(String moduleName) {
-            int idx = moduleLine(moduleName);
-            if (idx >= 0) {
-                commentLine(idx);
-            }
+        
+    }
+    
+    public static class JsfSupport {
+        private final File jettyBase; 
+        public JsfSupport(File jettyBase) {
+            this.jettyBase = jettyBase;
         }
-
-        public void addModule(String moduleName) {
-            int idx = moduleLine(moduleName);
-            if (idx >= 0) {
-                return;
-            }
-            lines().add("--module=" + moduleName);
-
-        }
-
         public List<JsfConfig> getSupportedJsfConfigs() {
             List<JsfConfig> l = new ArrayList<>();
             l.add(new JsfConfig("jsf-myfaces", "org.apache.myfaces.webapp.StartupServletContextListener"));
             l.add(new JsfConfig("jsf-mojarra", "com.sun.faces.config.ConfigureListener"));
+            l.add(new JsfConfig("jsf-netbeans", "com.sun.faces.config.ConfigureListener"));
             return l;
         }
 
         public List<String> getSupportedJsfListenerClasses() {
             List<JsfConfig> l = getSupportedJsfConfigs();
             List<String> r = new ArrayList<>();
-            for (JsfConfig c : l) {
+            l.forEach(c -> {
                 r.add(c.getListenerClass());
-            }
+            });
+
             return r;
         }
 
@@ -189,32 +172,38 @@ public class IniModules {
             return null;
         }
 
-        public static class JsfConfig {
-
-            private String moduleName;
-            private String listenerClass;
-
-            public JsfConfig(String moduleName, String listenerClass) {
-                this.moduleName = moduleName;
-                this.listenerClass = listenerClass;
-            }
-
-            public String getModuleName() {
-                return moduleName;
-            }
-
-            public void setModuleName(String moduleName) {
-                this.moduleName = moduleName;
-            }
-
-            public String getListenerClass() {
-                return listenerClass;
-            }
-
-            public void setListenerClass(String listenerClass) {
-                this.listenerClass = listenerClass;
-            }
+        public boolean isEnabled(String moduleName) {
+            return getEnabledModules(jettyBase.getPath()).contains(moduleName);
         }
 
-    }//class
+    }
+
+    public static class JsfConfig {
+
+        private String moduleName;
+        private String listenerClass;
+
+        public JsfConfig(String moduleName, String listenerClass) {
+            this.moduleName = moduleName;
+            this.listenerClass = listenerClass;
+        }
+
+        public String getModuleName() {
+            return moduleName;
+        }
+
+        public void setModuleName(String moduleName) {
+            this.moduleName = moduleName;
+        }
+
+        public String getListenerClass() {
+            return listenerClass;
+        }
+
+        public void setListenerClass(String listenerClass) {
+            this.listenerClass = listenerClass;
+        }
+
+    }
+    
 }//class

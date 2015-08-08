@@ -297,6 +297,7 @@
                 <package>org.netbeans.modules.jeeserver.base.deployment.config</package>
                 <package>org.netbeans.modules.jeeserver.base.deployment.ide</package>
                 <package>org.netbeans.modules.jeeserver.base.deployment.jsp</package>
+                <package>org.netbeans.modules.jeeserver.base.deployment.lc</package>
                 <package>org.netbeans.modules.jeeserver.base.deployment.progress</package>
                 <package>org.netbeans.modules.jeeserver.base.deployment.specifics</package>
                 <package>org.netbeans.modules.jeeserver.base.deployment.utils</package>

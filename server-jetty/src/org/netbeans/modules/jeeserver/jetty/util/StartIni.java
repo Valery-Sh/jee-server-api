@@ -57,7 +57,7 @@ import org.openide.windows.IOColors;
 public class StartIni extends AbsractJettyConfig {
 
     private static final Logger LOG = Logger.getLogger(StartIni.class.getName());
-
+    
     public StartIni(File file) {
         setFile(file);
     }
@@ -71,7 +71,14 @@ public class StartIni extends AbsractJettyConfig {
         this(FileUtil.toFile(server.getProjectDirectory()
                 .getFileObject(JettyConstants.JETTY_START_INI)));
     }
+    public StartIni(Project server, boolean withComments) {
+        
+        setFile(FileUtil.toFile(server.getProjectDirectory()
+                .getFileObject(JettyConstants.JETTY_START_INI)));
+        
+    }
 
+    
     public boolean isEnabled(String moduleName) {
         return moduleLine(moduleName) >= 0;
     }
@@ -100,10 +107,13 @@ public class StartIni extends AbsractJettyConfig {
 
     @Override
     public void commentLine(int idx) {
+BaseUtils.out("Start Ini commentLine idx=" + idx);        
         if (lines().isEmpty() || idx >= lines().size()) {
             return;
         }
+BaseUtils.out("Start Ini commentLine set" + lines().get(idx));        
         lines().set(idx, "#" + lines().get(idx));
+BaseUtils.out("Start Ini commentLine after" + lines().get(idx));                
     }
 
     public void removeModule(String moduleName) {
@@ -114,7 +124,9 @@ public class StartIni extends AbsractJettyConfig {
     }
 
     public void commentModule(String moduleName) {
+BaseUtils.out("Start Ini commentModule=" + moduleName);
         int idx = moduleLine(moduleName);
+BaseUtils.out("Start Ini commentModule idx=" + idx);        
         if (idx >= 0) {
             commentLine(idx);
         }
@@ -128,11 +140,12 @@ public class StartIni extends AbsractJettyConfig {
         lines().add("--module=" + moduleName);
 
     }
-
+/*
     public List<JsfConfig> getSupportedJsfConfigs() {
         List<JsfConfig> l = new ArrayList<>();
         l.add(new JsfConfig("jsf-myfaces", "org.apache.myfaces.webapp.StartupServletContextListener"));
         l.add(new JsfConfig("jsf-mojarra", "com.sun.faces.config.ConfigureListener"));
+        l.add(new JsfConfig("jsf-netbeans", "com.sun.faces.config.ConfigureListener"));
         return l;
     }
 
@@ -192,7 +205,7 @@ public class StartIni extends AbsractJettyConfig {
         }
 
     }
-
+*/
     /**
      * A handler of the {@literal FileEvent } that is registered on the
      * {@literal FileObject} that is associated with a
@@ -249,7 +262,7 @@ public class StartIni extends AbsractJettyConfig {
             String homeDir = BaseUtils.getServerProperties(project).getHomeDir();
 
             List<String> modules = ini.getEnabledModules();
-            Map<String, List<String>> byIniName = IniModules.getEnabledModulesByIniName(baseDir, homeDir);
+            //Map<String, List<String>> byIniName = IniModules.getEnabledModulesByIniName(baseDir, homeDir);
 
             Info f = new Info();
             f.line('=');

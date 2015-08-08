@@ -36,6 +36,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.spi.DeploymentManager;
@@ -429,5 +430,13 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     public boolean isEmbedded() {
         return true;
     }
-
+    
+    @Override
+    public String[] getSupportedContextPaths() {
+        return new String[] {"META-INF/context.xml"};
+    }
+    @Override
+    public Properties getContextPoperties(FileObject config) {
+        return TomcatModuleConfiguration.getContextProperties(config);
+    }            
 }

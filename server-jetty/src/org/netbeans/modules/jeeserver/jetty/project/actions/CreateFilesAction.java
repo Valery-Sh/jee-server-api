@@ -35,6 +35,7 @@ import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode;
+import org.netbeans.modules.jeeserver.jetty.util.IniModules;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -120,6 +121,7 @@ public final class CreateFilesAction extends AbstractAction implements ContextAw
         }
 
         public void perform() {
+            IniModules.CDISupport.showLicenseDialog(project);
             RequestProcessor rp = new RequestProcessor("Server processor", 1);
             rp.post(new RunnableImpl(), 0, Thread.NORM_PRIORITY);
         }
@@ -153,7 +155,8 @@ public final class CreateFilesAction extends AbstractAction implements ContextAw
                 props.setProperty("start.jar", getStartJar());
 
                 String[] targets = new String[]{"pre-run"};
-
+                
+                
                 try {
                     task = ActionUtils.runTarget(buildXml, targets, props);
                     task.waitFinished();

@@ -72,7 +72,8 @@ public class JettyLibBuilder {
         homeModules = Paths.get(jettyHome, "modules").toString().replace("\\", "/");
         baseModules = Paths.get(jettyBase, "modules").toString().replace("\\", "/");
         StartIni startIni = new StartIni(manager.getServerProject());
-        startIniModuleNames = IniModules.getEnabledModules(jettyBase, jettyHome);
+        //startIniModuleNames = IniModules.getEnabledModules(jettyBase, jettyHome);
+        startIniModuleNames = IniModules.getEnabledModules(jettyBase);        
         createModules();
     }
 

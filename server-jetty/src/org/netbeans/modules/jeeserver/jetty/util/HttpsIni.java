@@ -31,6 +31,7 @@ public class HttpsIni extends AbsractJettyConfig {
         setFile(file);
         
     }
+    
     public int propertyLine(String propName) {
         int idx = -1;
         for (int i = 0; i < lines().size(); i++) {

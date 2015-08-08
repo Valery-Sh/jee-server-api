@@ -1,19 +1,32 @@
 package org.netbeans.modules.jeeserver.jetty.project;
 
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
+import org.netbeans.api.project.libraries.Library;
+import org.netbeans.api.project.libraries.LibraryManager;
+import org.netbeans.modules.j2ee.deployment.devmodules.api.ServerInstance;
 import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.ide.BaseStartServer;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.LibrariesFileLocator;
 import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyStartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.JettyBaseRootNode;
 //import org.netbeans.modules.jeeserver.jetty.project.nodes.WebModulesRootNode;
@@ -27,6 +40,8 @@ import org.netbeans.spi.project.ProjectState;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
@@ -37,15 +52,47 @@ import org.openide.util.lookup.Lookups;
  */
 public class JettyProject implements Project {
 
+    private static final Logger LOG = Logger.getLogger(BaseStartServer.class.getName());
+
     private final FileObject projectDir;
     private final ProjectState state;
+
     private Lookup lookup;
-    private StartIni.StartIniFileChangeHandler startIniChangeHander;
-    private HttpIni.HttpIniFileChangeHandler httpIniChangeHander;
+    //private StartIni.StartIniFileChangeHandler startIniChangeHander;
+    //private HttpIni.HttpIniFileChangeHandler httpIniChangeHander;
 
     public JettyProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
         this.state = state;
+        //init();
+    }
+
+    public static void enableJSFLibrary(FileObject projDir) {
+        BaseUtils.out("JettyProject.ini() ===============");
+
+        Library[] libs = LibraryManager.getDefault().getLibraries();
+        for (Library l : libs) {
+            BaseUtils.out("----- lib name = " + l.getName() + "; displayname=" + l.getDisplayName());
+        }
+        BaseUtils.out("=================================");
+        //
+        // add JSF library to ${jetty.base}/lib/jsf-netbeans folder
+        //
+        Library jsfLib = LibraryManager.getDefault().getLibrary("jsf20");
+        if (jsfLib == null) {
+            return;
+        }
+        List<File> files = LibrariesFileLocator.findFiles(jsfLib);
+        final FileObject jsfFolder = FileUtil.toFileObject(Paths.get(projDir.getPath(), JettyConstants.JETTYBASE_FOLDER, "lib/jsf-netbeans").toFile());
+        
+        files.forEach(file -> {
+            FileObject fo = FileUtil.toFileObject(file);
+            try {
+                FileUtil.copyFile(fo, jsfFolder, fo.getName(), fo.getExt());
+            } catch (IOException ex) {
+                LOG.log(Level.INFO, ex.getMessage());
+            }
+        });
     }
 
     @Override
@@ -59,6 +106,7 @@ public class JettyProject implements Project {
 
     @Override
     public Lookup getLookup() {
+
         if (lookup == null) {
             final ServerInstanceProperties serverProperties = new ServerInstanceProperties();
             final String id = Utils.getServerId();

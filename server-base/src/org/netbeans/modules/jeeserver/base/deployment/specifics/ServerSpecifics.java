@@ -18,6 +18,7 @@ package org.netbeans.modules.jeeserver.base.deployment.specifics;
 
 import java.awt.Image;
 import java.util.Map;
+import java.util.Properties;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
@@ -54,6 +55,11 @@ public interface ServerSpecifics {
     int getDefaultDebugPort();
     int getDefaultShutdownPort();
 
+    default String[] getSupportedContextPaths() {
+        return new String[] {"WEB-INF/jetty-web.xml","WEB-INF/web-jetty.xml"};
+    }
+    Properties getContextPoperties(FileObject config);
+    
     /**
      *
      * @param manager
@@ -64,6 +70,8 @@ public interface ServerSpecifics {
     default void serverStarting(DeploymentManager manager) {
         
     }
+    
+    
     
     WizardDescriptorPanel getAddonCreateProjectPanel(WizardDescriptor wiz);
     

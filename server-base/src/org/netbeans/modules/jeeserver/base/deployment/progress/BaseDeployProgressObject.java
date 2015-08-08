@@ -117,6 +117,7 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
     }
 
     public BaseDeployProgressObject redeploy(BaseTargetModuleID oldModule, boolean completeImmediately) {
+BaseUtils.out("BaseDeployProgressObject REDEPLOY completeImmediately=" + completeImmediately);
         command = "redeploy";
         BaseTarget target = getManager().getDefaultTarget();
         FileObject projDir = FileUtil.toFileObject(new File(oldModule.getProjectDir()));
@@ -133,6 +134,24 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         return this;
     }
 
+    public BaseDeployProgressObject redeploy(BaseTargetModuleID oldModule, BaseTargetModuleID newModule) {
+        return redeploy(oldModule, newModule,false);
+    }
+
+    public BaseDeployProgressObject redeploy(BaseTargetModuleID oldModule,BaseTargetModuleID newModule, boolean completeImmediately) {
+        command = "redeploy";
+
+        this.setOldTargetModuleID(oldModule);
+        this.setTargetModuleID(newModule);
+        setCompleteImmediately(completeImmediately);
+        setMode(getManager().getCurrentDeploymentMode());
+        fireRunning(CommandType.REDEPLOY, getManager().getDefaultTarget().getName());
+        requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        return this;
+    }
+    
+    
+    
     /**
      * Returns an array with a single element. The element of the array is the
      * one that accepted as a parameter of null null null null null null null     {@link #deploy(BaseTargetModuleID, org.openide.filesystems.FileObject)  
@@ -147,18 +166,9 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
     @Override
     public void run() {
         String command = this.command;
-//        String msg = getManager().getDefaultTarget().getName();
-//        fireRunning(CommandType.DISTRIBUTE, getManager().getDefaultTarget().getName());
-/*        while(true) {
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException ex) {
-                Exceptions.printStackTrace(ex);
-            }
-            break;
-        }
-*/        
+BaseUtils.out("BaseDeployProgressObject RUN completeImmediately=" + isCompleteImmediately());
         if (!isCompleteImmediately()) {
+BaseUtils.out("BaseDeployProgressObject RUN EXECUTE SEEVER COMMAND");            
             //
             // actual execution
             //

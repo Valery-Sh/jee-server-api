@@ -554,6 +554,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      */
     @Override
     public ProgressObject start(TargetModuleID[] modules) throws IllegalStateException {
+        BaseUtils.out("DEPLOYMENT MANAGER: start targetModuleID={0}" + modules[0]);
         LOG.log(Level.INFO, "DEPLOYMENT MANAGER: start targetModuleID={0}", modules[0]);
         if (!isServerRunning()) {
             throw new IllegalStateException("ESDeploymentManager.start called on disconnected instance");   // NOI18N

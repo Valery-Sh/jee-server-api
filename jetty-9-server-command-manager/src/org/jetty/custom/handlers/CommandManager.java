@@ -183,7 +183,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     public void lifeCycleStopped(LifeCycle lc) {
     }
 
-    protected void redeploy(HttpServletRequest request) {
+    protected void redeploy_NEW(HttpServletRequest request) {
         Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
 
         if (map.isEmpty()) {
@@ -205,21 +205,62 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
 
         WebAppContext webapp = findWebAppContext(oldContextPath);
         if (webapp != null) {
-            undeploy(request);
+            stop(request);
         }
 
-        deploy(request);
+        start(request);
 
-        try {
+/*        try {
             webapp.stop();
         } catch (Exception ex) {
             Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+*/
         System.out.println("redeploy: success");
         return;// webapp;
     }
 
+    protected void redeploy(HttpServletRequest request) {
+        System.out.println("redeploy: starting");
+        Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
+
+        if (map.isEmpty()) {
+            System.out.println("redeploy: no handler found. redeploy finished.");
+            return;// null;
+        }
+        String oldContextPath = request.getParameter("oldcp");
+        String oldWebDir = request.getParameter("olddir");
+        if (oldWebDir != null) {
+            oldWebDir = new File(oldWebDir).getAbsolutePath();
+        }
+
+        String contextPath = request.getParameter("cp");
+        String webDir = request.getParameter("dir");
+        webDir = new File(webDir).getAbsolutePath();
+
+        System.out.println("redeploy started. Old web app: for oldcp=" + oldContextPath + "; oldWebDir=" + oldWebDir);
+        System.out.println("redeploy started. New web app: for cp=" + contextPath + "; webDir=" + webDir);
+
+        WebAppContext webapp = findWebAppContext(oldContextPath);
+        if (webapp != null) {
+            undeploy(oldContextPath, oldWebDir);
+        }
+
+        deploy(contextPath,webDir);
+
+        try {
+            webapp.stop();
+            System.out.println("redeploy: stopped");
+        } catch (Exception ex) {
+            System.out.println("redeploy: stop EXCEPTION");
+            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        //start(request);
+        
+        System.out.println("redeploy: success !!!");
+        return;// webapp;
+    }
+    
     protected WebAppContext findWebAppContext(String contextPath) {
         Handler[] hs = getServer().getChildHandlersByClass(WebAppContext.class);
         for (Handler h : hs) {
@@ -247,6 +288,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     }
 
     protected WebAppContext findWebApps(String warPath) {
+System.out.println("!!!!!!!!!!!! findWebApps path=" + warPath);        
         Handler[] contextHandlers = getServer().getChildHandlersByClass(ContextHandlerCollection.class);
         for (Handler ch : contextHandlers) {
             ContextHandlerCollection chs = (ContextHandlerCollection) ch;
@@ -256,6 +298,8 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
                 File f1 = new File(w.getWar());
                 File f2 = new File(warPath);
                 if (f1.equals(f2)) {
+System.out.println("!!!!!!!!!!!! cp=" + w.getContextPath() + "; dir1=" + f1);
+System.out.println("!!!!!!!!!!!! dir2=" + f2);
                     return (WebAppContext) h;
                 }
             }//for
@@ -305,7 +349,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
 
         System.out.println("undeploy: success");
 
-        printInfoAfter("undeploy");
+        //printInfoAfter("undeploy");
     }
 
     protected void undeployHotDeployed(HttpServletRequest request) {
@@ -510,16 +554,23 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
 
         if (map.isEmpty()) {
+            System.out.println("start: map is empty");
             return;// null;
         }
         WebAppContext webapp = findWebAppContext(contextPath);
         if (webapp == null) {
+            System.out.println("RETURN start");
             return;// null;
         }
 //System.out.println("start: before copy maven");
+        if (webapp.isStarted() ) {
+            System.out.println("webapp is running");
+            return;
+        }
         try {
             copyMavenChangedClasses(webapp);
             webapp.start();
+            System.out.println("webapp.start ");
         } catch (Exception ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
             System.err.println("start: failed " + ex.getMessage());
@@ -670,8 +721,9 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         String path = getWarPath(webDir); // to deploy
 
         WebAppContext c = findWebApps(path);
-
+System.out.println("deploy: WEBAPPCONTEXT=" + c);
         if (c != null) {
+System.out.println("deploy: WEBAPPCONTEXT war=" + c.getWar());            
             System.out.println("deploy: there is a handler with the same webDir=" + webDir + ". Execute undeploy");
             undeploy(contextPath, webDir);
         }

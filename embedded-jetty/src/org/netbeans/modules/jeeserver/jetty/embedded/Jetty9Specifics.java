@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.spi.DeploymentManager;
@@ -415,5 +416,9 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     public boolean isEmbedded() {
         return true;
     }
+    @Override
+    public Properties getContextPoperties(FileObject config) {
+        return JettyModuleConfiguration.getContextProperties(config);
+    }            
 
 }

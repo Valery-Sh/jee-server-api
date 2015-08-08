@@ -41,6 +41,7 @@ import org.openide.util.Exceptions;
  */
 public class AbsractJettyConfig {
     private static final Logger LOG = Logger.getLogger(AbsractJettyConfig.class.getName());
+    protected boolean withComments;
 
     private File file;
     private List<String> lines = new ArrayList<>();
@@ -59,11 +60,13 @@ public class AbsractJettyConfig {
             throw new RuntimeException("Invalid base dir " + file.toString() + "; " + ex.getMessage() );
         }
         
+        
         try (FileReader reader = new FileReader(file)) {
             try (BufferedReader buf = new BufferedReader(reader)) {
                 String line;
                 while ((line = buf.readLine()) != null) {
-                    if (line.length() != 0 && line.charAt(0) != '#') {
+                    boolean b = withComments ? true : line.isEmpty() || line.charAt(0) != '#';
+                    if (line.length() != 0 && b) {
                         String s = line.trim().replaceAll(" ", "");
                         if (s.startsWith("--module=")) {
                             separateModules(s);

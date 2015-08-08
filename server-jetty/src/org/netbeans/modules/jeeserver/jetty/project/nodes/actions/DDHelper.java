@@ -29,6 +29,7 @@ import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.deploy.*;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.JettyBaseRootNode;
+import org.netbeans.modules.jeeserver.jetty.util.IniModules.JsfSupport;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.StartIni;
 import org.netbeans.modules.web.api.webmodule.WebModule;
@@ -130,12 +131,18 @@ public class DDHelper  {
             return;
         }
 
-        File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
+//        File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
 
-        StartIni startIni = new StartIni(f);
+//        StartIni jsfSupport = new StartIni(f);
 
-        String listenerClass = startIni.getListenerClassForEnabledJsf();
+//        String listenerClass = jsfSupport.getListenerClassForEnabledJsf();
 
+        File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER).toFile();
+
+        JsfSupport jsfSupport = new JsfSupport(f);
+
+        String listenerClass = jsfSupport.getListenerClassForEnabledJsf();
+        
         if (listenerClass == null) {
             return;
         }
@@ -148,7 +155,7 @@ public class DDHelper  {
                     return;
                 }
             }
-            List<String> supported = startIni.getSupportedJsfListenerClasses();
+            List<String> supported = jsfSupport.getSupportedJsfListenerClasses();
 
             for (Listener l : listeners) {
 
@@ -185,12 +192,18 @@ public class DDHelper  {
             return true;
         }
 
-        File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
+//        File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
 
-        StartIni startIni = new StartIni(f);
+//        StartIni startIni = new StartIni(f);
 
-        String listenerClass = startIni.getListenerClassForEnabledJsf();
+//        String listenerClass = startIni.getListenerClassForEnabledJsf();
 
+        File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER).toFile();
+
+        JsfSupport jsfSupport = new JsfSupport(f);
+
+        String listenerClass = jsfSupport.getListenerClassForEnabledJsf();
+        
         if (listenerClass == null) {
             return true;
         }
