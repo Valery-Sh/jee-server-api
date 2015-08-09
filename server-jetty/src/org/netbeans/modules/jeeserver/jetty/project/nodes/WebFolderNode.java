@@ -1,6 +1,5 @@
 package org.netbeans.modules.jeeserver.jetty.project.nodes;
 
-import org.netbeans.modules.jeeserver.jetty.project.nodes.*;
 import java.awt.Image;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.openide.nodes.FilterNode;

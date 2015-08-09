@@ -30,7 +30,6 @@ import org.openide.awt.DynamicMenuContent;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
-import org.openide.util.RequestProcessor;
 
 /**
  * The class provides implementations of the  context aware action 
@@ -67,7 +66,7 @@ public final class StartServerDebugAction extends AbstractAction implements Cont
     private static final class ContextAction extends AbstractAction {
 
         private final Project project;
-        private RequestProcessor.Task task;
+        //private RequestProcessor.Task task;
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {

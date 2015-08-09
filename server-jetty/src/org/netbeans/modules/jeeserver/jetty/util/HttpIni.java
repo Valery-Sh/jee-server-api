@@ -17,7 +17,6 @@
 package org.netbeans.modules.jeeserver.jetty.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Logger;
 import org.netbeans.api.project.FileOwnerQuery;
@@ -25,7 +24,6 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.jetty.project.nodes.JettyBaseRootNode;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyProperties;
 import org.openide.filesystems.FileChangeAdapter;
 import org.openide.filesystems.FileEvent;

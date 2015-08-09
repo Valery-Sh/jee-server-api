@@ -22,7 +22,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.shared.StateType;
-import javax.enterprise.deploy.spi.DeploymentManager;
 import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
@@ -43,9 +42,9 @@ import org.openide.util.NbBundle;
  * Starts and tracks a deployment process in {@literal RUN, DEBUG} or
  * {@literal PROFILE} mode.
  *
- * @see ESAbstractProgressObject
- * @see ESDeployProgressObject
- * @see ESStopProgressObject
+ * @see AbstractProgressObject
+ * @see BaeDeployProgressObject
+ * @see BaseStopProgressObject
  *
  * @author V. Shyshkin
  */
@@ -73,7 +72,7 @@ public class BaseRunProgressObject extends AbstractProgressObject {
         setMode(toMode);
         // Needs only to create DeploymentStatus
         setStatusStartRunning("");
-        requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
 

@@ -16,48 +16,33 @@
  */
 package org.netbeans.modules.jeeserver.jetty.util;
 
-import com.sun.javafx.scene.control.skin.VirtualFlow;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.j2ee.dd.api.common.CommonDDBean;
-import org.netbeans.modules.j2ee.dd.api.common.CreateCapability;
-import org.netbeans.modules.j2ee.dd.api.web.DDProvider;
-import org.netbeans.modules.j2ee.dd.api.web.Listener;
-import org.netbeans.modules.j2ee.dd.api.web.WebApp;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
 import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Info;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyLibBuilder;
-import org.netbeans.modules.jeeserver.jetty.deploy.JettyLibBuilder.Module;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
-import org.netbeans.modules.jeeserver.jetty.project.actions.CreateFilesAction;
-import org.netbeans.modules.jeeserver.jetty.project.nodes.JettyBaseRootNode;
-import org.netbeans.modules.web.api.webmodule.WebModule;
+import org.netbeans.modules.jeeserver.jetty.project.nodes.actions.AbstractHotDeployedContextAction;
 import org.openide.filesystems.FileChangeAdapter;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
 import org.openide.util.RequestProcessor;
 import org.openide.windows.IOColors;
 
 public class StartIni extends AbsractJettyConfig {
 
     private static final Logger LOG = Logger.getLogger(StartIni.class.getName());
-    
+
     public StartIni(File file) {
         setFile(file);
     }
@@ -71,14 +56,15 @@ public class StartIni extends AbsractJettyConfig {
         this(FileUtil.toFile(server.getProjectDirectory()
                 .getFileObject(JettyConstants.JETTY_START_INI)));
     }
+
     public StartIni(Project server, boolean withComments) {
-        
+        this.withComments = withComments;
+
         setFile(FileUtil.toFile(server.getProjectDirectory()
                 .getFileObject(JettyConstants.JETTY_START_INI)));
-        
+
     }
 
-    
     public boolean isEnabled(String moduleName) {
         return moduleLine(moduleName) >= 0;
     }
@@ -107,13 +93,10 @@ public class StartIni extends AbsractJettyConfig {
 
     @Override
     public void commentLine(int idx) {
-BaseUtils.out("Start Ini commentLine idx=" + idx);        
         if (lines().isEmpty() || idx >= lines().size()) {
             return;
         }
-BaseUtils.out("Start Ini commentLine set" + lines().get(idx));        
         lines().set(idx, "#" + lines().get(idx));
-BaseUtils.out("Start Ini commentLine after" + lines().get(idx));                
     }
 
     public void removeModule(String moduleName) {
@@ -124,9 +107,7 @@ BaseUtils.out("Start Ini commentLine after" + lines().get(idx));
     }
 
     public void commentModule(String moduleName) {
-BaseUtils.out("Start Ini commentModule=" + moduleName);
         int idx = moduleLine(moduleName);
-BaseUtils.out("Start Ini commentModule idx=" + idx);        
         if (idx >= 0) {
             commentLine(idx);
         }
@@ -140,79 +121,81 @@ BaseUtils.out("Start Ini commentModule idx=" + idx);
         lines().add("--module=" + moduleName);
 
     }
-/*
-    public List<JsfConfig> getSupportedJsfConfigs() {
-        List<JsfConfig> l = new ArrayList<>();
-        l.add(new JsfConfig("jsf-myfaces", "org.apache.myfaces.webapp.StartupServletContextListener"));
-        l.add(new JsfConfig("jsf-mojarra", "com.sun.faces.config.ConfigureListener"));
-        l.add(new JsfConfig("jsf-netbeans", "com.sun.faces.config.ConfigureListener"));
-        return l;
-    }
+    /*
+     public List<JsfConfig> getSupportedJsfConfigs() {
+     List<JsfConfig> l = new ArrayList<>();
+     l.add(new JsfConfig("jsf-myfaces", "org.apache.myfaces.webapp.StartupServletContextListener"));
+     l.add(new JsfConfig("jsf-mojarra", "com.sun.faces.config.ConfigureListener"));
+     l.add(new JsfConfig("jsf-netbeans", "com.sun.faces.config.ConfigureListener"));
+     return l;
+     }
 
-    public List<String> getSupportedJsfListenerClasses() {
-        List<JsfConfig> l = getSupportedJsfConfigs();
-        List<String> r = new ArrayList<>();
-        for (JsfConfig c : l) {
-            r.add(c.getListenerClass());
-        }
-        return r;
-    }
+     public List<String> getSupportedJsfListenerClasses() {
+     List<JsfConfig> l = getSupportedJsfConfigs();
+     List<String> r = new ArrayList<>();
+     for (JsfConfig c : l) {
+     r.add(c.getListenerClass());
+     }
+     return r;
+     }
 
-    public String getListenerClassForEnabledJsf() {
-        List<JsfConfig> l = getSupportedJsfConfigs();
-        for (JsfConfig c : l) {
-            if (isEnabled(c.getModuleName())) {
-                return c.getListenerClass();
-            }
-        }
-        return null;
-    }
+     public String getListenerClassForEnabledJsf() {
+     List<JsfConfig> l = getSupportedJsfConfigs();
+     for (JsfConfig c : l) {
+     if (isEnabled(c.getModuleName())) {
+     return c.getListenerClass();
+     }
+     }
+     return null;
+     }
 
-    public String getEnabledJsfModuleName() {
-        List<JsfConfig> l = getSupportedJsfConfigs();
-        for (JsfConfig c : l) {
-            if (isEnabled(c.getModuleName())) {
-                return c.getModuleName();
-            }
-        }
-        return null;
-    }
+     public String getEnabledJsfModuleName() {
+     List<JsfConfig> l = getSupportedJsfConfigs();
+     for (JsfConfig c : l) {
+     if (isEnabled(c.getModuleName())) {
+     return c.getModuleName();
+     }
+     }
+     return null;
+     }
 
-    public static class JsfConfig {
+     public static class JsfConfig {
 
-        private String moduleName;
-        private String listenerClass;
+     private String moduleName;
+     private String listenerClass;
 
-        public JsfConfig(String moduleName, String listenerClass) {
-            this.moduleName = moduleName;
-            this.listenerClass = listenerClass;
-        }
+     public JsfConfig(String moduleName, String listenerClass) {
+     this.moduleName = moduleName;
+     this.listenerClass = listenerClass;
+     }
 
-        public String getModuleName() {
-            return moduleName;
-        }
+     public String getModuleName() {
+     return moduleName;
+     }
 
-        public void setModuleName(String moduleName) {
-            this.moduleName = moduleName;
-        }
+     public void setModuleName(String moduleName) {
+     this.moduleName = moduleName;
+     }
 
-        public String getListenerClass() {
-            return listenerClass;
-        }
+     public String getListenerClass() {
+     return listenerClass;
+     }
 
-        public void setListenerClass(String listenerClass) {
-            this.listenerClass = listenerClass;
-        }
+     public void setListenerClass(String listenerClass) {
+     this.listenerClass = listenerClass;
+     }
 
-    }
-*/
+     }
+     */
+
     /**
      * A handler of the {@literal FileEvent } that is registered on the
      * {@literal FileObject} that is associated with a
      * {@literal server-instance-config} folder.
      */
     public static class StartIniFileChangeHandler extends FileChangeAdapter {
-
+        private static final RequestProcessor RP = new RequestProcessor(StartIniFileChangeHandler.class);
+            
         private final Project project;
 
         public StartIniFileChangeHandler(Project project) {
@@ -227,12 +210,14 @@ BaseUtils.out("Start Ini commentModule idx=" + idx);
         @Override
         public void fileChanged(FileEvent ev) {
             BaseDeploymentManager manager = BaseUtils.managerOf(project);
-            RequestProcessor rp = new RequestProcessor("Server processor", 1);
-            rp.post(new RunnableImpl(manager), 0, Thread.NORM_PRIORITY);
+            //RequestProcessor rp = new RequestProcessor("Server processor", 1);
+            RP.post(new RunnableImpl(manager), 0, Thread.NORM_PRIORITY);
         }
 
         protected static class RunnableImpl implements Runnable {
+
             private final BaseDeploymentManager manager;
+
             public RunnableImpl(BaseDeploymentManager manager) {
                 this.manager = manager;
             }
@@ -291,102 +276,102 @@ BaseUtils.out("Start Ini commentModule idx=" + idx);
             WebModuleConfig[] configs = availableModules.getModuleList();
         }
 
-/*        protected void modifyWebPoject(WebModuleConfig cfg) throws IOException {
+        /*        protected void modifyWebPoject(WebModuleConfig cfg) throws IOException {
 
-            DDProvider p = DDProvider.getDefault();
+         DDProvider p = DDProvider.getDefault();
 
-            FileObject webFo = FileUtil.toFileObject(new File(cfg.getWebProjectPath()));
+         FileObject webFo = FileUtil.toFileObject(new File(cfg.getWebProjectPath()));
 
-            if (webFo == null) {
-                return;
-            }
-            final WebModule wm = WebModule.getWebModule(webFo);
+         if (webFo == null) {
+         return;
+         }
+         final WebModule wm = WebModule.getWebModule(webFo);
 
-            if (wm == null) {
-                return;
-            }
-            webFo = wm.getDeploymentDescriptor();
+         if (wm == null) {
+         return;
+         }
+         webFo = wm.getDeploymentDescriptor();
 
-            if (webFo == null) {
-                return;
-            }
+         if (webFo == null) {
+         return;
+         }
 
-            File f = Paths.get(project.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
+         File f = Paths.get(project.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
 
-            StartIni startIni = new StartIni(f);
+         StartIni startIni = new StartIni(f);
 
-            if (wm.getWebInf() != null) {
-                FileObject beansXml = wm.getWebInf().getFileObject("beans.xml");
-                Path beansPath = Paths.get(wm.getWebInf().getPath(), "beans.xml");
+         if (wm.getWebInf() != null) {
+         FileObject beansXml = wm.getWebInf().getFileObject("beans.xml");
+         Path beansPath = Paths.get(wm.getWebInf().getPath(), "beans.xml");
 
-                boolean cdiEnabled = startIni.isEnabled("cdi");
-                if (cdiEnabled && beansXml == null) {
-                    //
-                    // Add beans.xml
-                    //
-                    try (InputStream is = JettyBaseRootNode.class.getResourceAsStream("/org/netbeans/modules/jeeserver/jetty/resources/beans.xml");) {
-                        Files.copy(is, beansPath);
-                    } catch (IOException ex) {
-                        LOG.log(Level.INFO, ex.getMessage());
-                    }
+         boolean cdiEnabled = startIni.isEnabled("cdi");
+         if (cdiEnabled && beansXml == null) {
+         //
+         // Add beans.xml
+         //
+         try (InputStream is = JettyBaseRootNode.class.getResourceAsStream("/org/netbeans/modules/jeeserver/jetty/resources/beans.xml");) {
+         Files.copy(is, beansPath);
+         } catch (IOException ex) {
+         LOG.log(Level.INFO, ex.getMessage());
+         }
 
-                } else if (!cdiEnabled && beansXml != null) {
-                    //
-                    // Delete beans.xml
-                    //
-                    try {
-                        Files.delete(beansPath);
-                    } catch (IOException ex) {
-                        LOG.log(Level.INFO, ex.getMessage());
-                    }
-                }
-            }
+         } else if (!cdiEnabled && beansXml != null) {
+         //
+         // Delete beans.xml
+         //
+         try {
+         Files.delete(beansPath);
+         } catch (IOException ex) {
+         LOG.log(Level.INFO, ex.getMessage());
+         }
+         }
+         }
 
-            String listenerClass = startIni.getListenerClassForEnabledJsf();
+         String listenerClass = startIni.getListenerClassForEnabledJsf();
 
-            if (listenerClass == null) {
-                return;
-            }
-            try {
-                WebApp webapp = p.getDDRoot(webFo);
-                Listener[] listeners = webapp.getListener();
-                for (Listener l : listeners) {
-                    if (listenerClass.equals(l.getListenerClass())) {
-                        return;
-                    }
-                }
-                List<String> supported = startIni.getSupportedJsfListenerClasses();
+         if (listenerClass == null) {
+         return;
+         }
+         try {
+         WebApp webapp = p.getDDRoot(webFo);
+         Listener[] listeners = webapp.getListener();
+         for (Listener l : listeners) {
+         if (listenerClass.equals(l.getListenerClass())) {
+         return;
+         }
+         }
+         List<String> supported = startIni.getSupportedJsfListenerClasses();
 
-                for (Listener l : listeners) {
-                    if (supported.contains(l.getListenerClass())) {
-                        webapp.removeListener(l);
-                    }
-                }
+         for (Listener l : listeners) {
+         if (supported.contains(l.getListenerClass())) {
+         webapp.removeListener(l);
+         }
+         }
 
-                addListener(webapp, listenerClass);
-                webapp.write(webFo);
-            } catch (Exception ex) {
-                LOG.log(Level.INFO, ex.getMessage());
-            }
-        }
+         addListener(webapp, listenerClass);
+         webapp.write(webFo);
+         } catch (Exception ex) {
+         LOG.log(Level.INFO, ex.getMessage());
+         }
+         }
 
-        protected Listener addListener(WebApp webApp, String classname) throws IOException {
-            Listener listener = (Listener) createBean(webApp, "Listener"); // NOI18N
-            listener.setListenerClass(classname);
-            webApp.addListener(listener);
-            return listener;
-        }
+         protected Listener addListener(WebApp webApp, String classname) throws IOException {
+         Listener listener = (Listener) createBean(webApp, "Listener"); // NOI18N
+         listener.setListenerClass(classname);
+         webApp.addListener(listener);
+         return listener;
+         }
 
-        protected CommonDDBean createBean(CreateCapability creator, String beanName) throws IOException {
-            CommonDDBean bean = null;
-            try {
-                bean = creator.createBean(beanName);
-            } catch (ClassNotFoundException ex) {
-                throw new IOException("Error creating bean with name:" + beanName); // NOI18N
-            }
-            return bean;
-        }
-*/
+         protected CommonDDBean createBean(CreateCapability creator, String beanName) throws IOException {
+         CommonDDBean bean = null;
+         try {
+         bean = creator.createBean(beanName);
+         } catch (ClassNotFoundException ex) {
+         throw new IOException("Error creating bean with name:" + beanName); // NOI18N
+         }
+         return bean;
+         }
+         */
     }//class StartIniChangeHandler
 
 }//class

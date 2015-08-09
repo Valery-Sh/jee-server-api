@@ -33,7 +33,6 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
 
 /**
  *
@@ -64,9 +63,19 @@ public class AbsractJettyConfig {
         try (FileReader reader = new FileReader(file)) {
             try (BufferedReader buf = new BufferedReader(reader)) {
                 String line;
+BaseUtils.out("AbstractJettyConfig withComments=" + withComments);
                 while ((line = buf.readLine()) != null) {
-                    boolean b = withComments ? true : line.isEmpty() || line.charAt(0) != '#';
-                    if (line.length() != 0 && b) {
+                    if (withComments ) {
+                        String s = line.trim().replaceAll(" ", "");
+                        if (s.startsWith("--module=")) {
+                            separateModules(s);
+                        } else {
+                            lines.add(line);
+BaseUtils.out("AbstractJettyConfig line=" + line);                            
+                        }
+                        
+                    }
+                    if (line.length() != 0 && line.charAt(0) != '#') {
                         String s = line.trim().replaceAll(" ", "");
                         if (s.startsWith("--module=")) {
                             separateModules(s);

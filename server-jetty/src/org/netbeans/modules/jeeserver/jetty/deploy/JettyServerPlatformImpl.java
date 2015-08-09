@@ -17,13 +17,10 @@
 package org.netbeans.modules.jeeserver.jetty.deploy;
 
 import java.awt.Image;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -37,7 +34,7 @@ import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl2;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.libraries.LibraryImplementation;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -96,16 +93,17 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
     private void init() {
     }
     public void notifyLibrariesChanged() {
-        synchronized (this) {
-            libraries = null;
-        }
-        firePropertyChange(PROP_LIBRARIES, null, getLibraries());
+BaseUtils.out("LibraryImplementation notifyLibrariesChanged time=" + System.currentTimeMillis());
+        
+        notifyLibrariesChanged(true);
     }
     
     public void fireChangeEvents() {
         firePropertyChange(PROP_LIBRARIES, null, getLibraries());
     }
     public void notifyLibrariesChanged(boolean fireEvents) {
+BaseUtils.out("LibraryImplementation notifyLibrariesChanged time=" + System.currentTimeMillis() +"; fireEvent = " + fireEvents);
+        
         synchronized (this) {
             libraries = null;
         }
@@ -159,6 +157,7 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
     
     @Override
     public synchronized LibraryImplementation[] getLibraries() {
+BaseUtils.out("LibraryImplementation getLibraries time=" + System.currentTimeMillis());
         if (libraries == null) {
             J2eeLibraryTypeProvider libProvider = new J2eeLibraryTypeProvider();
             LibraryImplementation lib = libProvider.createLibrary();
@@ -302,7 +301,7 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
     }
 
     //public static final String JETTY_DIR = "lib";
-    protected List<URL> getClasses() {
+    protected synchronized List<URL> getClasses() {
         List<URL> list = new ArrayList<>();
         Map<String, URL> target = new HashMap<>();
         jettyLibBuilter = new JettyLibBuilder(manager);

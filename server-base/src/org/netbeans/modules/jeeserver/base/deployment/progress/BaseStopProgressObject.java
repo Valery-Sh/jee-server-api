@@ -60,7 +60,7 @@ public class BaseStopProgressObject extends AbstractProgressObject {
         setMode(null);
         // Needs only to create DeploymentStatus
         setStatusStopRunning(getManager().getDefaultTarget().getName());
-        requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
 
     }

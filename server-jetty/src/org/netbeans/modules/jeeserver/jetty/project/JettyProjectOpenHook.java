@@ -28,7 +28,6 @@ import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationException;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.project.actions.PropertiesAction;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;

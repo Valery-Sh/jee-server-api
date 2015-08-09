@@ -32,6 +32,8 @@ import org.openide.util.RequestProcessor;
  * @author V. Shyshkin
  */
 public class WebAppCommandActions {
+    private static final RequestProcessor RP = new RequestProcessor(WebAppCommandActions.class);    
+    
     /**
      * Creates an instance of {@code RequestProcessor } for the given
      * action command and invokes the action in a separate thread.
@@ -50,11 +52,11 @@ public class WebAppCommandActions {
      * 
      * @param webProject web project for which an action will be performed.
      * @return an instance of type {@code RequestProcessor.Task}
-     */
+  */
     public static RequestProcessor.Task doInvokeAction(final String actionCommand, final Project webProject) {
-        RequestProcessor rp = new RequestProcessor();
+//        RequestProcessor rp = new RequestProcessor();
         
-        return rp.post(new Runnable() {
+        return RP.post(new Runnable() {
             @Override
             public void run() {
                 ActionProvider ap = webProject.getLookup().lookup(ActionProvider.class);

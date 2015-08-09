@@ -4,8 +4,7 @@ import java.util.Properties;
 import javax.swing.JPanel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import static org.netbeans.modules.jeeserver.base.deployment.lc.LicenseWizardAction.PROP_LICENCE_ACCEPTED;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import static org.netbeans.modules.jeeserver.base.deployment.lc.LicenseWizard.PROP_LICENCE_ACCEPTED;
 import org.openide.WizardDescriptor;
 
 public final class LicenseVisualPanel extends JPanel implements ChangeListener {
@@ -16,6 +15,7 @@ public final class LicenseVisualPanel extends JPanel implements ChangeListener {
 
     /**
      * Creates new form LicenseVisualPanel1
+     * @param panel
      */
     public LicenseVisualPanel(LicenseWizardPanel panel) {
         initComponents();
@@ -46,7 +46,7 @@ public final class LicenseVisualPanel extends JPanel implements ChangeListener {
     }
     @Override
     public String getName() {
-        return "Step #1";
+        return "";
     }
 
     /**
@@ -71,7 +71,7 @@ public final class LicenseVisualPanel extends JPanel implements ChangeListener {
         jTextPane2.setText("<html>\r\n  <head>\r\n\r\n  </head>\r\n  <body>\r\n    <p style=\"margin-top: 0\">\r\n<br/>\nThe following 1 module(s):\n<ul>\n <li> contains software not provided by the Eclipse Foundation!</li>\n <li>contains software not covered by the Eclipse Public License!</li>\n <li> has not been audited for compliance with its license</li>\n</ul>\n</p>\nModule: <b>cdi</b>\n<ul>\n  <li>Weld is an open source project hosted on Github and released under the Apache 2.0 license.</li>\n  <li><a href=\"http://weld.cdi-spec.org/\">http://weld.cdi-spec.org/</a> </li>\n  <li><a href=\"http://www.apache.org/licenses/LICENSE-2.0.html\">http://www.apache.org/licenses/LICENSE-2.0.html</a></li>      \r\n</ul>\n    </p>\r\n  </body>\r\n</html>\r\n"); // NOI18N
         jScrollPane2.setViewportView(jTextPane2);
 
-        org.openide.awt.Mnemonics.setLocalizedText(acceptCheckBox, "Accept"); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(acceptCheckBox, "Accept and proceed"); // NOI18N
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);

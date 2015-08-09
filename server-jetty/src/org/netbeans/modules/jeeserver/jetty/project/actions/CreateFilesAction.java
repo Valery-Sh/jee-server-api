@@ -28,25 +28,20 @@ import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.deployment.actions.WebAppOpenInnerProjectAction;
 import static org.netbeans.modules.jeeserver.base.deployment.progress.BaseRunProgressObject.LOG;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
-import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode;
 import org.netbeans.modules.jeeserver.jetty.util.IniModules;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionRegistration;
 import org.openide.awt.DynamicMenuContent;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
 /**
@@ -65,6 +60,7 @@ import org.openide.util.RequestProcessor;
  @NbBundle.Messages("CTL_RefreshLibrariesAction=Properties")
  */
 public final class CreateFilesAction extends AbstractAction implements ContextAwareAction {
+    private static final RequestProcessor RP = new RequestProcessor(CreateFilesAction.class);
 
     public CreateFilesAction() {
     }
@@ -121,9 +117,12 @@ public final class CreateFilesAction extends AbstractAction implements ContextAw
         }
 
         public void perform() {
-            IniModules.CDISupport.showLicenseDialog(project);
-            RequestProcessor rp = new RequestProcessor("Server processor", 1);
-            rp.post(new RunnableImpl(), 0, Thread.NORM_PRIORITY);
+            FileUtil.runAtomicAction((Runnable) () -> {
+                IniModules.CDISupport.showLicenseDialog(project);
+            });
+
+            
+            RP.post(new RunnableImpl(), 0, Thread.NORM_PRIORITY);
         }
 
         protected String getStartJar() {
@@ -155,21 +154,28 @@ public final class CreateFilesAction extends AbstractAction implements ContextAw
                 props.setProperty("start.jar", getStartJar());
 
                 String[] targets = new String[]{"pre-run"};
-                
-                
+
                 try {
                     task = ActionUtils.runTarget(buildXml, targets, props);
                     task.waitFinished();
                     //JettyServerPlatformImpl platform = (JettyServerPlatformImpl) manager.getPlatform();
                     //if (platform == null) {
-                    JettyServerPlatformImpl platform = JettyServerPlatformImpl.getInstance(manager);
-                    BaseUtils.out("CreateFilesAction CALL  NOTIFY " + System.currentTimeMillis());
-                    platform.notifyLibrariesChanged();
-                    ((LibrariesFileNode.FileKeys) LibUtil
-                            .getLibrariesRootNode(project)
-                            .getChildrenKeys())
-                            .addNotify();
+                    LibUtil.updateLibraries(project);
                     
+/*                    JettyServerPlatformImpl platform = JettyServerPlatformImpl.getInstance(manager);
+                    BaseUtils.out("CreateFilesAction CALL  NOTIFY " + System.currentTimeMillis());
+                    
+                    platform.notifyLibrariesChanged();
+                    
+                    LibrariesFileNode node = LibUtil
+                            .getLibrariesRootNode(project);
+                    if ( node != null ) {
+                        ((LibrariesFileNode.FileKeys) LibUtil
+                                .getLibrariesRootNode(project)
+                                .getChildrenKeys())
+                                .addNotify();
+                    }
+*/
                 } catch (IOException | IllegalArgumentException ex) {
                     LOG.log(Level.INFO, ex.getMessage());
                 }

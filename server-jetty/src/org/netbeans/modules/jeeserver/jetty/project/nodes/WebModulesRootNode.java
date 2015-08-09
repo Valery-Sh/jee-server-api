@@ -18,10 +18,7 @@ package org.netbeans.modules.jeeserver.jetty.project.nodes;
 
 import java.awt.Image;
 import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -40,11 +37,9 @@ import static org.netbeans.modules.jeeserver.base.deployment.config.ModulesChang
 import org.netbeans.modules.jeeserver.base.deployment.config.ModulesChangeListener;
 import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
 import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.Bundle.WebModulesRootNode_availableWebApps;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.Bundle.WebModulesRootNode_shortDescription;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
-import org.netbeans.spi.java.project.support.ui.PackageView;
 import org.openide.actions.PropertiesAction;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -54,7 +49,6 @@ import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
-import org.openide.util.NbBundle;
 import org.openide.util.NbBundle.Messages;
 
 /**

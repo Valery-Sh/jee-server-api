@@ -22,16 +22,12 @@ import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPrope
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionRegistration;
 import org.openide.awt.DynamicMenuContent;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
 /**
@@ -50,6 +46,8 @@ import org.openide.util.RequestProcessor;
 @NbBundle.Messages("CTL_JettyListCommandAction=Properties")
 */
 public final class JettyStartCommandAction extends AbstractAction implements ContextAwareAction {
+    
+    private static final RequestProcessor RP = new RequestProcessor(JettyStartCommandAction.class);
 
     public JettyStartCommandAction() {
     }
@@ -111,8 +109,8 @@ public final class JettyStartCommandAction extends AbstractAction implements Con
         }
 
         public void perform() {
-            RequestProcessor rp = new RequestProcessor("Server processor", 1);
-            rp.post(new RunnableImpl(), 0, Thread.NORM_PRIORITY);
+//            RequestProcessor rp = new RequestProcessor("Server processor", 1);
+            RP.post(new RunnableImpl(), 0, Thread.NORM_PRIORITY);
         }
 
         protected String getStartJar() {

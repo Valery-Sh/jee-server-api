@@ -30,6 +30,7 @@ import org.openide.util.RequestProcessor;
 public abstract class AbstractHotDeployedContextAction extends AbstractAction {
     
     private static final Logger LOG = Logger.getLogger(BaseHotDeployedContextAction.class.getName());
+    private static final RequestProcessor RP = new RequestProcessor(AbstractHotDeployedContextAction.class);
 
     protected static final String CONTEXTPATH = "contextPath";
     protected static final String WAR = "war";
@@ -97,13 +98,9 @@ public abstract class AbstractHotDeployedContextAction extends AbstractAction {
 
     public @Override
     void actionPerformed(ActionEvent e) {
-        RequestProcessor rp = new RequestProcessor("Server Action", 1);
-        final RequestProcessor.Task task = rp.post(new Runnable() {
-
-            @Override
-            public void run() {
-                runActionPerformed();
-            }
+        //RequestProcessor rp = new RequestProcessor("Server Action", 1);
+        final RequestProcessor.Task task = RP.post(() -> {
+            runActionPerformed();
         }, 0, Thread.NORM_PRIORITY);
 
     }

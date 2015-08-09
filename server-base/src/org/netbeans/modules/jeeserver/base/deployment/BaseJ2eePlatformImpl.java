@@ -76,12 +76,9 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
         loadLibraries();
         FileObject f = getSourceRoot();
         ClassPath cp = ClassPath.getClassPath(f, ClassPath.COMPILE);
-        cp.addPropertyChangeListener(new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if (ClassPath.PROP_ROOTS.equals(evt.getPropertyName())) {
-                    notifyLibrariesChanged();// Update your stuff, because classpath roots have changed.
-                }
+        cp.addPropertyChangeListener((PropertyChangeEvent evt) -> {
+            if (ClassPath.PROP_ROOTS.equals(evt.getPropertyName())) {
+                notifyLibrariesChanged();// Update your stuff, because classpath roots have changed.
             }
         });
     }

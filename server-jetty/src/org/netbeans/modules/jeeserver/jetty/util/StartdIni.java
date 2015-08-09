@@ -17,35 +17,11 @@
 package org.netbeans.modules.jeeserver.jetty.util;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.netbeans.api.project.Project;
-import org.netbeans.modules.j2ee.dd.api.common.CommonDDBean;
-import org.netbeans.modules.j2ee.dd.api.common.CreateCapability;
-import org.netbeans.modules.j2ee.dd.api.web.DDProvider;
-import org.netbeans.modules.j2ee.dd.api.web.Listener;
-import org.netbeans.modules.j2ee.dd.api.web.WebApp;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
-import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.deployment.utils.Info;
-import org.netbeans.modules.jeeserver.jetty.deploy.JettyLibBuilder;
-import org.netbeans.modules.jeeserver.jetty.project.nodes.JettyBaseRootNode;
-import org.netbeans.modules.web.api.webmodule.WebModule;
-import org.openide.filesystems.FileChangeAdapter;
-import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.windows.IOColors;
 
 
 public class StartdIni  extends AbsractJettyConfig {

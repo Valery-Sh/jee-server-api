@@ -24,6 +24,7 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTargetModuleID;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.ServerProgress;
+import org.netbeans.modules.jeeserver.base.deployment.actions.WebAppOpenInnerProjectAction;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
@@ -32,6 +33,9 @@ import org.openide.util.RequestProcessor;
  * @author V. Shyshkin
  */
 public abstract class AbstractProgressObject extends ServerProgress implements Runnable{
+    
+    protected static final RequestProcessor RP = new RequestProcessor(AbstractProgressObject.class);
+    
     private final BaseDeploymentManager manager;
     private static RequestProcessor requestProcessor;
     private Deployment.Mode mode;
@@ -44,12 +48,13 @@ public abstract class AbstractProgressObject extends ServerProgress implements R
      * Returns an instance of RequestProcessor.
      * @return 
      */
-    protected static synchronized RequestProcessor requestProcessor() {
+/*    protected static synchronized RequestProcessor requestProcessor() {
         if (requestProcessor == null) {
             requestProcessor = new RequestProcessor("Server processor", 1);
         }
         return requestProcessor;
     }
+*/    
     /**
      * Create a new instance of the class for a specified deployment manager.
      * @param manager 

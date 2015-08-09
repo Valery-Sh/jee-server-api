@@ -1,7 +1,6 @@
 package org.netbeans.modules.jeeserver.base.deployment.lc;
 
 import javax.swing.event.ChangeListener;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.WizardDescriptor;
 import org.openide.util.HelpCtx;
 
@@ -23,7 +22,6 @@ public class LicenseWizardPanel implements WizardDescriptor.Panel<WizardDescript
         if (component == null) {
             component = new LicenseVisualPanel(this);
         }
-BaseUtils.out("LicenseWizardPanel componett.class=" + component.getClass());
         return component;
     }
 
@@ -56,7 +54,6 @@ BaseUtils.out("LicenseWizardPanel componett.class=" + component.getClass());
     @Override
     public void readSettings(WizardDescriptor settings) {
         // use wiz.getProperty to retrieve previous panel state
-BaseUtils.out("Panel readSettings");
         wiz = (WizardDescriptor) settings;
         component.read(wiz);
         

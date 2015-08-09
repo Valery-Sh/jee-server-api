@@ -36,14 +36,10 @@ import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import static org.netbeans.modules.jeeserver.jetty.util.Utils.getDefaultPropertyMap;
 import org.openide.DialogDisplayer;
 import org.openide.WizardDescriptor;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
-import org.openide.awt.ActionRegistration;
 import org.openide.awt.DynamicMenuContent;
 import org.openide.filesystems.FileObject;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
-import org.openide.util.NbBundle;
 
 /**
  * The class provides implementations of the context aware action to be

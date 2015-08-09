@@ -45,7 +45,6 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.project.JettyProject;
-import static org.netbeans.modules.jeeserver.jetty.project.template.JettyServerInstancePanelVisual.PROP_ENABLE_NPN;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.StartdIniHelper;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;

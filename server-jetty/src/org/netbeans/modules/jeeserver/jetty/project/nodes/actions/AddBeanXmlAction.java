@@ -26,7 +26,6 @@ import static javax.swing.Action.NAME;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.awt.ActionID;
@@ -59,7 +58,7 @@ public final class AddBeanXmlAction extends AbstractAction implements ContextAwa
 
     private static final Logger LOG = Logger.getLogger(AddListenerAction.class.getName());
 
-    private static final RequestProcessor RP = new RequestProcessor(AddListenerAction.class);
+    private static final RequestProcessor RP = new RequestProcessor(AddBeanXmlAction.class);
     
     @Override
     public void actionPerformed(ActionEvent e) {

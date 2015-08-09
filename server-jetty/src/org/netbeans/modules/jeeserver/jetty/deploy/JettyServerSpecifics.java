@@ -18,14 +18,11 @@ package org.netbeans.modules.jeeserver.jetty.deploy;
 
 import java.awt.Image;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -34,7 +31,6 @@ import java.util.logging.Logger;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.WizardDescriptorPanel;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
@@ -47,15 +43,9 @@ import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyServerModuleConfi
 import org.netbeans.modules.jeeserver.jetty.project.JettyProjectLogicalView;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode;
-import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.nodes.FilterNode;
-import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
-import org.openide.util.RequestProcessor;
-import org.openide.util.RequestProcessor.Task;
 import org.openide.windows.InputOutput;
 
 /**
@@ -283,14 +273,17 @@ public class JettyServerSpecifics implements ServerSpecifics {
     @Override
     public void serverStarted(DeploymentManager manager) {
         BaseDeploymentManager dm = (BaseDeploymentManager) manager;
+BaseUtils.out("1 Specifics serverStartted time=" + System.currentTimeMillis());
         
         LibUtil.updateLibraries(dm.getServerProject());
-        LibrariesFileNode ln = (LibrariesFileNode)dm.getServerProject().getLookup()
+/*        LibrariesFileNode ln = (LibrariesFileNode)dm.getServerProject().getLookup()
                 .lookup(JettyProjectLogicalView.class)
                 .getLibrariesRootNode();
         if( ln != null ) {
             ((LibrariesFileNode.FileKeys) ln.getChildrenKeys()).addNotify();
         }
+*/        
+BaseUtils.out("5 Specifics serverStartted time=" + System.currentTimeMillis());
 
     }
     @Override

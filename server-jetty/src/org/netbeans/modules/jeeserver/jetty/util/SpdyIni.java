@@ -17,7 +17,6 @@
 package org.netbeans.modules.jeeserver.jetty.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.logging.Logger;
 
 /**

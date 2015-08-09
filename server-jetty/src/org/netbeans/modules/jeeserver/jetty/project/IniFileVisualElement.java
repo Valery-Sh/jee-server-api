@@ -12,7 +12,6 @@ import javax.swing.JToolBar;
 import org.netbeans.core.spi.multiview.CloseOperationState;
 import org.netbeans.core.spi.multiview.MultiViewElement;
 import org.netbeans.core.spi.multiview.MultiViewElementCallback;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.awt.UndoRedo;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
@@ -29,15 +28,14 @@ import org.openide.windows.TopComponent;
 @Messages("LBL_IniFile_VISUAL=Visual")
 public final class IniFileVisualElement extends JPanel implements MultiViewElement {
 
-    private IniFileDataObject obj;
-    private JToolBar toolbar = new JToolBar();
+    private final IniFileDataObject obj;
+    private final JToolBar toolbar = new JToolBar();
     private transient MultiViewElementCallback callback;
 
     public IniFileVisualElement(Lookup lkp) {
         obj = lkp.lookup(IniFileDataObject.class);
         assert obj != null;
         initComponents();
-BaseUtils.out("&&&&& IniFileVisualElement CONSTR");
     }
 
     @Override
@@ -69,8 +67,6 @@ BaseUtils.out("&&&&& IniFileVisualElement CONSTR");
     // End of variables declaration//GEN-END:variables
     @Override
     public JComponent getVisualRepresentation() {
-BaseUtils.out("&&&&& IniFileVisualElement getVisualRepresentation");
-        
         return this;
     }
 

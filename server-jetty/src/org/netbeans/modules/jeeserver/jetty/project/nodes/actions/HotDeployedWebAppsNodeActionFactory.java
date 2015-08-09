@@ -55,6 +55,8 @@ import org.openide.util.RequestProcessor;
  * @author V. Shyshkin
  */
 public class HotDeployedWebAppsNodeActionFactory {
+    
+    private static final RequestProcessor RP = new RequestProcessor(HotDeployedWebAppsNodeActionFactory.class);
 
     protected static final String WAR = "war";
     protected static final String XML = "xml";
@@ -164,74 +166,71 @@ public class HotDeployedWebAppsNodeActionFactory {
             // TODO menu item label with optional mnemonics
             putValue(NAME, "&" + getMenuItemDisplayName());
 
-            task = new RequestProcessor("AddProjectBody").create(new Runnable() { // NOI18N
-
-                @Override
-                public void run() {
-                    File baseDir = FileUtil.toFile(project.getProjectDirectory().getParent());
-                    String[] fileFilter = getFileFilter();
-                    FileChooserBuilder fcb = new FileChooserBuilder("")
-                            .setTitle(getDialogTitle())
-                            .setFilesOnly(false)
-                            .setDefaultWorkingDirectory(baseDir);
-                    if (XML.equals(actionType)) {
-                        fcb.addFileFilter(new FileNameExtensionFilter(fileFilter[0], fileFilter[1]));
-                        fcb.setFilesOnly(true);
-                    }
-                    JFileChooser fc = fcb.createFileChooser();
-                    int choosed = fc.showOpenDialog(null);
-                    if (choosed != JFileChooser.APPROVE_OPTION) {
-                        return;
-                    }
-                    File selectedFile = fc.getSelectedFile();
-                    FileObject selectedFo = FileUtil.toFileObject(selectedFile);
-                    FileObject targetFolder = context.lookup(FileObject.class);
-
-                    if (XML.equals(actionType)) {
-                        tryCopy(targetFolder, selectedFo, selectedFo.getName(), "xml");
-                        return;
-                    }//if
-
-                    Project webapp = FileOwnerQuery.getOwner(selectedFo);
-                    if (HTML5.equals(actionType)) {
-                        if (webapp == null) {
-                            return;
-                        }
-
-                        createJettyXmlForHtml5(webapp.getProjectDirectory(), targetFolder);
-                        return;
-                    }
-
-                    /**
-                     * Try if the selectedFo is not a folder and has "war"
-                     * extension and is not in a project
-                     */
-                    if (webapp == null && WAR.equals(actionType)
-                            && !selectedFo.isFolder() && "war".equals(selectedFo.getExt())) {
-                        tryCopy(targetFolder, selectedFo, selectedFo.getName(), "war");
-                        return;
-                    }
-
+//            task = new RequestProcessor("AddProjectBody").create(new Runnable() { // NOI18N
+            task = RP.create(() -> {
+                File baseDir = FileUtil.toFile(project.getProjectDirectory().getParent());
+                String[] fileFilter = getFileFilter();
+                FileChooserBuilder fcb = new FileChooserBuilder("")
+                        .setTitle(getDialogTitle())
+                        .setFilesOnly(false)
+                        .setDefaultWorkingDirectory(baseDir);
+                if (XML.equals(actionType)) {
+                    fcb.addFileFilter(new FileNameExtensionFilter(fileFilter[0], fileFilter[1]));
+                    fcb.setFilesOnly(true);
+                }
+                JFileChooser fc = fcb.createFileChooser();
+                int choosed = fc.showOpenDialog(null);
+                if (choosed != JFileChooser.APPROVE_OPTION) {
+                    return;
+                }
+                File selectedFile = fc.getSelectedFile();
+                FileObject selectedFo = FileUtil.toFileObject(selectedFile);
+                FileObject targetFolder = context.lookup(FileObject.class);
+                
+                if (XML.equals(actionType)) {
+                    tryCopy(targetFolder, selectedFo, selectedFo.getName(), "xml");
+                    return;
+                }//if
+                
+                Project webapp = FileOwnerQuery.getOwner(selectedFo);
+                if (HTML5.equals(actionType)) {
                     if (webapp == null) {
                         return;
                     }
-
-                    String webappName = webapp.getProjectDirectory().getNameExt();
-                    /**
-                     * .war file inside a project
-                     */
-                    FileObject warFo = BaseUtils.getWar(webapp);
-                    if (warFo == null) {
-                        return;
-                    }
-                    if (WAR.equals(actionType)) {
-                        tryCopy(targetFolder, warFo, webappName, "war");
-                    } else if (WEB.equals(actionType)) {
-                        tryCopyUnpackedWar(targetFolder, warFo, webappName);
-                    }
+                    
+                    createJettyXmlForHtml5(webapp.getProjectDirectory(), targetFolder);
+                    return;
                 }
-
-            });
+                
+                /**
+                 * Try if the selectedFo is not a folder and has "war"
+                 * extension and is not in a project
+                 */
+                if (webapp == null && WAR.equals(actionType)
+                        && !selectedFo.isFolder() && "war".equals(selectedFo.getExt())) {
+                    tryCopy(targetFolder, selectedFo, selectedFo.getName(), "war");
+                    return;
+                }
+                
+                if (webapp == null) {
+                    return;
+                }
+                
+                String webappName = webapp.getProjectDirectory().getNameExt();
+                /**
+                 * .war file inside a project
+                 */
+                FileObject warFo = BaseUtils.getWar(webapp);
+                if (warFo == null) {
+                    return;
+                }
+                if (WAR.equals(actionType)) {
+                    tryCopy(targetFolder, warFo, webappName, "war");
+                } else if (WEB.equals(actionType)) {
+                    tryCopyUnpackedWar(targetFolder, warFo, webappName);
+                }
+            } // NOI18N
+            );
 
         }
 
@@ -276,21 +275,18 @@ public class HotDeployedWebAppsNodeActionFactory {
                 return;
             }
             try {
-                FileUtil.runAtomicAction(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            if (source.isFolder()) {
-                                Copier c = new Copier(FileUtil.toFile(source));
-                                c.copyTo(FileUtil.toFile(target), fileName + "." + ext);
-                                //source.copy(target, fileName, ext);
-                            } else {
-                                Files.copy(Paths.get(source.getPath()), Paths.get(target.getPath(), fileName + ".war"), StandardCopyOption.REPLACE_EXISTING);
-                            }
-                        } catch (IOException ex) {
-                            Exceptions.printStackTrace(ex);
-                            BaseUtils.out("COPY : EXCEPTION " + ex.getMessage());
+                FileUtil.runAtomicAction((Runnable) () -> {
+                    try {
+                        if (source.isFolder()) {
+                            Copier c = new Copier(FileUtil.toFile(source));
+                            c.copyTo(FileUtil.toFile(target), fileName + "." + ext);
+                            //source.copy(target, fileName, ext);
+                        } else {
+                            Files.copy(Paths.get(source.getPath()), Paths.get(target.getPath(), fileName + ".war"), StandardCopyOption.REPLACE_EXISTING);
                         }
+                    } catch (IOException ex) {
+                        Exceptions.printStackTrace(ex);
+                        BaseUtils.out("COPY : EXCEPTION " + ex.getMessage());
                     }
                 });
                 target.refresh();

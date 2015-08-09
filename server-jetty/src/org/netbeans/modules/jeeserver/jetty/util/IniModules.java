@@ -6,19 +6,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.lc.LicenseWizardAction;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.lc.LicenseWizard;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
 
 /**
  *
@@ -103,7 +99,9 @@ public class IniModules {
             return Paths.get(jettyBase.getPath(), "lib/cdi").toFile().exists();
         }
         public boolean isLicenseAccepted() {
-            return isCDIEnabled() && isCdiLibExists();
+            boolean enabled = isCDIEnabled();
+            boolean libExists = isCdiLibExists();
+            return enabled && libExists || ! enabled;
         }
         public static boolean isLicenseAccepted(Project server) {
             return new CDISupport(server).isLicenseAccepted();
@@ -115,14 +113,12 @@ public class IniModules {
         }
         
         public void showLicenseDialog() {
+            
             if ( isLicenseAccepted() ) {
                 return;
             }
-            LicenseWizardAction d = new LicenseWizardAction();
-            if ( d.showLicenceDialog() ) {
-                BaseUtils.out("!!!! showLicenseDialog TRUE"  );
-            } else {
-                BaseUtils.out("!!!! showLicenseDialog FALSE"  );
+            LicenseWizard d = new LicenseWizard();
+            if ( ! d.showLicenceDialog() ) {
                 disableCDIModule();
             }
         }

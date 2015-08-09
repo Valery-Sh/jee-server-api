@@ -3,11 +3,7 @@ package org.netbeans.modules.jeeserver.jetty.project;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,18 +17,12 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.libraries.Library;
 import org.netbeans.api.project.libraries.LibraryManager;
-import org.netbeans.modules.j2ee.deployment.devmodules.api.ServerInstance;
 import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.ide.BaseStartServer;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.deployment.utils.LibrariesFileLocator;
 import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyStartServerPropertiesProvider;
-import org.netbeans.modules.jeeserver.jetty.project.nodes.JettyBaseRootNode;
-//import org.netbeans.modules.jeeserver.jetty.project.nodes.WebModulesRootNode;
-import org.netbeans.modules.jeeserver.jetty.util.HttpIni;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
-import org.netbeans.modules.jeeserver.jetty.util.StartIni;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.DeleteOperationImplementation;
@@ -41,7 +31,6 @@ import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
@@ -68,13 +57,8 @@ public class JettyProject implements Project {
     }
 
     public static void enableJSFLibrary(FileObject projDir) {
-        BaseUtils.out("JettyProject.ini() ===============");
 
         Library[] libs = LibraryManager.getDefault().getLibraries();
-        for (Library l : libs) {
-            BaseUtils.out("----- lib name = " + l.getName() + "; displayname=" + l.getDisplayName());
-        }
-        BaseUtils.out("=================================");
         //
         // add JSF library to ${jetty.base}/lib/jsf-netbeans folder
         //

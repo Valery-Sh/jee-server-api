@@ -78,7 +78,8 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         setCompleteImmediately(completeImmediately);
         setMode(getManager().getCurrentDeploymentMode());
         fireRunning(CommandType.DISTRIBUTE, getManager().getDefaultTarget().getName());
-        requestProcessor().post(this, 10, Thread.NORM_PRIORITY);
+        //requestProcessor().post(this, 10, Thread.NORM_PRIORITY);
+        RP.post(this, 10, Thread.NORM_PRIORITY);
         return this;
     }
 
@@ -93,7 +94,8 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         setMode(getManager().getCurrentDeploymentMode());
         BaseUtils.out("command = 'undeploy'");
         fireRunning(CommandType.UNDEPLOY, getManager().getDefaultTarget().getName());
-        requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        //requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
 
@@ -108,7 +110,8 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         setMode(getManager().getCurrentDeploymentMode());
         BaseUtils.out("command = 'destroy'");
         fireRunning(CommandType.UNDEPLOY, getManager().getDefaultTarget().getName());
-        requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        //requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
 
@@ -130,7 +133,8 @@ BaseUtils.out("BaseDeployProgressObject REDEPLOY completeImmediately=" + complet
         setCompleteImmediately(completeImmediately);
         setMode(getManager().getCurrentDeploymentMode());
         fireRunning(CommandType.REDEPLOY, getManager().getDefaultTarget().getName());
-        requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        //requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
 
@@ -146,7 +150,8 @@ BaseUtils.out("BaseDeployProgressObject REDEPLOY completeImmediately=" + complet
         setCompleteImmediately(completeImmediately);
         setMode(getManager().getCurrentDeploymentMode());
         fireRunning(CommandType.REDEPLOY, getManager().getDefaultTarget().getName());
-        requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        //requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
+        RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
     

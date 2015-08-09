@@ -22,8 +22,10 @@ import org.openide.windows.InputOutput;
  */
 public class Info {
 
+    protected static final RequestProcessor RP = new RequestProcessor(Info.class);
+    
     private static final Logger LOG = Logger.getLogger(Info.class.getName());
-    private List<Store> storeList;
+    private final List<Store> storeList;
 
     public Info() {
         storeList = new ArrayList<>();
@@ -36,26 +38,21 @@ public class Info {
 
     public static void out(String ioName, IOColors.OutputType ot, String... messages) {
         final InputOutput io = IOProvider.getDefault().getIO(ioName, false);
-        RequestProcessor rp = new RequestProcessor();
-        rp.post(new Runnable() {
-
-            @Override
-            public void run() {
-                io.getOut().println("-----------------------------------------------------");
-                for (String msg : messages) {
-                    if (IOColorLines.isSupported(io)) {
-                        try {
-                            IOColorLines.println(io, msg, IOColors.getColor(io, ot));
-                        } catch (IOException ex) {
-                            LOG.log(Level.INFO, ex.getMessage());
-                        }
-                    } else {
-                        io.getOut().println(msg);
+        RP.post(() -> {
+            io.getOut().println("-----------------------------------------------------");
+            for (String msg : messages) {
+                if (IOColorLines.isSupported(io)) {
+                    try {
+                        IOColorLines.println(io, msg, IOColors.getColor(io, ot));
+                    } catch (IOException ex) {
+                        LOG.log(Level.INFO, ex.getMessage());
                     }
+                } else {
+                    io.getOut().println(msg);
                 }
-                io.getOut().println("-----------------------------------------------------");
-                io.select();
             }
+            io.getOut().println("-----------------------------------------------------");
+            io.select();
         });
     }
 
@@ -66,28 +63,24 @@ public class Info {
         // The next line is nessasary . Otherwise no printing occurs
         //
         io.getOut().println("");        
-        RequestProcessor rp = new RequestProcessor();
 
-        rp.post(new Runnable() {
-            @Override
-            public void run() {
-                for (Store s : storeList) {
-                    IOColors.OutputType ot = s.getColorType();
-                    for (String msg : s.getMessages()) {
-                        if (IOColorLines.isSupported(io)) {
-                            try {
-                                IOColorLines.println(io, msg, IOColors.getColor(io, ot));
-                            } catch (IOException ex) {
-                                LOG.log(Level.INFO, ex.getMessage());
-                            }
-                        } else {
-                            io.getOut().println(msg);
+        RP.post(() -> {
+            storeList.stream().forEach((s) -> {
+                IOColors.OutputType ot = s.getColorType();
+                for (String msg : s.getMessages()) {
+                    if (IOColorLines.isSupported(io)) {
+                        try {
+                            IOColorLines.println(io, msg, IOColors.getColor(io, ot));
+                        } catch (IOException ex) {
+                            LOG.log(Level.INFO, ex.getMessage());
                         }
+                    } else {
+                        io.getOut().println(msg);
                     }
                 }
-                io.select();
-                storeList.clear();
-            }
+            });
+            io.select();
+            storeList.clear();
         });
 
     }

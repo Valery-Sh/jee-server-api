@@ -10,9 +10,7 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.core.spi.multiview.MultiViewElement;
 import org.netbeans.core.spi.multiview.text.MultiViewEditorElement;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.util.HttpIni;
-import org.netbeans.modules.jeeserver.jetty.util.StartIni;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -104,14 +102,17 @@ public class IniFileDataObject extends MultiDataObject {
         Project server = FileOwnerQuery.getOwner(pf);
         registerEditor("text/x-fileini", true);
         if ( isJettyIniFile(pf) ) {
-            if ( "start.ini".equals(pf.getNameExt()) ) {
+            if ("http.ini".equals(pf.getNameExt())) {
+                pf.addFileChangeListener(new HttpIni.HttpIniFileChangeHandler(server));
+            }
+/*            if ( "start.ini".equals(pf.getNameExt()) ) {
                 pf.addFileChangeListener(new StartIni.StartIniFileChangeHandler(server));
             } else if ("http.ini".equals(pf.getNameExt())) {
                 pf.addFileChangeListener(new HttpIni.HttpIniFileChangeHandler(server));
             } else {
                 pf.addFileChangeListener(new StartIni.StartIniFileChangeHandler(server));
             }
-            
+*/            
             getLookup().lookup(DataEditorSupport.class).setMIMEType("text/x-properties");
         }
     }

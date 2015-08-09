@@ -5,7 +5,6 @@
  */
 package org.netbeans.modules.jeeserver.jetty.project.nodes.actions;
 
-import org.netbeans.modules.jeeserver.jetty.project.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,12 +21,6 @@ import org.netbeans.modules.j2ee.dd.api.common.CreateCapability;
 import org.netbeans.modules.j2ee.dd.api.web.DDProvider;
 import org.netbeans.modules.j2ee.dd.api.web.Listener;
 import org.netbeans.modules.j2ee.dd.api.web.WebApp;
-import org.netbeans.modules.jeeserver.base.deployment.config.ModulesChangeEvent;
-import org.netbeans.modules.jeeserver.base.deployment.config.ModulesChangeListener;
-import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
-import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.jetty.deploy.*;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.JettyBaseRootNode;
 import org.netbeans.modules.jeeserver.jetty.util.IniModules.JsfSupport;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;

@@ -6,26 +6,22 @@
 package org.netbeans.modules.jeeserver.jetty.project.nodes.libs;
 
 import java.awt.Image;
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 import javax.swing.Action;
-import javax.swing.filechooser.FileFilter;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
@@ -38,12 +34,9 @@ import static org.netbeans.modules.jeeserver.jetty.project.nodes.libs.NodeOption
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.libs.NodeOptions.ROOT;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.spi.project.libraries.LibraryImplementation;
-import org.openide.filesystems.FileChooserBuilder;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataFolder;
-import org.openide.nodes.Node;
-import org.openide.util.Exceptions;
 import org.openide.util.ImageUtilities;
 import org.openide.util.RequestProcessor;
 
@@ -67,13 +60,17 @@ public class LibUtil {
     public static void updateLibraries(Project server) {
         BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
         final JettyServerPlatformImpl platform = JettyServerPlatformImpl.getInstance(manager);
-        platform.notifyLibrariesChanged(false);
 
-        RP.post(new Runnable() {
-            @Override
-            public void run() {
-              platform.fireChangeEvents();
+        RP.post(() -> {
+            platform.notifyLibrariesChanged(false);
+            platform.fireChangeEvents();
+            LibrariesFileNode ln = (LibrariesFileNode) manager.getServerProject().getLookup()
+                    .lookup(JettyProjectLogicalView.class)
+                    .getLibrariesRootNode();
+            if (ln != null) {
+                ((LibrariesFileNode.FileKeys) ln.getChildrenKeys()).addNotify();
             }
+
         });
 
     }
@@ -235,7 +232,7 @@ public class LibUtil {
         if (libs != null) {
             for (LibraryImplementation lib : libs) {
                 List<URL> urls = lib.getContent(J2eeLibraryTypeProvider.VOLUME_TYPE_CLASSPATH);
-                
+
                 for (URL url : urls) {
                     jars.add(FileUtil.archiveOrDirForURL(url).getPath());
                 }

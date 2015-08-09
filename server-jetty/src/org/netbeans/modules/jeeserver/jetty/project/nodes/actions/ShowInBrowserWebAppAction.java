@@ -16,7 +16,6 @@ import javax.enterprise.deploy.spi.status.ProgressListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.actions.AbstractHotDeployedContextAction.CONTEXTPATH;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;

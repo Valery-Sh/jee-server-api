@@ -21,10 +21,7 @@ import java.util.Properties;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
-import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObjectNotFoundException;
-import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
 
 /**
