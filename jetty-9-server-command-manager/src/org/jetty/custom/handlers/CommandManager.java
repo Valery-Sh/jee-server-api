@@ -61,7 +61,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     /**
      * When {@literal true} then the server supports jsf.
      */
-    protected boolean jsfActivated;
+    //protected boolean jsfActivated;
     /**
      * When {@literal true} then the server supports Weld.
      */
@@ -80,8 +80,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
             path = path.substring(0, path.indexOf("\\."));
         }
         jettyBase = new File(path);
-        jsfActivated = new File(jettyBase + "/start.d/jsf.ini").exists();
-        // weldActivated = new File(jettyBase + "/start.d/cdi.ini").exists();
+//        jsfActivated = new File(jettyBase + "/start.d/jsf.ini").exists();
         init();
     }
 
@@ -100,11 +99,9 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         if (!"/jeeserver/manager".equals(target)) {
             return;
         }
-        System.out.println("handle target=" + target);
         String cp = request.getParameter("cp");
-        System.out.println("--- handle cp=" + cp);
         String cmd = request.getParameter("cmd");
-        System.out.println("--- handle cmd=" + cmd);
+        System.out.println("handle: " + target + "; cp=" + cp + "cmd=" + cmd);
 
         String text = "";
 
@@ -172,42 +169,6 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     public void lifeCycleStopped(LifeCycle lc) {
     }
 
-    protected void redeploy_NEW(HttpServletRequest request) {
-        Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
-
-        if (map.isEmpty()) {
-            System.out.println("redeploy: no handler found. redeploy finished.");
-            return;// null;
-        }
-        String oldContextPath = request.getParameter("oldcp");
-        String oldWebDir = request.getParameter("olddir");
-        if (oldWebDir != null) {
-            oldWebDir = new File(oldWebDir).getAbsolutePath();
-        }
-
-        String contextPath = request.getParameter("cp");
-        String webDir = request.getParameter("dir");
-        webDir = new File(webDir).getAbsolutePath();
-
-        System.out.println("redeploy started. Old web app: for oldcp=" + oldContextPath + "; oldWebDir=" + oldWebDir);
-        System.out.println("redeploy started. New web app: for cp=" + contextPath + "; webDir=" + webDir);
-
-        WebAppContext webapp = findWebAppContext(oldContextPath);
-        if (webapp != null) {
-            stop(request);
-        }
-
-        start(request);
-
-/*        try {
-            webapp.stop();
-        } catch (Exception ex) {
-            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
-        }
-*/
-        System.out.println("redeploy: success");
-        return;// webapp;
-    }
 
     protected void redeploy(HttpServletRequest request) {
         System.out.println("redeploy: starting");
@@ -239,7 +200,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
 
         try {
             webapp.stop();
-            System.out.println("redeploy: stopped");
+//            System.out.println("redeploy: stopped");
         } catch (Exception ex) {
             System.out.println("redeploy: stop EXCEPTION");
             Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
@@ -277,7 +238,6 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     }
 
     protected WebAppContext findWebApps(String warPath) {
-System.out.println("!!!!!!!!!!!! findWebApps path=" + warPath);        
         Handler[] contextHandlers = getServer().getChildHandlersByClass(ContextHandlerCollection.class);
         for (Handler ch : contextHandlers) {
             ContextHandlerCollection chs = (ContextHandlerCollection) ch;
@@ -287,8 +247,6 @@ System.out.println("!!!!!!!!!!!! findWebApps path=" + warPath);
                 File f1 = new File(w.getWar());
                 File f2 = new File(warPath);
                 if (f1.equals(f2)) {
-System.out.println("!!!!!!!!!!!! cp=" + w.getContextPath() + "; dir1=" + f1);
-System.out.println("!!!!!!!!!!!! dir2=" + f2);
                     return (WebAppContext) h;
                 }
             }//for
@@ -328,7 +286,6 @@ System.out.println("!!!!!!!!!!!! dir2=" + f2);
             if (!c.isStopped()) {
                 c.stop();
             }
-            System.out.println("undeploy remove handler ");
             map.get(c).removeHandler(c);
         } catch (Exception ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
@@ -378,7 +335,6 @@ System.out.println("!!!!!!!!!!!! dir2=" + f2);
                 System.out.println("undeployhotdeployed stopping... ");
                 webapp.stop();
             }
-            System.out.println("undeployhotdeployed remove handler ");
             map.get(webapp).removeHandler(webapp);
         } catch (Exception ex) {
             Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
@@ -482,7 +438,7 @@ System.out.println("!!!!!!!!!!!! dir2=" + f2);
 //        System.out.println("getstate command for webDir=" + webDir);
         Handler[] handlers = getServer().getChildHandlersByClass(WebAppContext.class);
         File webDirFile = new File(webDir);
-        String state = null;
+        String state;// = null;
         WebAppContext webapp = null;
         for (Handler h : handlers) {
             WebAppContext c = (WebAppContext) h;
@@ -695,7 +651,7 @@ System.out.println("!!!!!!!!!!!! dir2=" + f2);
      * @param webDir
      */
     protected void deploy(String contextPath, String webDir) {
-        System.out.println("!!! deploy started for cp=" + contextPath + "; webDir=" + webDir);
+        System.out.println("deploy started for cp=" + contextPath + "; webDir=" + webDir);
         Handler[] contextHandlers = getServer().getChildHandlersByClass(ContextHandlerCollection.class);
         if (contextHandlers == null || contextHandlers.length == 0) {
             System.out.println("deploy: no handler found. deploy finished");
@@ -710,9 +666,7 @@ System.out.println("!!!!!!!!!!!! dir2=" + f2);
         String path = getWarPath(webDir); // to deploy
 
         WebAppContext c = findWebApps(path);
-System.out.println("deploy: WEBAPPCONTEXT=" + c);
         if (c != null) {
-System.out.println("deploy: WEBAPPCONTEXT war=" + c.getWar());            
             System.out.println("deploy: there is a handler with the same webDir=" + webDir + ". Execute undeploy");
             undeploy(contextPath, webDir);
         }
@@ -771,7 +725,6 @@ System.out.println("deploy: WEBAPPCONTEXT war=" + c.getWar());
 
         String path = getHtml5WarPath(webDir); // to deploy
 
-        System.out.println("PATH= " + path);
         WebAppContext c = findWebApps(path);
         if (c != null) {
             System.out.println("deploy: there is a handler with the same webDir=" + webDir + ". Execute undeploy");

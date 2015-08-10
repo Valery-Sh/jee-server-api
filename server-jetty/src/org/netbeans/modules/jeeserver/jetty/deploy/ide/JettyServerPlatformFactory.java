@@ -33,7 +33,6 @@ public class JettyServerPlatformFactory extends J2eePlatformFactory {
     
     private JettyServerPlatformFactory() {
         BaseUtils.out("JettyServerPlatformFactory CONSTRUCTOR ");
-        
     }
     
     public static JettyServerPlatformFactory getInstance() {

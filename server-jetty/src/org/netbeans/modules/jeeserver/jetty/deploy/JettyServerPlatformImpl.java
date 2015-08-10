@@ -34,7 +34,6 @@ import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl2;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.libraries.LibraryImplementation;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -93,8 +92,6 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
     private void init() {
     }
     public void notifyLibrariesChanged() {
-BaseUtils.out("LibraryImplementation notifyLibrariesChanged time=" + System.currentTimeMillis());
-        
         notifyLibrariesChanged(true);
     }
     
@@ -102,8 +99,6 @@ BaseUtils.out("LibraryImplementation notifyLibrariesChanged time=" + System.curr
         firePropertyChange(PROP_LIBRARIES, null, getLibraries());
     }
     public void notifyLibrariesChanged(boolean fireEvents) {
-BaseUtils.out("LibraryImplementation notifyLibrariesChanged time=" + System.currentTimeMillis() +"; fireEvent = " + fireEvents);
-        
         synchronized (this) {
             libraries = null;
         }
@@ -157,7 +152,6 @@ BaseUtils.out("LibraryImplementation notifyLibrariesChanged time=" + System.curr
     
     @Override
     public synchronized LibraryImplementation[] getLibraries() {
-BaseUtils.out("LibraryImplementation getLibraries time=" + System.currentTimeMillis());
         if (libraries == null) {
             J2eeLibraryTypeProvider libProvider = new J2eeLibraryTypeProvider();
             LibraryImplementation lib = libProvider.createLibrary();

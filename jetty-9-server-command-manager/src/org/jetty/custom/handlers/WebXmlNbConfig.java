@@ -56,11 +56,11 @@ public class WebXmlNbConfig extends AbstractConfiguration {
         context.prependServerClass("-javax.faces.");
         context.prependServerClass("-com.google.common.");
 
-        System.out.println("PRE CONFIGURE isStarting=" + context.isStarting());
-        System.out.println("PRE CONFIGURE isStarted=" + context.isStarted());
+        //System.out.println("PRE CONFIGURE isStarting=" + context.isStarting());
+        //System.out.println("PRE CONFIGURE isStarted=" + context.isStarted());
         
-        System.out.println("POST CONFIGURE isStarting=" + context.isStarting());
-        System.out.println("POST CONFIGURE isStarted=" + context.isStarted());
+        //System.out.println("POST CONFIGURE isStarting=" + context.isStarting());
+        //System.out.println("POST CONFIGURE isStarted=" + context.isStarted());
         //
         // add config listener for an active jsf module
         //
@@ -68,6 +68,7 @@ public class WebXmlNbConfig extends AbstractConfiguration {
 
         if (className != null) {
             addJsfServletContextListener(context, className);
+            System.out.println("CONF: add listener " + className);            
         }
         
         //org.apache.myfaces.webapp.StartupServletContextListener ll;
@@ -79,7 +80,7 @@ public class WebXmlNbConfig extends AbstractConfiguration {
         boolean found = false;
         if (listeners != null) {
             for (EventListener l : listeners) {
-                System.out.println("addServletContextListener POSTCONFIGURE l=" + l.getClass().getName());
+//                System.out.println("addServletContextListener POSTCONFIGURE l=" + l.getClass().getName());
                 if (className.equals(l.getClass().getName())) {
                     found = true;
                     break;
@@ -116,6 +117,10 @@ public class WebXmlNbConfig extends AbstractConfiguration {
 
     @Override
     public void postConfigure(WebAppContext context) throws Exception {
+        if (true) {
+            return; 
+        }
+        
         System.out.println("POST CONFIGURE isStarting=" + context.isStarting());
         System.out.println("POST CONFIGURE isStarted=" + context.isStarted());
         

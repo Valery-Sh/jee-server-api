@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode.FileKeys;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.libs.NodeOptions.FILE_IN_EXT;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.libs.NodeOptions.FILE_IN_ROOT;
@@ -132,6 +133,7 @@ public class LibraryNodeFactory implements NodeFactory {
      * Creates child nodes for the root node of the Libraries.
      *
      * @param server Jetty server of type Project
+     * @param key
      * @return
      */
     public static Node[] createChildsForRoot(Project server, Object key) {
@@ -157,6 +159,12 @@ public class LibraryNodeFactory implements NodeFactory {
         if (server.getProjectDirectory().getFileObject(JettyConstants.WEBAPPS_FOLDER) != null) {
             try {
                 FileObject keyFo = FileUtil.toFileObject(new File(key.toString()));
+                if ( keyFo == null ) {
+                    BaseUtils.out("1 LibraryNodeFactory key = " + key);
+                }
+                if ( DataObject.find(keyFo) == null ) {
+                    BaseUtils.out("2 LibraryNodeFactory key = " + key);
+                }
                 Node originalNode = DataObject.find(keyFo).getNodeDelegate();
 
                 LibrariesFileNode node;

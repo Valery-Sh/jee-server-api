@@ -63,7 +63,6 @@ public class AbsractJettyConfig {
         try (FileReader reader = new FileReader(file)) {
             try (BufferedReader buf = new BufferedReader(reader)) {
                 String line;
-BaseUtils.out("AbstractJettyConfig withComments=" + withComments);
                 while ((line = buf.readLine()) != null) {
                     if (withComments ) {
                         String s = line.trim().replaceAll(" ", "");
@@ -71,7 +70,6 @@ BaseUtils.out("AbstractJettyConfig withComments=" + withComments);
                             separateModules(s);
                         } else {
                             lines.add(line);
-BaseUtils.out("AbstractJettyConfig line=" + line);                            
                         }
                         
                     }

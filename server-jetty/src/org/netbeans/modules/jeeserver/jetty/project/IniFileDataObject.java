@@ -11,6 +11,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.core.spi.multiview.MultiViewElement;
 import org.netbeans.core.spi.multiview.text.MultiViewEditorElement;
 import org.netbeans.modules.jeeserver.jetty.util.HttpIni;
+import org.netbeans.modules.jeeserver.jetty.util.StartIni;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -102,24 +103,31 @@ public class IniFileDataObject extends MultiDataObject {
         Project server = FileOwnerQuery.getOwner(pf);
         registerEditor("text/x-fileini", true);
         if ( isJettyIniFile(pf) ) {
-            if ("http.ini".equals(pf.getNameExt())) {
-                pf.addFileChangeListener(new HttpIni.HttpIniFileChangeHandler(server));
+            
+            if ( null != pf.getNameExt() )
+                /*            if ("http.ini".equals(pf.getNameExt())) {
+            pf.addFileChangeListener(new HttpIni.HttpIniFileChangeHandler(server));
             }
-/*            if ( "start.ini".equals(pf.getNameExt()) ) {
-                pf.addFileChangeListener(new StartIni.StartIniFileChangeHandler(server));
-            } else if ("http.ini".equals(pf.getNameExt())) {
-                pf.addFileChangeListener(new HttpIni.HttpIniFileChangeHandler(server));
-            } else {
-                pf.addFileChangeListener(new StartIni.StartIniFileChangeHandler(server));
+             */
+                switch (pf.getNameExt()) {
+                case "start.ini":
+                    pf.addFileChangeListener(new StartIni.StartIniFileChangeHandler(server));
+                    break;
+                case "http.ini":
+                    pf.addFileChangeListener(new HttpIni.HttpIniFileChangeHandler(server));
+                    break;
+                default:
+                    pf.addFileChangeListener(new StartIni.StartIniFileChangeHandler(server));
+                    break;
             }
-*/            
+            
             getLookup().lookup(DataEditorSupport.class).setMIMEType("text/x-properties");
         }
     }
 
     @Override
     protected Node createNodeDelegate() {
-        Node node = null;
+        Node node;// = null;
 //        BaseUtils.out("&&&&&&& IniFileDataObject.createNodeDelegate primaryfile==" + getPrimaryFile());        
         if ( isJettyIniFile(getPrimaryFile())) {
             node = new IniDataNode(this, Children.LEAF);
@@ -145,10 +153,7 @@ public class IniFileDataObject extends MultiDataObject {
             return false;
         }
 
-        if (!Utils.isJettyServer(proj)) {
-            return false;
-        }
-        return true;
+        return Utils.isJettyServer(proj);
     }
 
     @Override

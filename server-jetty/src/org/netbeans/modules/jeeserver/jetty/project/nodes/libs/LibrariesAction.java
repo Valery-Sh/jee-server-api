@@ -9,6 +9,7 @@ package org.netbeans.modules.jeeserver.jetty.project.nodes.libs;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,8 +23,10 @@ import org.netbeans.api.project.libraries.LibraryChooser;
 import org.netbeans.api.project.libraries.LibraryManager;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode.FileKeys;
+import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.openide.filesystems.FileChooserBuilder;
 import org.openide.filesystems.FileUtil;
 import org.openide.nodes.Node;
@@ -78,7 +81,7 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
             RP.post(new Runnable() {
                 @Override
                 public void run() {
-                    
+
                     Set<Library> libs = LibraryChooser.showDialog(LibraryManager.getDefault(), null, null);
                     if (libs != null) {
                         node.addLibraries(libs);
@@ -106,11 +109,11 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
 
     public static final class AddJarFolderContextAction extends AbstractAction {
 
-        private final Project serverProject;
+        private final Project server;
         private final LibrariesFileNode node;
 
         public AddJarFolderContextAction(final Project serverProject, LibrariesFileNode node) {
-            this.serverProject = serverProject;
+            this.server = serverProject;
             this.node = node;
 
             putValue(NAME, "Add JAR/Folder... ");
@@ -118,31 +121,33 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            RP.post(new Runnable() {
-                @Override
-                public void run() {
-                    String jettyHome = BaseUtils.getServerProperties(serverProject).getHomeDir();
+            RP.post(() -> {
+                String jettyHome = BaseUtils.getServerProperties(server).getHomeDir();
 
-                    File basePath = new File(jettyHome);
-                    File fc = new FileChooserBuilder("jetty.home")
-                            .setAcceptAllFileFilterUsed(false)
-                            .setTitle("Choose a folder or jar file")
-                            .setDefaultWorkingDirectory(basePath)
-                            .addFileFilter(new FileFilter() {
-                                @Override
-                                public boolean accept(File f) {
-                                    String name = f.getName().toLowerCase();
-                                    return name.endsWith(".jar") || f.isDirectory();
-                                }
+                File basePath = new File(jettyHome);
+                File fc = new FileChooserBuilder("jetty.home")
+                        .setAcceptAllFileFilterUsed(false)
+                        .setTitle("Choose a folder or jar file")
+                        .setDefaultWorkingDirectory(basePath)
+                        .addFileFilter(new FileFilter() {
+                            @Override
+                            public boolean accept(File f) {
+                                String name = f.getName().toLowerCase();
+                                return name.endsWith(".jar") || f.isDirectory();
+                            }
 
-                                @Override
-                                public String getDescription() {
-                                    return "Classpath Entry (folder or jar file)";
-                                }
-                            })
-                            .setApproveText("Open").showOpenDialog();
-                    //if ( fc == null  
-                    LibUtil.updateLibraries(serverProject);
+                            @Override
+                            public String getDescription() {
+                                return "Classpath Entry (folder or jar file)";
+                            }
+                        })
+                        .setApproveText("Open").showOpenDialog();
+                if (fc != null && fc.exists()) {
+                    String folderName = fc.isDirectory() ? fc.getName() : "";
+                    File extFolder = Paths.get(server.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER, "lib/ext", folderName).toFile();
+                    Copier copier = new Copier(fc);
+                    copier.copyTo(extFolder);
+                    LibUtil.updateLibraries(server);
                     ((FileKeys) node.getChildrenKeys()).addNotify();
                 }
             });
@@ -158,6 +163,7 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
         public RemoveFileContextAction(final Project serverProject, LibrariesFileNode node) {
             this.serverProject = serverProject;
             this.node = node;
+
             target = new File(node.getKey().toString());
             String value = target.isDirectory() ? "Folder" : "File";
             putValue(NAME, "Remove " + value);

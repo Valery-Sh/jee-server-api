@@ -214,7 +214,6 @@ public class LibUtil {
     }
 
     public static List addRootNotify(Project server) {
-        BaseUtils.out("addRootNotify");
         BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
         final String jh = manager.getInstanceProperties()
                 .getProperty(BaseConstants.HOME_DIR_PROP);
