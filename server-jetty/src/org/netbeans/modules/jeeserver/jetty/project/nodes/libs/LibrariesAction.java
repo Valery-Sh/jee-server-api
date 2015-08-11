@@ -21,11 +21,8 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.libraries.Library;
 import org.netbeans.api.project.libraries.LibraryChooser;
 import org.netbeans.api.project.libraries.LibraryManager;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
-import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
-import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode.FileKeys;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.openide.filesystems.FileChooserBuilder;
 import org.openide.filesystems.FileUtil;
@@ -89,8 +86,8 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
                         if (node.isLibNode()) {
                             ln = node.findChildByKey(node.getExtFolder().getPath());
                         }
-
-                        ((FileKeys) ln.getChildrenKeys()).addNotify();
+                        LibUtil.updateLibraries(server, ln);
+/*                        ((FileKeys) ln.getChildrenKeys()).addNotify();
 
                         BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
                         JettyServerPlatformImpl platform = (JettyServerPlatformImpl) manager.getPlatform();
@@ -99,6 +96,7 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
                         }
                         BaseUtils.out("addJarFolderAction CALL  NOTIFY " + System.currentTimeMillis());
                         platform.notifyLibrariesChanged();
+*/        
 
                     }
                 }
@@ -147,8 +145,8 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
                     File extFolder = Paths.get(server.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER, "lib/ext", folderName).toFile();
                     Copier copier = new Copier(fc);
                     copier.copyTo(extFolder);
-                    LibUtil.updateLibraries(server);
-                    ((FileKeys) node.getChildrenKeys()).addNotify();
+                    LibUtil.updateLibraries(server,node);
+                    //((FileKeys) node.getChildrenKeys()).addNotify();
                 }
             });
         }
@@ -156,12 +154,12 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
 
     public static final class RemoveFileContextAction extends AbstractAction {
 
-        private final Project serverProject;
+        private final Project server;
         private final LibrariesFileNode node;
         private final File target;
 
         public RemoveFileContextAction(final Project serverProject, LibrariesFileNode node) {
-            this.serverProject = serverProject;
+            this.server = serverProject;
             this.node = node;
 
             target = new File(node.getKey().toString());
@@ -182,8 +180,9 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
                         }
 
                         FileUtil.toFileObject(target).delete();
+                        LibUtil.updateLibraries(server, parentNode);
 
-                        if (parentNode != null) {
+/*                        if (parentNode != null) {
                             FileKeys keys = (FileKeys) parentNode.getChildrenKeys();
                             if (keys != null) {
                                 keys.addNotify();
@@ -193,6 +192,7 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
                         JettyServerPlatformImpl platform = (JettyServerPlatformImpl) manager.getPlatform();
                         platform = JettyServerPlatformImpl.getInstance(manager);
                         platform.notifyLibrariesChanged();
+*/        
 
                     } catch (IOException ex) {
                         LOG.log(Level.INFO, ex.getMessage());

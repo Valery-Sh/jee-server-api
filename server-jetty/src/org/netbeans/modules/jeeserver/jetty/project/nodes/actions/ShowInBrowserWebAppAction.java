@@ -16,6 +16,7 @@ import javax.enterprise.deploy.spi.status.ProgressListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.actions.AbstractHotDeployedContextAction.CONTEXTPATH;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
@@ -30,7 +31,7 @@ import org.openide.util.Lookup;
  * @author Valery
  */
 public class ShowInBrowserWebAppAction extends AbstractAction implements ContextAwareAction {
-    
+
     private static final Logger LOG = Logger.getLogger(ShowInBrowserWebAppAction.class.getName());
 
     public ShowInBrowserWebAppAction() {
@@ -59,10 +60,10 @@ public class ShowInBrowserWebAppAction extends AbstractAction implements Context
 
     }
 
-    public static class ShowInBrowserContextAction extends AbstractHotDeployedContextAction  implements ProgressListener{
-        
+    public static class ShowInBrowserContextAction extends AbstractHotDeployedContextAction implements ProgressListener {
+
         private String urlStr;
-        
+
         public ShowInBrowserContextAction(Lookup context, String command) {
             super(context, command);
         }
@@ -86,17 +87,21 @@ public class ShowInBrowserWebAppAction extends AbstractAction implements Context
                     // we must extract jetty-web.xml if exists
                     String s = Copier.ZipUtil.getZipEntryAsString(FileUtil.toFile(webFo), "WEB-INF/jetty-web.xml");
                     props = Utils.getContextProperties(s);
+                    if ( props == null ) {
+                        props = new Properties();
+                        props.setProperty(BaseConstants.CONTEXTPATH_PROP, webFo.getName());
+                    }
 
                     break;
                 }
-                default : {
+                default: {
                     // we must extract jetty-web.xml if exists
-                    if ( webFo.isFolder() ) {
+                    if (webFo.isFolder()) {
                         props = Utils.getContextProperties(webFo.getFileObject("WEB-INF/jetty-web.xml"));
                     }
                     break;
                 }
-                
+
             }
             return props;
 
@@ -114,15 +119,31 @@ public class ShowInBrowserWebAppAction extends AbstractAction implements Context
             if (!contextPath.startsWith("/")) {
                 contextPath = "/" + contextPath;
             }
+
+            //BaseUtils.out(" %%%%%%% contextPath= " + contextPath);
+
             String port = manager.getInstanceProperties().getProperty(BaseConstants.HTTP_PORT_PROP);
             String host = manager.getInstanceProperties().getProperty(BaseConstants.HOST_PROP);
             urlStr = "http://" + host + ":" + port + contextPath;
 
+            if (manager.getSpecifics().pingServer(project)) {
+                for (int i = 0; i < 100; i++) {
+                    String state = Utils.getState(manager, contextPath);
+                    if (state != null) {
+                        String[] a = state.split(" ");
+                        state = a[0];
+                    }
+                    
+                    if ("STARTED".equals(state)) {
+                        break;
+                    }
+                    BaseUtils.sleep(100);
+                }
+            }
+
             if (AbstractHotDeployedContextAction.startServer(manager, project, this) == null) {
                 show();
             }
-
-            //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
         }
 
         void show() {

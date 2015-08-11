@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.annotation.Resource;
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.webapp.AbstractConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -22,7 +23,16 @@ import org.eclipse.jetty.webapp.WebAppContext;
  */
 public class WebXmlNbConfig extends AbstractConfiguration {
 
-    /* ------------------------------------------------------------------------------- */
+    private CommandManager cm;
+
+    protected void out(String msg) {
+
+        if (cm == null || "NO".equals(cm.getMessageOption())) {
+            return;
+        }
+        System.out.println("NB-DEPLOER: WebXmlNbConfig: " + msg);
+    }
+
     /**
      *
      * @param context
@@ -35,13 +45,27 @@ public class WebXmlNbConfig extends AbstractConfiguration {
         if (srf != null) {
             n = srf.size();
         }
-//        System.out.println(" ------------ PRECONFIGURE JSF FILTER: filter count=" + n);
 
+        Handler[] hs = context.getServer().getChildHandlersByClass(CommandManager.class);
+        if (hs.length > 0) {
+            cm = (CommandManager) hs[0];
+        }
+        out(" ============ PRECONFIGURE WebAppContext.contextPath " + context.getClassPath());
+        out(" temp dir = " + context.getTempDirectory());
         EnumSet<DispatcherType> es = EnumSet.of(DispatcherType.REQUEST);
         context.addFilter(JsfFilter.class, "/", es);
-        //context.getServletContext().setInitParameter("org.eclipse.jetty.servlet.Default.welcomeServlets", "false");
+        out(" addFilter(" + JsfFilter.class.getName() + ")");
 
-        //context.setParentLoaderPriority(true);
+        out(" ------------ SystemClasses  for WebAppContext.contextPath " + context.getClassPath() + ";");
+        out(" --- addSystemClass(com.sun.faces.)");
+        out(" --- addSystemClass(javax.faces.)");
+        out(" --- addSystemClass(com.google.common.)");
+
+        out(" ------------ Prepend Server Classes  for WebAppContext.contextPath " + context.getClassPath() + ";");
+        out(" --- prependServerClass(-com.sun.faces.)");
+        out(" --- prependServerClass(-javax.faces.)");
+        out(" --- prependServerClass(-com.google.common.)");
+
         //
         // webapp cannot change / replace jsf classes        
         //
@@ -56,45 +80,43 @@ public class WebXmlNbConfig extends AbstractConfiguration {
         context.prependServerClass("-javax.faces.");
         context.prependServerClass("-com.google.common.");
 
-        //System.out.println("PRE CONFIGURE isStarting=" + context.isStarting());
-        //System.out.println("PRE CONFIGURE isStarted=" + context.isStarted());
-        
-        //System.out.println("POST CONFIGURE isStarting=" + context.isStarting());
-        //System.out.println("POST CONFIGURE isStarted=" + context.isStarted());
         //
         // add config listener for an active jsf module
         //
         String className = IniModules.getJsfListenerClassName();
 
         if (className != null) {
-            addJsfServletContextListener(context, className);
-            System.out.println("CONF: add listener " + className);            
+            context.getServletContext().addListener(className);
+            //context.getServletContext().addListener("org.jboss.weld.environment.servlet.EnhancedListener");
+            context.getServletContext().addListener("org.jboss.weld.servlet.WeldTerminalListener");            
+            out(" add config listener for WebAppContext.contextPath=" + context.getClassPath() + "; configure class=" + className);
+        }
+        EventListener[] els = context.getEventListeners();
+        for (EventListener el : els) {
+            out("   " + el.getClass().getName());
         }
         
-        //org.apache.myfaces.webapp.StartupServletContextListener ll;
-
+        
     }
 
-    protected void addJsfServletContextListener(WebAppContext context, String className) {
-        EventListener[] listeners = context.getEventListeners();
-        boolean found = false;
-        if (listeners != null) {
-            for (EventListener l : listeners) {
-//                System.out.println("addServletContextListener POSTCONFIGURE l=" + l.getClass().getName());
-                if (className.equals(l.getClass().getName())) {
-                    found = true;
-                    break;
-                }
-            }
-        }
-        if (!found) {
-            context.getServletContext().addListener(className);
-            System.out.println("Add JSF Config listener class = " + className);
+    /*protected void addJsfServletContextListener(WebAppContext context, String className) {
 
-        }
+                EventListener[] listeners = context.getEventListeners();
+         boolean found = false;
+         if (listeners != null) {
+         for (EventListener l : listeners) {
+         if (className.equals(l.getClass().getName())) {
+         found = true;
+         break;
+         }
+         }
+         }
+         if (!found) {
+         context.getServletContext().addListener(className);
+         }
+      
     }
-
-    /* ------------------------------------------------------------------------------- */
+*/
     /**
      * Process web-default.xml, web.xml, override-web.xml
      *
@@ -102,6 +124,7 @@ public class WebXmlNbConfig extends AbstractConfiguration {
      */
     @Override
     public void configure(WebAppContext context) throws Exception {
+        out(" --- configure() WebAppContext.contextPath " + context.getContextPath());
     }
 
     /* ------------------------------------------------------------------------------- */
@@ -113,45 +136,51 @@ public class WebXmlNbConfig extends AbstractConfiguration {
     /* ------------------------------------------------------------------------------- */
     @Override
     public void deconfigure(WebAppContext context) throws Exception {
+        out(" --- deconfigure() contextPath " + context.getContextPath());
     }
 
     @Override
     public void postConfigure(WebAppContext context) throws Exception {
-        if (true) {
-            return; 
-        }
-        
-        System.out.println("POST CONFIGURE isStarting=" + context.isStarting());
-        System.out.println("POST CONFIGURE isStarted=" + context.isStarted());
-        
-        String className = IniModules.getJsfListenerClassName();        
-        EventListener[] listeners = context.getEventListeners();
-        boolean found = false;
-        if (listeners != null) {
-            for (EventListener l : listeners) {
-                System.out.println("addServletContextListener POSTCONFIGURE class = " + l.getClass().getName());
-                if (className.equals(l.getClass().getName())) {
-                    found = true;
-//                    break;
-                }
+        EventListener[] elold = context.getEventListeners();
+        EventListener[] elnew = new EventListener[elold.length];
+        EventListener enh = null;
+        out(" --- Post Configure  elold.length=" + elold.length );                                    
+        int n = 0;
+        for ( int i = 0; i < elold.length; i++) {
+            out(" --- Post Configure 1  i=" + i + "; n=" + n );                
+            out(" --- Post Configure 2 " + elold[i].getClass().getName()); 
+            if ( elold[i].getClass().getName().equals("org.jboss.weld.servlet.WeldTerminalListener") ) {
+                out(" --- Post Configure 3 i=" + i + "; n=" + n );                
+                enh = elold[i];
+                continue;
+            } else {
+                out(" --- Post Configure 4 i=" + i + "; n=" + n );                
+                elnew[n] = elold[i];                
             }
+            n++;
         }
-        if (!found) {
-            System.out.println("NOT FOUND Add JSF Config listener class = " + className);
-        } else {
-            System.out.println("!!! FOUND Add JSF Config listener class = " + className);
+        if ( enh != null ) {
+            out(" --- Post Configure 2" );                            
+            elnew[elnew.length-1] = enh;            
         }
-
+        context.setEventListeners(elnew);
+        
+        out(" --- Post Configure Listeners for WebAppContext.contextPath " + context.getClassPath() + ";");
+        EventListener[] els = context.getEventListeners();
+        for (EventListener el : els) {
+            out("   " + el);
+        }
+        out(" -----------------------------");
+        out(" --- Post Configure WellCome Files  for WebAppContext.contextPath " + context.getClassPath() + ";");
+        String[] wfs = context.getWelcomeFiles();
+        for (String wf : wfs) {
+            out("   " + wf);
+        }
+        out(" -----------------------------");
+        
+        context.getTempDirectory().deleteOnExit();
+        
+        
     }
-
-    public static void welcome(WebAppContext context, String stage) {
-        String[] wf = context.getWelcomeFiles();
-        if (wf != null) {
-            for (String s : wf) {
-                System.out.println(stage + " WebAppLifeCycleListener welcomeFile=" + s);
-            }
-        }
-
-    }
-
+    
 }

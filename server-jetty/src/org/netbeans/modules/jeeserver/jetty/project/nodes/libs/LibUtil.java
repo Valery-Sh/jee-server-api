@@ -59,18 +59,29 @@ public class LibUtil {
 
     public static void updateLibraries(Project server) {
         BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
+        LibrariesFileNode ln = (LibrariesFileNode) manager.getServerProject().getLookup()
+                .lookup(JettyProjectLogicalView.class)
+                .getLibrariesRootNode();
+        updateLibraries(server, ln);
+    }
+
+    public static void updateLibraries(Project server, LibrariesFileNode nodeToNotify) {
+        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
         final JettyServerPlatformImpl platform = JettyServerPlatformImpl.getInstance(manager);
 
         RP.post(() -> {
             platform.notifyLibrariesChanged(false);
             platform.fireChangeEvents();
-            LibrariesFileNode ln = (LibrariesFileNode) manager.getServerProject().getLookup()
-                    .lookup(JettyProjectLogicalView.class)
-                    .getLibrariesRootNode();
-            if (ln != null) {
-                ((LibrariesFileNode.FileKeys) ln.getChildrenKeys()).addNotify();
+            if (null != nodeToNotify) {
+                ((LibrariesFileNode.FileKeys) nodeToNotify.getChildrenKeys()).addNotify();
             }
-
+            /*            LibrariesFileNode ln = (LibrariesFileNode) manager.getServerProject().getLookup()
+             .lookup(JettyProjectLogicalView.class)
+             .getLibrariesRootNode();
+             if (ln != null) {
+             ((LibrariesFileNode.FileKeys) ln.getChildrenKeys()).addNotify();
+             }
+             */
         });
 
     }

@@ -33,6 +33,7 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
@@ -55,16 +56,23 @@ import org.openide.util.RequestProcessor;
  * @author V. Shyshkin
  */
 public class HotDeployedWebAppsNodeActionFactory {
-    
+
     private static final RequestProcessor RP = new RequestProcessor(HotDeployedWebAppsNodeActionFactory.class);
+
+    public static final String HTML5_WAR_TEMP = "html5_convert_to_war_";
 
     protected static final String WAR = "war";
     protected static final String XML = "xml";
     protected static final String WEB = "web";
     protected static final String HTML5 = "html5";
+    protected static final String HTML5_WAR = "html5_war";
 
     public Action getAddWarAction(Lookup context) {
         return new WebAppsAction(context, WAR);
+    }
+
+    public Action getAddHtml5WarAction(Lookup context) {
+        return new WebAppsAction(context, HTML5_WAR);
     }
 
     public Action getAddXmlAction(Lookup context) {
@@ -83,8 +91,8 @@ public class HotDeployedWebAppsNodeActionFactory {
 
         private static final Logger LOG = Logger.getLogger(HotDeployedWebAppsNodeActionFactory.class.getName());
 
-        private final RequestProcessor.Task task;
-        private final Project project;
+        private RequestProcessor.Task task;
+        private final Project server;
         private final String actionType;
 
         protected final String getMenuItemDisplayName() {
@@ -98,6 +106,9 @@ public class HotDeployedWebAppsNodeActionFactory {
                     break;
                 case HTML5:
                     result = "Add HTML5 Application (as .xml)";
+                    break;
+                case HTML5_WAR:
+                    result = "Add HTML5 Application as WAR Archive";
                     break;
 
             }
@@ -114,6 +125,7 @@ public class HotDeployedWebAppsNodeActionFactory {
                 case WEB:
                     result = "Choose Web Project";
                     break;
+                case HTML5_WAR:
                 case HTML5:
                     result = "Choose HTML5 project";
                     break;
@@ -149,13 +161,13 @@ public class HotDeployedWebAppsNodeActionFactory {
             FileObject fo = context.lookup(FileObject.class);
 
             if (fo != null && FileOwnerQuery.getOwner(fo) != null) {
-                project = FileOwnerQuery.getOwner(fo);
+                server = FileOwnerQuery.getOwner(fo);
             } else {
-                project = null;
+                server = null;
             }
 
-            if (project != null) {
-                isJettyServer = Utils.isJettyServer(project);
+            if (server != null) {
+                isJettyServer = Utils.isJettyServer(server);
             } else {
                 isJettyServer = false;
             }
@@ -165,10 +177,13 @@ public class HotDeployedWebAppsNodeActionFactory {
             putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, !isJettyServer);
             // TODO menu item label with optional mnemonics
             putValue(NAME, "&" + getMenuItemDisplayName());
-
+            init(context);
 //            task = new RequestProcessor("AddProjectBody").create(new Runnable() { // NOI18N
+        }
+
+        private void init(final Lookup context) {
             task = RP.create(() -> {
-                File baseDir = FileUtil.toFile(project.getProjectDirectory().getParent());
+                File baseDir = FileUtil.toFile(server.getProjectDirectory().getParent());
                 String[] fileFilter = getFileFilter();
                 FileChooserBuilder fcb = new FileChooserBuilder("")
                         .setTitle(getDialogTitle())
@@ -186,36 +201,44 @@ public class HotDeployedWebAppsNodeActionFactory {
                 File selectedFile = fc.getSelectedFile();
                 FileObject selectedFo = FileUtil.toFileObject(selectedFile);
                 FileObject targetFolder = context.lookup(FileObject.class);
-                
+
                 if (XML.equals(actionType)) {
                     tryCopy(targetFolder, selectedFo, selectedFo.getName(), "xml");
                     return;
                 }//if
-                
+
                 Project webapp = FileOwnerQuery.getOwner(selectedFo);
                 if (HTML5.equals(actionType)) {
                     if (webapp == null) {
                         return;
                     }
-                    
+
                     createJettyXmlForHtml5(webapp.getProjectDirectory(), targetFolder);
                     return;
                 }
-                
+                if (HTML5_WAR.equals(actionType)) {
+                    if (webapp == null) {
+                        return;
+                    }
+
+                    createWarForHtml5(webapp.getProjectDirectory(), targetFolder);
+                    return;
+                }
+
                 /**
-                 * Try if the selectedFo is not a folder and has "war"
-                 * extension and is not in a project
+                 * Try if the selectedFo is not a folder and has "war" extension
+                 * and is not in a project
                  */
                 if (webapp == null && WAR.equals(actionType)
                         && !selectedFo.isFolder() && "war".equals(selectedFo.getExt())) {
                     tryCopy(targetFolder, selectedFo, selectedFo.getName(), "war");
                     return;
                 }
-                
+
                 if (webapp == null) {
                     return;
                 }
-                
+
                 String webappName = webapp.getProjectDirectory().getNameExt();
                 /**
                  * .war file inside a project
@@ -224,47 +247,116 @@ public class HotDeployedWebAppsNodeActionFactory {
                 if (warFo == null) {
                     return;
                 }
-                if (WAR.equals(actionType)) {
-                    tryCopy(targetFolder, warFo, webappName, "war");
-                } else if (WEB.equals(actionType)) {
-                    tryCopyUnpackedWar(targetFolder, warFo, webappName);
+                if (null != actionType) {
+                    switch (actionType) {
+                        case WAR:
+                            tryCopy(targetFolder, warFo, webappName, "war");
+                            break;
+                        case WEB:
+                            tryCopyUnpackedWar(targetFolder, warFo, webappName);
+                            break;
+                    }
                 }
             } // NOI18N
             );
 
         }
+        @StaticResource
+        public static final String JETTY_WEB = "org/netbeans/modules/jeeserver/jetty/resources/JettyWeb.template";
 
-        public void createJettyXmlForHtml5(FileObject projectDir, FileObject targetFolder) {
+        @StaticResource
+        public static final String JETTY_WEB_CONTEXT = "org/netbeans/modules/jeeserver/jetty/resources/JettyWebContext.template";
 
-            String fileName = projectDir.getNameExt();
+        public void createWarForHtml5(FileObject html5Dir, FileObject targetFolder) {
 
-            if (!undeployIfExists(targetFolder, fileName, "xml")) {
+            String fileName = html5Dir.getNameExt();
+
+            if (!undeployIfExists(targetFolder, fileName, "WAR")) {
                 return;
             }
 
-            Properties html5props = BaseUtils.loadHtml5ProjectProperties(projectDir.getPath());
-            String cp = BaseUtils.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5props);
-            String war = BaseUtils.resolve(BaseConstants.HTML5_SITE_ROOT_PROP, html5props);
+            Properties html5props = BaseUtils.loadHtml5ProjectProperties(html5Dir.getPath());
+            String contextPath = BaseUtils.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5props);
+            String siteRootPath = BaseUtils.resolve(BaseConstants.HTML5_SITE_ROOT_PROP, html5props);
 
-            war = projectDir.getPath() + "/" + war;
+            final File siteRoot = new File(html5Dir.getPath() + "/" + siteRootPath);
+            InputStream input = HotDeployedWebAppsNodeActionFactory.class.getResourceAsStream("/" + JETTY_WEB_CONTEXT);
 
-            final String jettyxml = Utils.stringOf(HotDeployedWebAppsNodeActionFactory.class.getResourceAsStream("/org/netbeans/modules/jeeserver/jetty/resources/JettyWeb.template"))
-                    .replace("${jetty-web-xml-contextpath}", cp)
-                    .replace("${jetty-web-xml-war}", war);
+            if (null == contextPath) {
+                contextPath = "/" + fileName;
+            }
 
-            final Path toPath = Paths.get(targetFolder.getPath(), fileName + ".xml");
+            final String jettyxml = Utils.stringOf(input)
+                    .replace("${jetty-web-xml-contextpath}", contextPath);
+
+            //File warFile = new File(targetFolder.getPath() + "/" + html5Dir.getNameExt() + ".war");
+            String warFileName = html5Dir.getNameExt() + ".war";
+            Path tmpPath = Paths.get(System.getProperty("java.io.tmpdir") + "/"
+                    + HTML5_WAR_TEMP + html5Dir.getNameExt() + "_" + System.currentTimeMillis());
+
+            File tmpWar = Paths.get(tmpPath.toString(), warFileName).toFile();
+
+            final Path tmpJettyxmlPath = Paths.get(tmpPath.toString(), "jetty-web.xml");
+
+            try (InputStream is = new ByteArrayInputStream(jettyxml.getBytes());) {
+                Copier.mkdirs(tmpPath);
+                Files.copy(is, tmpJettyxmlPath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (IOException ex) {
+                BaseUtils.out("createWarForHtml5: create jetty-web.xmlEXCEPTION " + ex.getMessage());
+                LOG.log(Level.INFO, ex.getMessage());
+            }
+
+            try {
+                Copier.ZipUtil.copy(siteRoot, tmpWar);
+                Copier.ZipUtil.copy(tmpJettyxmlPath.toFile(), tmpWar, "WEB-INF");
+
+                FileUtil.copyFile(FileUtil.toFileObject(tmpWar), targetFolder, fileName, "war");
+                targetFolder.refresh();
+            } catch (Exception ex) {
+                BaseUtils.out("createWarForHtml5: EXCEPTION " + ex.getMessage());
+                LOG.log(Level.INFO, ex.getMessage());
+            }
+
             FileUtil.runAtomicAction(new Runnable() {
 
                 @Override
                 public void run() {
-                    try (InputStream is = new ByteArrayInputStream(jettyxml.getBytes());) {
-                        Files.copy(is, toPath, StandardCopyOption.REPLACE_EXISTING);
-                        targetFolder.refresh();
-                    } catch (IOException ex) {
-                        BaseUtils.out("createJettyXmlForHtml5: EXCEPTION " + ex.getMessage());
-                        LOG.log(Level.INFO, ex.getMessage());
-                    }
+                    Copier.delete(tmpPath.toFile());
+                }
+            });
 
+        }
+
+        public void createJettyXmlForHtml5(FileObject html5Dir, FileObject targetFolder) {
+
+            String fileName = html5Dir.getNameExt();
+
+            if (!undeployIfExists(targetFolder, fileName, "war")) {
+                return;
+            }
+
+            Properties html5props = BaseUtils.loadHtml5ProjectProperties(html5Dir.getPath());
+            String cp = BaseUtils.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5props);
+            String war = BaseUtils.resolve(BaseConstants.HTML5_SITE_ROOT_PROP, html5props);
+
+            InputStream input = HotDeployedWebAppsNodeActionFactory.class.getResourceAsStream("/" + JETTY_WEB);
+
+            if (null == cp) {
+                cp = "/" + fileName;
+            }
+
+            final String jettyxml = Utils.stringOf(input)
+                    .replace("${jetty-web-xml-contextpath}", cp)
+                    .replace("${jetty-web-xml-war}", war);
+
+            final Path toPath = Paths.get(targetFolder.getPath(), fileName + ".xml");
+            FileUtil.runAtomicAction((Runnable) () -> {
+                try (InputStream is = new ByteArrayInputStream(jettyxml.getBytes());) {
+                    Files.copy(is, toPath, StandardCopyOption.REPLACE_EXISTING);
+                    targetFolder.refresh();
+                } catch (IOException ex) {
+                    BaseUtils.out("createJettyXmlForHtml5: EXCEPTION " + ex.getMessage());
+                    LOG.log(Level.INFO, ex.getMessage());
                 }
             });
 

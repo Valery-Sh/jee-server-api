@@ -20,10 +20,13 @@ import java.io.IOException;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 import org.openide.util.Utilities;
 
@@ -50,7 +53,8 @@ public class BaseHotDeployedContextAction extends AbstractHotDeployedContextActi
         String state = null;
         if (manager != null && manager.pingServer()) {
             if (manager != null && !manager.isStopped()) {//&& manager.pingServer()) {
-                state = manager.getSpecifics().execCommand(project, createCommand("getstate", props));
+                state = manager.getSpecifics().execCommand(project, createCommand("getstatebycontextpath", props));
+                //state = manager.getSpecifics().execCommand(project, createCommand("getstate", props));                
             }
         }
         return state;
@@ -87,6 +91,14 @@ public class BaseHotDeployedContextAction extends AbstractHotDeployedContextActi
                     break;
                 }
                 case "war": {
+                    // we must extract jetty-web.xml if exists
+                    
+                    String s = Copier.ZipUtil.getZipEntryAsString(FileUtil.toFile(webFo), "WEB-INF/jetty-web.xml");
+                    props = Utils.getContextProperties(s);
+                    if ( props == null ) {
+                        props = new Properties();
+                        props.setProperty(BaseConstants.CONTEXTPATH_PROP, webFo.getName());
+                    }
                     String state = getWebAppState(webFo, props);
                     if (state != null) {
                         String[] a = state.split(" ");
@@ -128,10 +140,19 @@ public class BaseHotDeployedContextAction extends AbstractHotDeployedContextActi
         
         switch (command) {
             case "starthotdeployed":
-                result = serverRunning && JettyConstants.STOPPED.equals(contextProps.getProperty("state"));
+                result = serverRunning && ( JettyConstants.STOPPED.equals(contextProps.getProperty("state"))
+                            || JettyConstants.SHUTDOWN.equals(contextProps.getProperty("state")));
                 break;
             case "stophotdeployed":
                 result = serverRunning && JettyConstants.STARTED.equals(contextProps.getProperty("state"));
+                break;
+            case "stophotdeployedbycontextpath":
+                if ( serverRunning ) {
+                    result = JettyConstants.STARTED.equals(contextProps.getProperty("state"));
+                } else {
+                    result = false;
+                }
+                //result = serverRunning && JettyConstants.STARTED.equals(contextProps.getProperty("state"));
                 break;
             case "undeployhotdeployed":
                 result = true;
@@ -169,8 +190,10 @@ public class BaseHotDeployedContextAction extends AbstractHotDeployedContextActi
         sb.append(command);
         sb.append("&cp=");
         sb.append(BaseUtils.encode(props.getProperty(CONTEXTPATH)));
-        sb.append("&dir=");
-        sb.append(BaseUtils.encode(props.getProperty(WAR)));
+        if ( props.getProperty(WAR) != null ) {
+            sb.append("&dir=");
+            sb.append(BaseUtils.encode(props.getProperty(WAR)));
+        }
 
         return sb.toString();
     }

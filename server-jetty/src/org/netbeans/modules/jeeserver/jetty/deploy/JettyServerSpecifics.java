@@ -273,19 +273,9 @@ public class JettyServerSpecifics implements ServerSpecifics {
     @Override
     public void serverStarted(DeploymentManager manager) {
         BaseDeploymentManager dm = (BaseDeploymentManager) manager;
-BaseUtils.out("1 Specifics serverStartted time=" + System.currentTimeMillis());
-        
         LibUtil.updateLibraries(dm.getServerProject());
-/*        LibrariesFileNode ln = (LibrariesFileNode)dm.getServerProject().getLookup()
-                .lookup(JettyProjectLogicalView.class)
-                .getLibrariesRootNode();
-        if( ln != null ) {
-            ((LibrariesFileNode.FileKeys) ln.getChildrenKeys()).addNotify();
-        }
-*/        
-BaseUtils.out("5 Specifics serverStartted time=" + System.currentTimeMillis());
-
     }
+    
     @Override
     public Properties getContextPoperties(FileObject config) {
         return JettyServerModuleConfiguration.getContextProperties(config);

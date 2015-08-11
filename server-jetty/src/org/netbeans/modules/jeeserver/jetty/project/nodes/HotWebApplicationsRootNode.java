@@ -44,6 +44,7 @@ import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
 /**
@@ -151,6 +152,8 @@ public class HotWebApplicationsRootNode extends FilterNode {
         
         Action addWarAction = new HotDeployedWebAppsNodeActionFactory()
                 .getAddWarAction(getLookup());
+        Action addHtml5WarAction = new HotDeployedWebAppsNodeActionFactory()
+                .getAddHtml5WarAction(getLookup());
         Action addHtml5Action = new HotDeployedWebAppsNodeActionFactory()
                 .getAddHtml5Action(getLookup());
         Action addXmlAction = new HotDeployedWebAppsNodeActionFactory()
@@ -168,9 +171,10 @@ public class HotWebApplicationsRootNode extends FilterNode {
         actions.add(addWarAction);
         actions.add(addWebFolderAction);                
         actions.add(null);
-        
-        actions.add(addHtml5Action);                        
         actions.add(addXmlAction);        
+        actions.add(null);
+        actions.add(addHtml5WarAction);                        
+        actions.add(addHtml5Action);                        
         
         actions.add(null);
 

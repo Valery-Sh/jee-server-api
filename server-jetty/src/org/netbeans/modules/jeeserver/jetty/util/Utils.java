@@ -18,6 +18,7 @@ package org.netbeans.modules.jeeserver.jetty.util;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -41,10 +43,13 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.modules.jeeserver.jetty.project.JettyProjectFactory;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
@@ -254,12 +259,19 @@ public class Utils {
     }
 
     public static Properties getContextProperties(String jettyXmlStr) {
+        if ( jettyXmlStr == null ) {
+            return null;
+        }
         InputSource source;
         source = new InputSource(new ByteArrayInputStream(jettyXmlStr.getBytes()));
         return getContextProperties(source);
     }
 
     public static Properties getContextProperties(FileObject jettyXml) {
+        if ( jettyXml == null ) {
+            return null;
+        }
+        
         InputSource source;
         try {
             source = new InputSource(jettyXml.getInputStream());
@@ -312,6 +324,28 @@ public class Utils {
         }
         return result;
     }
+    
+    public static String getState(BaseDeploymentManager manager, String contextPath)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.append("cmd=");
+        sb.append("getstatebycontextpath");
+        sb.append("&cp=");
+        sb.append(BaseUtils.encode(contextPath));
+
+        
+        return manager.getSpecifics().execCommand(manager.getServerProject(), sb.toString()); 
+/*        switch(state)
+        {
+            case __FAILED: return FAILED;
+            case __STARTING: return STARTING;
+            case __STARTED: return STARTED;
+            case __STOPPING: return STOPPING;
+            case __STOPPED: return STOPPED;
+        }
+*/        
+    }
+    
     public static class SAXHandler extends DefaultHandler {
 
         String content = null;
@@ -329,4 +363,4 @@ public class Utils {
         }
     }
 
-}
+}//class

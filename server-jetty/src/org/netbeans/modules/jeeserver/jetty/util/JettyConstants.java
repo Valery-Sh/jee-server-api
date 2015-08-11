@@ -63,5 +63,6 @@ public class JettyConstants {
     public static final String STARTED="STARTED";
     public static final String STOPPING="STOPPING";
     public static final String RUNNING="RUNNING";
+    public static final String SHUTDOWN="SHUTDOWN";
     
 }

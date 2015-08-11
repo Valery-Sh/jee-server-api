@@ -68,6 +68,14 @@ import org.xml.sax.SAXException;
 public class BaseUtils {
 
     private static final Logger LOG = Logger.getLogger(BaseUtils.class.getName());
+
+    public static void sleep(long msec) {
+        Long time = System.currentTimeMillis();
+        while (System.currentTimeMillis() < time + msec) {
+        }
+
+    }
+
     /**
      * Return an instance of {@literal J2eeModule} for the specified web
      * project.
@@ -79,6 +87,7 @@ public class BaseUtils {
     public static J2eeModule getJ2eeModule(Project webProject) {
         return getJ2eeModuleProvider(webProject).getJ2eeModule();
     }
+
     /**
      *
      * @param webProject
@@ -87,55 +96,60 @@ public class BaseUtils {
     public static J2eeModuleProvider getJ2eeModuleProvider(Project webProject) {
         return webProject.getLookup().lookup(J2eeModuleProvider.class);
     }
-    
+
     public static String getNbBundleMsg(Object obj, String bname) {
-        String msg = NbBundle.getMessage(obj.getClass(),bname);
-        if ( msg == null ) {
+        String msg = NbBundle.getMessage(obj.getClass(), bname);
+        if (msg == null) {
             msg = bname;
         }
-        return NbBundle.getMessage(obj.getClass(),msg);
+        return NbBundle.getMessage(obj.getClass(), msg);
     }
+
     public static String getJavaVersion() {
         String java_version = System.getProperty("java.version");
-        if (java_version!=null)
-        {
+        if (java_version != null) {
             String[] parts = java_version.split("\\.");
-            if (parts!=null && parts.length>0)
-                System.setProperty("java.version.major",parts[0]);
-            if (parts!=null && parts.length>1)
-                System.setProperty("java.version.minor",parts[1]);
-        }        
+            if (parts != null && parts.length > 0) {
+                System.setProperty("java.version.major", parts[0]);
+            }
+            if (parts != null && parts.length > 1) {
+                System.setProperty("java.version.minor", parts[1]);
+            }
+        }
         return java_version;
-        
+
     }
+
     public static String getJavaMajorVersion() {
         String java_version = System.getProperty("java.version");
-        if (java_version!=null)
-        {
+        if (java_version != null) {
             String[] parts = java_version.split("\\.");
-            if (parts!=null && parts.length>0)
-                System.setProperty("java.version.major",parts[0]);
-            if (parts!=null && parts.length>1)
-                System.setProperty("java.version.minor",parts[1]);
-        }        
+            if (parts != null && parts.length > 0) {
+                System.setProperty("java.version.major", parts[0]);
+            }
+            if (parts != null && parts.length > 1) {
+                System.setProperty("java.version.minor", parts[1]);
+            }
+        }
         return System.getProperty("java.version.major");
 
-        
-    }    
+    }
+
     public static String getJavaMinorVersion() {
         String java_version = System.getProperty("java.version");
-        if (java_version!=null)
-        {
+        if (java_version != null) {
             String[] parts = java_version.split("\\.");
-            if (parts!=null && parts.length>0)
-                System.setProperty("java.version.major",parts[0]);
-            if (parts!=null && parts.length>1)
-                System.setProperty("java.version.minor",parts[1]);
-        }        
+            if (parts != null && parts.length > 0) {
+                System.setProperty("java.version.major", parts[0]);
+            }
+            if (parts != null && parts.length > 1) {
+                System.setProperty("java.version.minor", parts[1]);
+            }
+        }
         return System.getProperty("java.version.minor");
-        
-    }    
-    
+
+    }
+
     public static String createCommand(BaseTargetModuleID module, String cmd) {
 
         StringBuilder sb = new StringBuilder();
@@ -283,7 +297,7 @@ public class BaseUtils {
                 public void run() throws IOException {
 
                     //OutputStream out = toDir.createAndOpen(toFileName);
-                    try(OutputStream out = toDir.createAndOpen(toFileName);) {
+                    try (OutputStream out = toDir.createAndOpen(toFileName);) {
                         props.store(out, "");
                         out.close();
 
@@ -384,8 +398,8 @@ public class BaseUtils {
             }
 
             if (serverId.equals(((ServerSpecificsProvider) f).getServerId())) {
-                 return ((ServerSpecificsProvider) f).getSpecifics();
-             }
+                return ((ServerSpecificsProvider) f).getSpecifics();
+            }
         }
         return null;
     }
@@ -443,16 +457,16 @@ public class BaseUtils {
     public static boolean isServerProject(Project p) {
         return getServerProperties(p) != null;
     }
-    
+
     public static boolean isMavenProject(String projDir) {
         Project proj = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(projDir)));
         //return new File(projDir + "/pom.xml").exists();
         return isMavenProject(proj);
     }
-    
+
     public static boolean isMavenProject(Project proj) {
-        for ( Object o : proj.getLookup().lookupAll(Object.class)) {
-            if ( "org.netbeans.modules.maven.api.NbMavenProject".equals(o.getClass().getName()) ) {
+        for (Object o : proj.getLookup().lookupAll(Object.class)) {
+            if ("org.netbeans.modules.maven.api.NbMavenProject".equals(o.getClass().getName())) {
                 return true;
             }
         }
@@ -461,11 +475,11 @@ public class BaseUtils {
     }
 
     public static boolean isAntProject(Project proj) {
-        
-        return proj.getLookup().lookup( org.netbeans.api.project.ant.AntBuildExtender.class) != null; 
+
+        return proj.getLookup().lookup(org.netbeans.api.project.ant.AntBuildExtender.class) != null;
         //return proj.getProjectDirectory().getFileObject("pom.xml") != null;  
     }
-    
+
     /**
      * Return a deployment manager object for a given server project.
      *
@@ -531,7 +545,7 @@ public class BaseUtils {
         }
         return props;
     }
-    
+
     public static Properties loadHtml5ProjectProperties(String projDir) {
         File f = new File(projDir + "/nbproject/project.properties");
         final Properties props = new Properties();
@@ -547,40 +561,41 @@ public class BaseUtils {
 
     public static String resolve(String key, Properties p) {
         String v = p.getProperty(key);
-        if ( v == null ) {
+        if (v == null) {
             return null;
         }
-        while ( ! resolved(v) ) {
+        while (!resolved(v)) {
             v = getValue(v, p);
         }
         return v;
     }
+
     private static boolean resolved(String value) {
-        if ( value == null ||  ! value.trim().contains("${")) {
+        if (value == null || !value.trim().contains("${")) {
             return true;
         }
         return false;
     }
-    
+
     private static String getValue(String v, Properties p) {
-        while ( ! resolved(v)) {
+        while (!resolved(v)) {
             String s = v;
             int i1 = s.indexOf("${");
-            if ( i1 < 0 ) {
+            if (i1 < 0) {
                 return v;
             }
             int i2 = s.indexOf("}");
-            s = s.substring(i1+2, i2);
-            s = resolve(s,p); 
+            s = s.substring(i1 + 2, i2);
+            s = resolve(s, p);
             StringBuilder sb = new StringBuilder(v);
-           
-            sb.replace(i1, i2+1, s);
+
+            sb.replace(i1, i2 + 1, s);
             v = sb.toString();
         }
-        return v; 
+        return v;
     }
-   
-   public static String projectTypeByProjectXml(FileObject projXml) {
+
+    public static String projectTypeByProjectXml(FileObject projXml) {
         String result = null;
         try {
             InputSource source = new InputSource(projXml.getInputStream());
@@ -600,60 +615,60 @@ public class BaseUtils {
 
     public static boolean isHtml5Project(String path) {
         FileObject fo = FileUtil.toFileObject(new File(path));
-        if ( fo == null ) {
+        if (fo == null) {
             return false;
         }
         Project proj = FileOwnerQuery.getOwner(fo);
-        if ( proj == null ) {
+        if (proj == null) {
             return false;
         }
         String type = getAntBasedProjectType(proj);
-        if ( BaseConstants.HTML5_PROJECTTYPE.equals(type) ) {
+        if (BaseConstants.HTML5_PROJECTTYPE.equals(type)) {
             return true;
         }
         return false;
     }
+
     public static String getAntBasedProjectType(Project proj) {
         FileObject fo = proj.getProjectDirectory().getFileObject("nbproject/project.xml");
-        if ( fo == null ) {
+        if (fo == null) {
             return null;
         }
         return projectTypeByProjectXml(fo);
-    }    
-
-/*    public static String getAntBasedProjectType(Project proj) {
-        FileObject fo = proj.getProjectDirectory().getFileObject("nbproject/project.xml");
-        if ( fo == null ) {
-            return null;
-        }
-        return getAntBasedProjectType(fo);
     }
+
+    /*    public static String getAntBasedProjectType(Project proj) {
+     FileObject fo = proj.getProjectDirectory().getFileObject("nbproject/project.xml");
+     if ( fo == null ) {
+     return null;
+     }
+     return getAntBasedProjectType(fo);
+     }
     
-    public static String getAntBasedProjectType(FileObject xmlFo) {
-        String result = null;
-        File xmlFile = FileUtil.toFile(xmlFo);
-        try {
-            DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-            domFactory.setValidating(false);
-            DocumentBuilder builder = domFactory.newDocumentBuilder();
-            builder.setEntityResolver(new ParserEntityResolver());
-            Document doc = builder.parse(xmlFile);
+     public static String getAntBasedProjectType(FileObject xmlFo) {
+     String result = null;
+     File xmlFile = FileUtil.toFile(xmlFo);
+     try {
+     DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+     domFactory.setValidating(false);
+     DocumentBuilder builder = domFactory.newDocumentBuilder();
+     builder.setEntityResolver(new ParserEntityResolver());
+     Document doc = builder.parse(xmlFile);
 
-            NodeList nl = doc.getDocumentElement().getElementsByTagName("type");
-            if (nl != null) {
-                for (int i = 0; i < nl.getLength(); i++) {
-                    Element el = (Element) nl.item(i);
-                    result = el.getTextContent();
-                    break;
-                }
-            }
+     NodeList nl = doc.getDocumentElement().getElementsByTagName("type");
+     if (nl != null) {
+     for (int i = 0; i < nl.getLength(); i++) {
+     Element el = (Element) nl.item(i);
+     result = el.getTextContent();
+     break;
+     }
+     }
 
-        } catch (IOException | DOMException | ParserConfigurationException | SAXException ex) {
-            //out("Utils: getContextProperties EXCEPTION " + ex.getMessage());
-            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return result;
-    }
-    */
-   
+     } catch (IOException | DOMException | ParserConfigurationException | SAXException ex) {
+     //out("Utils: getContextProperties EXCEPTION " + ex.getMessage());
+     Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
+     }
+     return result;
+     }
+     */
 }

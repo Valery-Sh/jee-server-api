@@ -45,7 +45,7 @@ public class JsfFilter implements Filter {
 
     @Override
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain fc) throws IOException, ServletException {
-        System.err.println(" ------------ JSF REDIRECT FILTER STARTING ------- ");
+        System.err.println(" NB-DEPLOYER: JSF REDIRECT FILTER STARTING ");
 
         HttpServletRequest hreq = (HttpServletRequest) req;
         String uri = hreq.getRequestURI();

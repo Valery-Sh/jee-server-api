@@ -190,7 +190,7 @@ public class EmbPackageUtils {
             BaseUtils.storeProperties(props, package_dist, web_app_config);
             File tmpFile = new File(package_dist.getPath() + "/" + web_app_config);
 
-            Copier.ZipUtil.copy(tmpFile, warFile, "META-INF");
+            Copier.ZipUtil.copy(tmpFile, warFile, "WEB-INF");
 
             tmpFile.delete();
 
