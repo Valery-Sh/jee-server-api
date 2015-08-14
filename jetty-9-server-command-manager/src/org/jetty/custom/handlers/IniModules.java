@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -28,7 +29,29 @@ public class IniModules {
 
     }
 
+    public static boolean isCDIEnabled() {
+        boolean yes = false;
+        for ( String m : getEnabledModules()) {
+            if ( m.toLowerCase().equals("cdi")) {
+                yes = true;
+                break;
+            }
+        }
+        return yes;
 
+    }
+    public static boolean isJSFEnabled() {
+        boolean yes = false;
+        for ( String m : getEnabledModules()) {
+            if ( m.toLowerCase().startsWith("jsf-")) {
+                yes = true;
+                break;
+            }
+        }
+        return yes;
+        
+    }
+            
     public static List<String> getEnabledModules() {
         //
         // First get  all modules from start.ini in the baseDir

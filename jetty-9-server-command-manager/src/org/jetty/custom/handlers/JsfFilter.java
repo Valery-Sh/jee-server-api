@@ -35,7 +35,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
  *
- * @author Valery
+ * @author V.Shyshkin
  */
 public class JsfFilter implements Filter {
 

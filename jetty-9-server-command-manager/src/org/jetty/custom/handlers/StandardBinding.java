@@ -19,19 +19,24 @@ public class StandardBinding implements AppLifeCycle.Binding {
 
     @Override
     public String[] getBindingTargets() {
-        return new String[]{"deploying", "deployed", "starting", "started"};
+        return new String[]{"stopping", "stopped", "deploying", "deployed", "starting", "started"};
     }
 
     @Override
     public void processBinding(Node node, App app) throws Exception {
         ContextHandler handler = app.getContextHandler();
-        System.out.println("NB-DEPLOYER:  Procesing Bindings handler = " + handler);
+        System.out.println("NB-BINDING:  Procesing Bindings lifecycle_name=" + node.getName() + "; handler = " + handler);
         if (handler == null) {
-            throw new NullPointerException("NB-DEPLOYER: No Handler created for App: " + app);
+            throw new NullPointerException("NB-BINDING: No Handler created for App: " + app);
         }
         if (handler instanceof WebAppContext) {
+            
             WebAppContext webapp = (WebAppContext) handler;
-            Map<String, ? extends FilterRegistration> srf = (Map<String, FilterRegistration>) webapp.getServletContext().getFilterRegistrations();
+        System.out.println("NB-BINDING:  Procesing Bindings webapp.cp=" + webapp.getContextPath());
+        System.out.println("NB-BINDING:  Procesing Bindings ATTR=" + webapp.getAttribute("org.jboss.weld.environment.servlet.javax.enterprise.inject.spi.BeanManager"));
+        
+            
+/*            Map<String, ? extends FilterRegistration> srf = (Map<String, FilterRegistration>) webapp.getServletContext().getFilterRegistrations();
             EnumSet<DispatcherType> es = EnumSet.of(DispatcherType.REQUEST);
             if ("deployed".equals(node.getName())) {
                 webapp.addFilter(JsfFilter.class, "/", es);
@@ -39,7 +44,7 @@ public class StandardBinding implements AppLifeCycle.Binding {
             String[] wf = webapp.getWelcomeFiles();
             if (wf != null) {
             }
-
+*/
         }
     }
 }

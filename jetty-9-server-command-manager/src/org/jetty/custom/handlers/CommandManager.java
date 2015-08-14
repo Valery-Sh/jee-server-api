@@ -18,6 +18,10 @@ package org.jetty.custom.handlers;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.EventListener;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,8 +48,6 @@ import org.eclipse.jetty.webapp.WebAppContext;
  * @author V. Shyshkin
  */
 public class CommandManager extends AbstractHandler implements LifeCycle.Listener {
-
-    public static final String WELD_LISTENER_CLASS_NAME = "org.jboss.weld.environment.servlet.Listener";
 
     /**
      * When {@literal true} the the server supports annotations.
@@ -194,11 +196,12 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
                     break;
                 case "stophotdeployed":
                     //stopHotDeployed(request);
-                    shutdownHotDeployed(request);                    break;
-/*                case "undeployhotdeployed":
-                    undeployHotDeployed(request);
+                    shutdownHotDeployed(request);
                     break;
-*/                    
+                /*                case "undeployhotdeployed":
+                 undeployHotDeployed(request);
+                 break;
+                 */
 
             }//switch
         }
@@ -216,6 +219,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
 
     @Override
     public void lifeCycleStarted(LifeCycle lc) {
+
     }
 
     @Override
@@ -361,14 +365,14 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         //printInfoAfter("undeploy");
     }
 
-/*    protected void undeployHotDeployed(HttpServletRequest request) {
-        String webDir = request.getParameter("dir");
-        webDir = new File(webDir).getAbsolutePath();
+    /*    protected void undeployHotDeployed(HttpServletRequest request) {
+     String webDir = request.getParameter("dir");
+     webDir = new File(webDir).getAbsolutePath();
 
-        String contextPath = request.getParameter("cp");
-        undeployHotDeployed(contextPath, webDir);
-    }
-*/
+     String contextPath = request.getParameter("cp");
+     undeployHotDeployed(contextPath, webDir);
+     }
+     */
     protected void shutdownHotDeployed(String contextPath) {
 
         out("NB-DEPLOYER: shutdownHotDeployed started for cp=" + contextPath);
@@ -387,52 +391,52 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         out("NB-DEPLOYER:  AFTER SHUT DOWN isStopped=" + c.isStopped());
         out("NB-DEPLOYER:  AFTER SHUT DOWN c.isRunning()=" + c.isRunning());
         out("NB-DEPLOYER:  AFTER SHUT DOWN isAvailable=" + c.isAvailable());
-        out("NB-DEPLOYER:  AFTER SHUT DOWN isShutdown=" + c.isShutdown());        
-        out("NB-DEPLOYER:  AFTER SHUT DOWN isStopping=" + c.isStopping());        
+        out("NB-DEPLOYER:  AFTER SHUT DOWN isShutdown=" + c.isShutdown());
+        out("NB-DEPLOYER:  AFTER SHUT DOWN isStopping=" + c.isStopping());
 
         out("NB-DEPLOYER: shutdown : success");
 
         //printInfoAfter("undeploy");
     }
-    
-/*    protected void undeployHotDeployed(String contextPath, String webDir) {
 
-        out("NB-DEPLOYER:  undeployhotdeployed started for cp=" + contextPath + "; webDir=" + webDir);
-        Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
+    /*    protected void undeployHotDeployed(String contextPath, String webDir) {
 
-        if (map.isEmpty()) {
-            return; // Nothing to undeploy
-        }
+     out("NB-DEPLOYER:  undeployhotdeployed started for cp=" + contextPath + "; webDir=" + webDir);
+     Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
 
-        Handler[] handlers = getServer().getChildHandlersByClass(WebAppContext.class);
-        File webDirFile = new File(webDir);
-        WebAppContext webapp = null;
-        for (Handler h : handlers) {
-            WebAppContext c = (WebAppContext) h;
-            File f = new File(c.getWar());
-            if (f.equals(webDirFile)) {
-                webapp = c;
-                break;
-            }
-        }
-        if (webapp == null) {
-            return;
-        }
+     if (map.isEmpty()) {
+     return; // Nothing to undeploy
+     }
 
-        try {
-            if (!webapp.isStopped()) {
-                out("NB-DEPLOYER: undeployhotdeployed stopping... ");
-                webapp.stop();
-            }
-            map.get(webapp).removeHandler(webapp);
-        } catch (Exception ex) {
-            error("NB-DEPLOYER: undeployhotdeployed failed: ");
-            return;
-        }
-        out("NB-DEPLOYER: undeployhotdeployed: success");
+     Handler[] handlers = getServer().getChildHandlersByClass(WebAppContext.class);
+     File webDirFile = new File(webDir);
+     WebAppContext webapp = null;
+     for (Handler h : handlers) {
+     WebAppContext c = (WebAppContext) h;
+     File f = new File(c.getWar());
+     if (f.equals(webDirFile)) {
+     webapp = c;
+     break;
+     }
+     }
+     if (webapp == null) {
+     return;
+     }
 
-    }
-*/
+     try {
+     if (!webapp.isStopped()) {
+     out("NB-DEPLOYER: undeployhotdeployed stopping... ");
+     webapp.stop();
+     }
+     map.get(webapp).removeHandler(webapp);
+     } catch (Exception ex) {
+     error("NB-DEPLOYER: undeployhotdeployed failed: ");
+     return;
+     }
+     out("NB-DEPLOYER: undeployhotdeployed: success");
+
+     }
+     */
     protected void startHotDeployed(HttpServletRequest request) {
 
         String contextPath = request.getParameter("cp");
@@ -440,8 +444,8 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     }
 
     protected void startHotDeployed(String contextPath) {
-        out("NB-DEPLOYER: starthotdeployed command. contextPath=" + contextPath);                
-        
+        out("NB-DEPLOYER: starthotdeployed command. contextPath=" + contextPath);
+
         Handler[] handlers = getServer().getChildHandlersByClass(WebAppContext.class);
         WebAppContext webapp = null;
         for (Handler h : handlers) {
@@ -451,7 +455,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
                 break;
             }
         }
-        
+
         if (webapp == null) {
             return;
         }
@@ -459,7 +463,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
             if (webapp.isStopped()) {
                 out("NB-DEPLOYER: startHot isStopped");
                 webapp.start();
-            } else if ( webapp.isShutdown() ) {
+            } else if (webapp.isShutdown()) {
                 webapp.setAvailable(true);
             }
         } catch (Exception ex) {
@@ -469,116 +473,98 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         out("NB-DEPLOYER: starthotdeployed: success (isAvailable: " + webapp.isAvailable() + "; isStopped=" + webapp.isStopped() + ")");
 
     }
+
     protected void shutdownHotDeployed(HttpServletRequest request) {
 
         String contextPath = request.getParameter("cp");
         shutdownHotDeployed(contextPath);
     }
 
-/*    protected void stopHotDeployed(HttpServletRequest request) {
+    /*    protected void stopHotDeployed(HttpServletRequest request) {
 
-        String webDir = request.getParameter("dir");
-        if ( webDir != null ) {
-            webDir = new File(webDir).getAbsolutePath();
-        }
-        String contextPath = request.getParameter("cp");
+     String webDir = request.getParameter("dir");
+     if ( webDir != null ) {
+     webDir = new File(webDir).getAbsolutePath();
+     }
+     String contextPath = request.getParameter("cp");
 
-        stopHotDeployed(contextPath, webDir);
-    }
+     stopHotDeployed(contextPath, webDir);
+     }
 
-    protected void stopHotDeployed(String contextPath, String webDir) {
-        undeployHotDeployed(contextPath,webDir);
-        if ( true ) {
-            return;
-        }
-        Handler[] handlers = getServer().getChildHandlersByClass(WebAppContext.class);
-        File webDirFile = new File(webDir);
+     protected void stopHotDeployed(String contextPath, String webDir) {
+     undeployHotDeployed(contextPath,webDir);
+     if ( true ) {
+     return;
+     }
+     Handler[] handlers = getServer().getChildHandlersByClass(WebAppContext.class);
+     File webDirFile = new File(webDir);
 
-        WebAppContext found = null;
-        for (Handler h : handlers) {
-            WebAppContext c = (WebAppContext) h;
-            File f = new File(c.getWar());
-            if (f.equals(webDirFile)) {
-                //webapp = c;
-                found = c;
-                break;
-            }
-        }
-        if (found == null) {
-            return;
-        }
-        final WebAppContext webapp = found;
-        try {
-            if (webapp.isAvailable() && !webapp.isStopped()) {
-                out("NB-DEPLOYER: stophotdeployed: before stop() (isAvailable: " + webapp.isAvailable() + "; isStopped=" + webapp.isStopped() + ")");
-                try {
-                    printListeners(webapp," BEFORE ");
-                    sleep(500);
+     WebAppContext found = null;
+     for (Handler h : handlers) {
+     WebAppContext c = (WebAppContext) h;
+     File f = new File(c.getWar());
+     if (f.equals(webDirFile)) {
+     //webapp = c;
+     found = c;
+     break;
+     }
+     }
+     if (found == null) {
+     return;
+     }
+     final WebAppContext webapp = found;
+     try {
+     if (webapp.isAvailable() && !webapp.isStopped()) {
+     out("NB-DEPLOYER: stophotdeployed: before stop() (isAvailable: " + webapp.isAvailable() + "; isStopped=" + webapp.isStopped() + ")");
+     try {
+     printListeners(webapp," BEFORE ");
+     sleep(500);
                     
-                    webapp.stop();
-                    printListeners(webapp," AFTER ");
-                } catch(Exception ex) {
-                    error("1) NB-DEPLOYER: stophotdeployed: failed: ", ex);
-                }
-                new Thread(() -> {
-                    while (!webapp.isStopped()) {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException ex) {
-                            Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    File tmp = webapp.getTempDirectory();
-                    //tmp.deleteOnExit();
-                    webapp.setTempDirectory(null);
-                    ClassLoader cl = webapp.getClassLoader();
-                    try {
-                        //webapp.setClassLoader(null);
-                        //webapp.setParentLoaderPriority(true);
-                    } catch (Exception ex) {
-                        out("NB-DEPLOYER: stophotdeployed: EX 1 " + ex.getMessage());
-                    }
-                    try {
-                        //IO.delete(tmp);                    
-                    } catch (Exception ex) {
-                        out("NB-DEPLOYER: stophotdeployed: EX 2 " + ex.getMessage());
-                    }
-                    try {
-                        //webapp.setClassLoader(cl);
-                        //webapp.setParentLoaderPriority(false);
-                    } catch (Exception ex) {
-                        out("NB-DEPLOYER: stophotdeployed: EX 3 " + ex.getMessage());
-                    }
-                });
-                out("NB-DEPLOYER: stophotdeployed: after stop() temp dir: " + webapp.getTempDirectory());
-            }
-        } catch (Exception ex) {
-            error("NB-DEPLOYER: stophotdeployed: failed: ", ex);
-            return;// webapp;
-        }
-        out("NB-DEPLOYER: stophotdeployed: success (isAvailable: " + webapp.isAvailable() + "; isStopped=" + webapp.isStopped() + ")");
+     webapp.stop();
+     printListeners(webapp," AFTER ");
+     } catch(Exception ex) {
+     error("1) NB-DEPLOYER: stophotdeployed: failed: ", ex);
+     }
+     new Thread(() -> {
+     while (!webapp.isStopped()) {
+     try {
+     Thread.sleep(100);
+     } catch (InterruptedException ex) {
+     Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+     }
+     }
+     File tmp = webapp.getTempDirectory();
+     //tmp.deleteOnExit();
+     webapp.setTempDirectory(null);
+     ClassLoader cl = webapp.getClassLoader();
+     try {
+     //webapp.setClassLoader(null);
+     //webapp.setParentLoaderPriority(true);
+     } catch (Exception ex) {
+     out("NB-DEPLOYER: stophotdeployed: EX 1 " + ex.getMessage());
+     }
+     try {
+     //IO.delete(tmp);                    
+     } catch (Exception ex) {
+     out("NB-DEPLOYER: stophotdeployed: EX 2 " + ex.getMessage());
+     }
+     try {
+     //webapp.setClassLoader(cl);
+     //webapp.setParentLoaderPriority(false);
+     } catch (Exception ex) {
+     out("NB-DEPLOYER: stophotdeployed: EX 3 " + ex.getMessage());
+     }
+     });
+     out("NB-DEPLOYER: stophotdeployed: after stop() temp dir: " + webapp.getTempDirectory());
+     }
+     } catch (Exception ex) {
+     error("NB-DEPLOYER: stophotdeployed: failed: ", ex);
+     return;// webapp;
+     }
+     out("NB-DEPLOYER: stophotdeployed: success (isAvailable: " + webapp.isAvailable() + "; isStopped=" + webapp.isStopped() + ")");
 
-    }
-*/    
-    public  void printListeners(WebAppContext context, String when) {
-        out(" --- NB-DEPLOER:" + when +  " Configure Listeners for WebAppContext.contextPath " + context.getClassPath() + ";");
-        EventListener[] els = context.getEventListeners();
-        for (EventListener el : els) {
-            out("   " + el.getClass().getName());
-        }
-        out(" -----------------------------");
-        out(" --- NB-DEPLOER: WellCome Files  for WebAppContext.contextPath " + context.getClassPath() + ";");
-/*        String[] wfs = context.getWelcomeFiles();
-        for (String wf : wfs) {
-            out("   " + wf);
-        }
-*/        
-        out(" -----------------------------");
-        
-        context.getTempDirectory().deleteOnExit();
-        
-    }
-
+     }
+     */
     protected String getLifecycleState(HttpServletRequest request) {
         String webDir = request.getParameter("dir");
         webDir = new File(webDir).getAbsolutePath();
@@ -640,7 +626,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         }
         if (webapp != null) {
             out("NB-DEPLOYER: getLifecycleStateByContextPath FOUND state=" + webapp.getState());
-            if ( webapp.isShutdown() ) {
+            if (webapp.isShutdown()) {
                 return "SHUTDOWN" + " " + webapp.getContextPath();
             }
             state = webapp.getState() + " " + webapp.getContextPath();
@@ -981,6 +967,25 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
             updateServerHandlers();
         }
 
+        @Override
+        public void lifeCycleStarted(LifeCycle lc) {
+            if (IniModules.isCDIEnabled()) {
+                Handler[] hs = cm.getServer().getChildHandlersByClass(CustomWebAppContext.class);
+                if (hs.length == 0) {
+
+                    WebAppContext ctx = new CustomWebAppContext(cm);
+                    Handler[] chc = cm.getServer().getChildHandlersByClass(ContextHandlerCollection.class);
+                    ((ContextHandlerCollection) chc[0]).addHandler(ctx);
+                    try {
+                        ctx.start();
+                    } catch (Exception ex) {
+                        cm.error("NB-DEPLOYER: EXCEPTION server.lifeCycleStarted(): " + ex.getMessage());
+                    }
+                }
+
+            }
+        }
+
         protected void updateServerHandlers() {
 
             HandlerCollection hc = (HandlerCollection) cm.getServer().getHandler();
@@ -996,9 +1001,52 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
                     hc.addHandler(h);
                 }
             }
-
         }
 
+    }
+
+    protected static class CustomWebAppContext extends WebAppContext {
+
+        private static final String CONTEXT_PATH = "/WEB_APP_FOR_CDI_WELD";
+        private static final String PREFIX = "jetty_cdi_weld_support_webapp_stub_";
+        private static final String STUB_FILE_NAME = ".donotdelete";
+
+        public CustomWebAppContext(CommandManager cm) {
+            super();
+            init(cm);
+        }
+
+        private void init(CommandManager cm) {
+            File tmp = getTempDirectory();
+            if (tmp == null) {
+                tmp = new File(System.getProperty("java.io.tmpdir"));
+            }
+            
+            cm.out("NB-DEPLOYER: CustomWebAppContext system temp file = " + tmp);
+            
+            Path stub = Paths.get(System.getProperty(Utils.JETTY_BASE), "resources", STUB_FILE_NAME);
+            
+            cm.out("NB-DEPLOYER: CustomWebAppContext stub  = " + stub);
+
+            Path dirs = Paths.get(tmp.getPath(), PREFIX + "_DIR");
+            Path war = Paths.get(dirs.toString(), CONTEXT_PATH.substring(1) + "_" +System.currentTimeMillis() +   ".war");
+            if (!Files.exists(war)) {
+                try {
+                    if (!Files.exists(dirs)) {
+                        Files.createDirectories(dirs);
+                    }
+                    Files.copy(stub, war);
+                    
+                } catch (IOException ex) {
+                    cm.error("NB-DEPLOYER: CustomWebAppContext create directoriesexception ", ex);
+                }
+            }
+            setContextPath(CONTEXT_PATH);
+            setWar(war.toString());
+            war.toFile().deleteOnExit();
+            cm.out("NB-DEPLOYE: CustomWebAppContext cp=" + CONTEXT_PATH + "war=" + war);
+
+        }
     }
 
 }
