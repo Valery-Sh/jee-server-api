@@ -21,8 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.EventListener;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -30,6 +29,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.deploy.AppLifeCycle;
+import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
@@ -49,6 +50,9 @@ import org.eclipse.jetty.webapp.WebAppContext;
  */
 public class CommandManager extends AbstractHandler implements LifeCycle.Listener {
 
+    private static String WELD_INIT_PARAMETER = "org.jboss.weld.environment.container.class";
+    
+    
     /**
      * When {@literal true} the the server supports annotations.
      */
@@ -71,10 +75,12 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
      */
     protected boolean weldActivated;
 
-    private File jettyBase;
+    //private File jettyBase;
     private String messageOption = "NO";
 
-    public CommandManager(String msgOption) {
+    private static CommandManager commandManager;
+
+    protected CommandManager(String msgOption) {
         this();
 
         switch (msgOption.toUpperCase()) {
@@ -88,24 +94,73 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         System.out.println("NB-DEPLOYER: CommandManager set verbouse=" + msgOption);
     }
 
-    public CommandManager() {
+    protected CommandManager() {
         super();
 
-        String path = new File(".").getAbsolutePath();
+/*        String path = new File(".").getAbsolutePath();
         if (path.endsWith("/.")) {
             path = path.substring(0, path.indexOf("/."));
         } else if (path.endsWith("\\.")) {
             path = path.substring(0, path.indexOf("\\."));
         }
         jettyBase = new File(path);
+*/        
 //        jsfActivated = new File(jettyBase + "/start.d/jsf.ini").exists();
         init();
     }
 
+    public static CommandManager getInstance() {
+        if (commandManager == null) {
+            commandManager = new CommandManager();
+        }
+        return commandManager;
+    }
+    public static CommandManager getInstance(String msgOption) {
+        if (commandManager == null) {
+            commandManager = new CommandManager();
+        }
+        commandManager.messageOption = msgOption;
+        return commandManager;
+    }
+    
+    public static boolean isCDIEnabled(ContextHandler ctx) {
+        return ctx.getInitParameter(WELD_INIT_PARAMETER) != null;
+    }   
+    
+    public static boolean isCDIEnabled() {
+        
+        boolean result = false;
+        
+        Collection<DeploymentManager> dms = commandManager.getServer().getBeans(DeploymentManager.class);
+        DeploymentManager dm = null;
+        int i = 0;
+        if (dms != null && !dms.isEmpty()) {
+            for (DeploymentManager m : dms) {
+                dm = m;
+                i++;
+            }
+        }
+        if (dm != null) {
+            for (AppLifeCycle.Binding b : dm.getLifeCycleBindings()) {
+                if ( "org.eclipse.jetty.cdi.servlet.WeldDeploymentBinding".equals(b.getClass().getName()) ) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+        
+        return result;
+    }
+    public static boolean isJSFEnabled() {
+        return IniModules.isJSFEnabled();
+    }
     /**
      *
      */
     private void init() {
+        if ( commandManager == null ) {
+            commandManager = this;
+        }
         addLifeCycleListener(new ManagerLifeCycleListener(this));
     }
 
@@ -1021,22 +1076,22 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
             if (tmp == null) {
                 tmp = new File(System.getProperty("java.io.tmpdir"));
             }
-            
+
             cm.out("NB-DEPLOYER: CustomWebAppContext system temp file = " + tmp);
-            
+
             Path stub = Paths.get(System.getProperty(Utils.JETTY_BASE), "resources", STUB_FILE_NAME);
-            
+
             cm.out("NB-DEPLOYER: CustomWebAppContext stub  = " + stub);
 
             Path dirs = Paths.get(tmp.getPath(), PREFIX + "_DIR");
-            Path war = Paths.get(dirs.toString(), CONTEXT_PATH.substring(1) + "_" +System.currentTimeMillis() +   ".war");
+            Path war = Paths.get(dirs.toString(), CONTEXT_PATH.substring(1) + "_" + System.currentTimeMillis() + ".war");
             if (!Files.exists(war)) {
                 try {
                     if (!Files.exists(dirs)) {
                         Files.createDirectories(dirs);
                     }
                     Files.copy(stub, war);
-                    
+
                 } catch (IOException ex) {
                     cm.error("NB-DEPLOYER: CustomWebAppContext create directoriesexception ", ex);
                 }

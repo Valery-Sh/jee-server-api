@@ -28,6 +28,7 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.config.AbstractModuleConfiguration;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
+import org.netbeans.modules.j2ee.deployment.plugins.spi.config.ModuleConfiguration;
 import org.netbeans.modules.jeeserver.jetty.util.ParseEntityResolver;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -78,7 +79,6 @@ public class JettyServerModuleConfiguration  extends AbstractModuleConfiguration
         m.notifyCreate();
         return m;
     }
-
     /**
      * "WEB-INF/jetty-web.xml" or "WEB-INF/web-jetty.xml"
      *
@@ -86,6 +86,7 @@ public class JettyServerModuleConfiguration  extends AbstractModuleConfiguration
      */
     @Override
     protected File findContextConfigFile() {
+        ModuleConfiguration m;
         File result = null;
         for (String path : getContextFilePaths()) {
             File f = getJ2eeModule().getDeploymentConfigurationFile(path);
@@ -107,6 +108,7 @@ public class JettyServerModuleConfiguration  extends AbstractModuleConfiguration
     protected String changeContext(String cp) {
         String result = null;
         FileObject jettyXml = FileUtil.toFileObject(getContextConfigFile());
+        
         try {
             InputSource source = new InputSource(jettyXml.getInputStream());
             Document doc = XMLUtil.parse(source, false, false, null, new ParseEntityResolver());
@@ -125,18 +127,16 @@ public class JettyServerModuleConfiguration  extends AbstractModuleConfiguration
             try (OutputStream os = jettyXml.getOutputStream()) {
                 XMLUtil.write(doc, os, doc.getXmlEncoding());
             }
-
         } catch (IOException | DOMException | SAXException ex) {
             LOG.log(Level.INFO,ex.getMessage());
         }
+        
         return result;
     }
 
     @Override
     protected void initContextConfigFile() {
-
-        if (!getContextConfigFile().exists()) {
-
+        if (getContextConfigFile() == null || !getContextConfigFile().exists()) {
             File webinf = getJ2eeModule().getDeploymentConfigurationFile("WEB-INF");
             FileObject webinfDirFo = null;
             try {
@@ -146,6 +146,7 @@ public class JettyServerModuleConfiguration  extends AbstractModuleConfiguration
                 webinfDirFo = FileUtil.toFileObject(webinf);
                 FileObject jettyXmlFo = webinfDirFo.createData("jetty-web.xml");
                 OutputStream os;
+                
                 try (ByteArrayInputStream is = (ByteArrayInputStream) getClass().getResourceAsStream("/org/netbeans/modules/jeeserver/jetty/resources/jetty-web.xml")) {
                     os = jettyXmlFo.getOutputStream();
                     while (true) {
@@ -157,13 +158,11 @@ public class JettyServerModuleConfiguration  extends AbstractModuleConfiguration
                     }
                 }
                 os.close();
-
             } catch (IOException ex) {
                 LOG.log(Level.INFO, "JettyModuleConfiguration.getProjectPropertiesFileObject. {0}", ex.getMessage()); //NOI18N                        
             }
 
             Project wp = FileOwnerQuery.getOwner(webinfDirFo.toURI());
-            
             String cp = "/" + wp.getProjectDirectory().getNameExt();
             changeContext("/" + wp.getProjectDirectory().getNameExt());
         }
@@ -200,7 +199,6 @@ public class JettyServerModuleConfiguration  extends AbstractModuleConfiguration
                     }
                 }
             }
-
         } catch (IOException | DOMException | SAXException ex) {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N                        
 

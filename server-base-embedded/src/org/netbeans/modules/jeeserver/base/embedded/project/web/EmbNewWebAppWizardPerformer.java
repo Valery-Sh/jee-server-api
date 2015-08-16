@@ -217,7 +217,7 @@ public final class EmbNewWebAppWizardPerformer {
         try {
             ZipInputStream str = new ZipInputStream(source);
             ZipEntry entry;
-            String uri = BaseUtils.getUri(server);
+            String uri = BaseUtils.getServerInstanceId(server);
             while ((entry = str.getNextEntry()) != null) {
                 if (entry.isDirectory()) {
                     FileUtil.createFolder(projectRoot, entry.getName());

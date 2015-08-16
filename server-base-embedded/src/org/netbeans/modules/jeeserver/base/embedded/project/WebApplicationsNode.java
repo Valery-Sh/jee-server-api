@@ -259,7 +259,7 @@ public class WebApplicationsNode extends FilterNode {
         public void fileDeleted(FileEvent ev) {
             
             if (null == project.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER)) {
-                InstanceProperties.removeInstance(BaseUtils.getUri(project));        
+                InstanceProperties.removeInstance(BaseUtils.getServerInstanceId(project));        
             } else {
                 ((WebApplicationsNode.WebAppKeys) node.getChildren()).addNotify();
             }

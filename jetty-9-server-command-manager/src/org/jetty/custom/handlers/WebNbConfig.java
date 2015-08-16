@@ -7,6 +7,7 @@ package org.jetty.custom.handlers;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.EventListener;
 import java.util.Map;
@@ -20,6 +21,9 @@ import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
+import org.eclipse.jetty.cdi.servlet.WeldDeploymentBinding;
+import org.eclipse.jetty.deploy.AppLifeCycle.Binding;
+import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.webapp.AbstractConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
@@ -28,7 +32,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
  *
  * @author Valery
  */
-public class WebXmlNbConfig extends AbstractConfiguration {
+public class WebNbConfig extends AbstractConfiguration {
 
     private CommandManager cm;
 
@@ -37,7 +41,7 @@ public class WebXmlNbConfig extends AbstractConfiguration {
         if (cm == null || "NO".equals(cm.getMessageOption())) {
             return;
         }
-        System.out.println("NB-DEPLOER: WebXmlNbConfig: " + msg);
+        System.out.println("NB-DEPLOER: WebNbConfig: " + msg);
     }
 
     /**
@@ -53,17 +57,10 @@ public class WebXmlNbConfig extends AbstractConfiguration {
         }
 
         Map<String, ? extends FilterRegistration> srf = (Map<String, FilterRegistration>) context.getServletContext().getFilterRegistrations();
-        int n = 0;
-        if (srf != null) {
-            n = srf.size();
-        }
+        
+        cm = Utils.getCommandManager(context);
 
-        Handler[] hs = context.getServer().getChildHandlersByClass(CommandManager.class);
-        if (hs.length > 0) {
-            cm = (CommandManager) hs[0];
-        }
-
-        out(" ============ PRECONFIGURE WebAppContext.contextPath " + context.getContextPath());
+        out(" ============ PRECONFIGURE WebAppContext.contextPath = " + context.getContextPath());
         
         out(" temp dir = " + context.getTempDirectory());
         out(" addFilter(" + JsfFilter.class.getName() + ")");
@@ -92,12 +89,30 @@ public class WebXmlNbConfig extends AbstractConfiguration {
         context.prependServerClass("-javax.faces.");
         context.prependServerClass("-com.google.common.");
 
-            out(" Is CDI enabled = " + IniModules.isCDIEnabled());
+        out(" Is CDI enabled = " + CommandManager.isCDIEnabled());
         
-        if (IniModules.isCDIEnabled()) {
-            context.getServletContext().addListener("org.jboss.weld.environment.servlet.Listener");
+        
+        Collection<DeploymentManager> dms = context.getServer().getBeans(DeploymentManager.class);
+        DeploymentManager dm = null;        
+        int i = 0;
+        if   ( dms != null && ! dms.isEmpty() ) {
+            for ( DeploymentManager m : dms ) {
+                dm = m;
+                i++;
+            }
+            
+        }
+        if ( dm != null ) {
+            out(" ------------ Jetty Server Lificycle Bindings -----------");            
+            for ( Binding b : dm.getLifeCycleBindings() ) {
+                out( "----- binding class=" + b.getClass().getName());
+            }
+        }
+            
+        if (CommandManager.isCDIEnabled()) {
+            //context.getServletContext().addListener("org.jboss.weld.environment.servlet.Listener");
             out(" --- addListener org.jboss.weld.environment.servlet.Listener");
-            context.getServletContext().setAttribute("org.jboss.weld.environment.servlet.listenerUsed", true);
+            //context.getServletContext().setAttribute("org.jboss.weld.environment.servlet.listenerUsed", true);
             out(" --- setAttribute(org.jboss.weld.environment.servlet.listenerUsed, true");
             if (context.getInitParameter("WELD_CONTEXT_ID_KEY") == null) {
                 if (!"/WEB_APP_FOR_CDI_WELD".equals(context.getContextPath())) {
@@ -113,7 +128,7 @@ public class WebXmlNbConfig extends AbstractConfiguration {
         //
         // add config listener for an active jsf module
         //
-        if (IniModules.isJSFEnabled()) {
+        if (CommandManager.isJSFEnabled()) {
             EnumSet<DispatcherType> es = EnumSet.of(DispatcherType.REQUEST);
             context.addFilter(JsfFilter.class, "/", es);
 

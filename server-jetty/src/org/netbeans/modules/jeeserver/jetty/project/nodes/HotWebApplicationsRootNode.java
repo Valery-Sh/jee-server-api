@@ -299,7 +299,7 @@ public class HotWebApplicationsRootNode extends FilterNode {
         public void fileDeleted(FileEvent ev) {
 
             if (null == project.getProjectDirectory().getFileObject(JettyConstants.WEBAPPS_FOLDER)) {
-                InstanceProperties.removeInstance(BaseUtils.getUri(project));
+                InstanceProperties.removeInstance(BaseUtils.getServerInstanceId(project));
             } else {
                 ((HotWebApplicationsRootNode.WebAppKeys) node.getChildren()).addNotify();
             }

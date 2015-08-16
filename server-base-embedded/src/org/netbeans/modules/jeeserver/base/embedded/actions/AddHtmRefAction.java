@@ -186,7 +186,7 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
 
             if (publicFo != null) {
                 EditableProperties publicProps = BaseUtils.loadEditableProperties(publicFo);
-                publicProps.setProperty(EmbConstants.HTML5_SERVER_URI_PROP, BaseUtils.getUri(serverProject));
+                publicProps.setProperty(EmbConstants.HTML5_SERVER_URI_PROP, BaseUtils.getServerInstanceId(serverProject));
                 BaseUtils.storeEditableProperties(publicProps, publicFo);
                 publicFo.refresh();
             }

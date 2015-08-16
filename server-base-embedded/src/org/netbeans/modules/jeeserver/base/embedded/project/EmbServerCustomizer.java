@@ -78,7 +78,6 @@ public class EmbServerCustomizer
             projectType = "org-netbeans-modules-java-j2seproject",
             position = 10)
     public static EmbServerCustomizer createEmbeddedServerConfigurationTab() {
-
         return new EmbServerCustomizer(Bundle.LBL_Config());
     }
 

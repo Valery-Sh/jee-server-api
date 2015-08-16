@@ -1,3 +1,5 @@
 /embedded-jetty/build/
 /embeded-tomcat/build/
 /build/
+/server-base/build/
+/server-jetty/build/

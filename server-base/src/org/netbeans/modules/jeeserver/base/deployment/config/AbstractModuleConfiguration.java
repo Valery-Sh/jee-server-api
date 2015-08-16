@@ -18,58 +18,51 @@ package org.netbeans.modules.jeeserver.base.deployment.config;
 
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import java.io.File;
-import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
-import javax.swing.SwingUtilities;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectManager;
-import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.j2ee.deployment.common.api.ConfigurationException;
-import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeApplication;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
-import org.netbeans.modules.j2ee.deployment.devmodules.api.ModuleListener;
-import org.netbeans.modules.j2ee.deployment.devmodules.spi.ConfigurationFilesListener;
-import org.netbeans.modules.j2ee.deployment.devmodules.spi.InstanceListener;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.config.ContextRootConfiguration;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.config.ModuleConfiguration;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObject;
 import org.openide.util.Lookup;
+import org.openide.util.RequestProcessor;
 import org.openide.util.Utilities;
 import org.openide.util.lookup.Lookups;
+/**
+ * Implements {@literal ModuleConfiguration } interface for {@literal Jetty Server Plugin}.
+ * 
+ * @author V. Shyshkin
+ */
+public abstract class AbstractModuleConfiguration implements ModuleConfiguration, ContextRootConfiguration {
 
-public abstract class AbstractModuleConfiguration implements ModuleConfiguration, ContextRootConfiguration { //, PropertyChangeListener {
+    protected static final RequestProcessor RP = new RequestProcessor(AbstractModuleConfiguration.class);
 
     private Lookup lookup;
     private static final String CONTEXTPATH = "contextPath";
     private final J2eeModule module;
     private File contextConfigFile;
-    protected Project serverProject;
+
     protected String serverInstanceId;
 
     protected Project webProject;
+    
     private final String[] contextFilePaths;
 
-    //Project serverProject;
     private static final Logger LOG = Logger.getLogger(AbstractModuleConfiguration.class.getName());
 
     /**
      * Creates a new instance of the class for the specified module.
      *
      * @param module an object of type {@literal J2eeModule)
-     * }
-     * @
-     * param contextFilePaths
-     * @
-     * param contextFilePaths
+     * @param contextFilePaths
      */
     protected AbstractModuleConfiguration(J2eeModule module, String[] contextFilePaths) {
         this.module = module;
@@ -79,110 +72,68 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
 
     /**
      *
-     * @param module
-     * @param contextFilePaths
-     * @param serverInstanceId
+     * @return
      */
-    protected AbstractModuleConfiguration(J2eeModule module, String[] contextFilePaths, String serverInstanceId) {
-        this.module = module;
-        this.contextFilePaths = contextFilePaths;
-        this.serverInstanceId = serverInstanceId;
-        
-        init();
-    }
-
     public String[] getContextFilePaths() {
         return contextFilePaths;
     }
 
-    protected Project findServerProject2() {
-        if (serverInstanceId == null) {
-            return findServerProject();
-        }
-        Project server = null;
-        try {
-            BaseDeploymentManager dm = (BaseDeploymentManager) DeploymentFactoryManager.getInstance().getDisconnectedDeploymentManager(serverInstanceId);
-            if (dm != null) {
-                server = dm.getServerProject();
-            }
-        } catch (DeploymentManagerCreationException ex) {
-            LOG.log(Level.INFO, "AbstractModuleConfiguration.getProjectPropertiesFileObject. {0}", ex.getMessage()); //NOI18N                        
-        }
+    protected Project getServerProject(Project webProj) {
 
-        return server;
-    }
+        String instanceId = webProj.getLookup().lookup(J2eeModuleProvider.class).getServerInstanceID();
 
-    protected Project findServerProject() {
-        Project server = null;
-        if (!getContextConfigFile().exists()) {
+        Project result = null;
+        if (instanceId == null) {
             return null;
         }
-        Project web = FileOwnerQuery.getOwner(FileUtil.toFileObject(getContextConfigFile()));
-        J2eeModuleProvider p = web.getLookup().lookup(J2eeModuleProvider.class);
         try {
-            BaseDeploymentManager dm = (BaseDeploymentManager) DeploymentFactoryManager.getInstance().getDisconnectedDeploymentManager(p.getServerInstanceID());
-            if (dm != null) {
-                server = dm.getServerProject();
+            DeploymentManager m = DeploymentFactoryManager.getInstance().getDisconnectedDeploymentManager(instanceId);
+            if (m != null && (m instanceof BaseDeploymentManager)) {
+                BaseDeploymentManager dm = (BaseDeploymentManager) m;
+                result = dm.getServerProject();
             }
         } catch (DeploymentManagerCreationException ex) {
             LOG.log(Level.INFO, "AbstractModuleConfiguration.getProjectPropertiesFileObject. {0}", ex.getMessage()); //NOI18N                        
         }
-        return server;
+        return result;
+    }
+
+    protected Project getServerProject(String instanceId) {
+        
+        Project result = null;
+        if (instanceId == null) {
+            return null;
+        }
+        try {
+            DeploymentManager m = DeploymentFactoryManager.getInstance().getDisconnectedDeploymentManager(instanceId);
+            
+            if (m != null && (m instanceof BaseDeploymentManager)) {
+                BaseDeploymentManager dm = (BaseDeploymentManager) m;
+                result = dm.getServerProject();
+            }
+        } catch (DeploymentManagerCreationException ex) {
+            LOG.log(Level.INFO, "AbstractModuleConfiguration.getProjectPropertiesFileObject. {0}", ex.getMessage()); //NOI18N                        
+        }
+        return result;
     }
 
     protected void notifyDispose() {
-        BaseUtils.out("AbstractModuleConfiguration 1 notifyDispose=");
-
-        if (serverProject == null) {
+        if (serverInstanceId == null) {
             return;
         }
-
-        AvailableWebModules<AbstractModuleConfiguration> avm = serverProject.getLookup().lookup(AvailableWebModules.class);
+        Project s = getServerProject(serverInstanceId);
+        if (s == null) {
+            return;
+        }
+        AvailableWebModules<AbstractModuleConfiguration> avm = s.getLookup().lookup(AvailableWebModules.class);
         avm.moduleDispose(this);
-
     }
 
     protected void notifyCreate() {
-        if (serverProject == null) {
-            serverProject = findServerProject2();
-        }
-
-        if (serverProject == null) {
-            return;
-        }
-        
-/*        webProject.getLookup().lookupAll(Object.class).forEach(o -> {
-            BaseUtils.out("**************** NOTIFY CREATE = " + o.getClass());
-        });
-*/        
-        AvailableWebModules<AbstractModuleConfiguration> avm = serverProject.getLookup().lookup(AvailableWebModules.class);
-        avm.moduleCreate(this);
-
+        notifyAvailableModule(serverInstanceId, false);
     }
 
-    protected void notifyServerChange(String newServerInstanceId) {
-        if (serverProject == null) {
-            return;
-        }
-        
-        AvailableWebModules<AbstractModuleConfiguration> avm = serverProject.getLookup().lookup(AvailableWebModules.class);
-        BaseUtils.out("AbstractModuleConfiguration NotifyServerChange 4 " );
-
-        avm.moduleDispose(this);
-        
-        try {
-            DeploymentManager dm = DeploymentFactoryManager.getInstance().getDisconnectedDeploymentManager(newServerInstanceId);
-            if (dm != null && (dm instanceof BaseDeploymentManager)) {
-                serverProject = ((BaseDeploymentManager) dm).getServerProject();
-                serverInstanceId = newServerInstanceId;
-                notifyCreate();
-            }
-
-        } catch (DeploymentManagerCreationException ex) {
-            LOG.log(Level.INFO, "AbstractModuleConfiguration.notifyServerChange. {0}", ex.getMessage()); //NOI18N                        
-        }
-    }
-
+    
     /**
      * Here is an example for Jetty Server:
      *  <code>
@@ -215,10 +166,11 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
     public Project getWebProject() {
         return webProject;
     }
+    DataObject contextDataObject;
 
     private void init() {
 
-        if (!getContextConfigFile().exists()) {
+        if (getContextConfigFile() == null || !getContextConfigFile().exists()) {
             initContextConfigFile();
         } else {
             Properties props = getContextProperties();
@@ -231,30 +183,78 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
         }
         if (webProject == null) {
             webProject = FileOwnerQuery.getOwner(Utilities.toURI(getContextConfigFile()));
-        }
-        if (serverInstanceId == null) {
-            //
-            // May occur when the server doesn't use the ModuleConfigurationFactory2 and
-            // instead the old ModuleConfigurationFactory is used.
-            //
             serverInstanceId = webProject.getLookup().lookup(J2eeModuleProvider.class).getServerInstanceID();
+            
         }
+
+//        BaseUtils.out("********** init webProject=" + webProject.getProjectDirectory().getNameExt());
+        
     }
 
     /**
-     * 
-     * Returns lookup associated with the object. This lookup should contain implementations of all the supported configurations.
-     *  The configuration are: ContextRootConfiguration, DatasourceConfiguration, MappingConfiguration, EjbResourceConfiguration, DeploymentPlanConfiguration, MessageDestinationConfiguration
-     *  Implementators are advised to use org.openide.util.lookup.Lookups.fixed(java.lang.Object[]) to implement this method.
+     *
+     * Returns lookup associated with the object. This lookup should contain
+     * implementations of all the supported configurations. The configuration
+     * are: ContextRootConfiguration, DatasourceConfiguration,
+     * MappingConfiguration, EjbResourceConfiguration,
+     * DeploymentPlanConfiguration, MessageDestinationConfiguration
+     * Implementators are advised to use
+     * org.openide.util.lookup.Lookups.fixed(java.lang.Object[]) to implement
+     * this method.
+     *
      * @return (@Lookups.fixed(this)}
      */
+    private static int ccc = 0;
+
     @Override
     public synchronized Lookup getLookup() {
+
         if (null == lookup) {
             lookup = Lookups.fixed(this);
         }
+        if (webProject != null) {
+            String id = webProject.getLookup().lookup(J2eeModuleProvider.class).getServerInstanceID();
+            if (serverInstanceId != null && !serverInstanceId.equals(id)) {
+                String oldid = serverInstanceId;
+                serverInstanceId = id;
+                notifyServerChange(oldid, id);
+            }
+        }
         return lookup;
     }
+    
+    protected void notifyAvailableModule(String instanceId, final boolean dispose) {
+        
+        if ( instanceId == null ) {
+            return;
+        }
+        Project srv = getServerProject(instanceId);
+        if (srv != null) {
+            
+            final AvailableWebModules<AbstractModuleConfiguration> avm = srv.getLookup().lookup(AvailableWebModules.class);
+            
+            RP.post(new Runnable() {
+
+                @Override
+                public void run() {
+                    if ( dispose ) {
+                        avm.moduleDispose(AbstractModuleConfiguration.this);
+                    } else {
+                        avm.moduleCreate(AbstractModuleConfiguration.this);
+                    }
+                }
+            }, 0, Thread.NORM_PRIORITY);
+
+        }
+        
+    }
+    protected void notifyServerChange(String oldInstanceId, String newInstanceId) {
+
+        notifyAvailableModule(oldInstanceId, true);
+        notifyAvailableModule(newInstanceId, false);
+        
+    }
+
 
     public File getContextConfigFile() {
         if (contextConfigFile == null) {
@@ -287,37 +287,9 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
      */
     @Override
     public void dispose() {
-        String s = null;
-        if (serverProject != null) {
-            s = serverProject.getProjectDirectory().getNameExt();
-        }
-        notifyDispose();
+        notifyAvailableModule(serverInstanceId, true);
     }
 
-/*    private void checkServerChange() {
-
-        if (webProject != null) {
-            BaseUtils.out("AbstractModuleConfiguration NOT  1  J2eeModule= " + getJ2eeModule());
-                    
-            J2eeModuleProvider p = webProject.getLookup().lookup(J2eeModuleProvider.class);
-            final String newUri = p.getServerInstanceID();
-            BaseUtils.out("AbstractModuleConfiguration checkServerChange newUri = " + newUri + "; serverInstanceId = " + serverInstanceId);
-
-            if (serverInstanceId != null && newUri != null && !serverInstanceId.equals(newUri)) {
-            //if (serverInstanceId != null && newUri != null) {                
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-        BaseUtils.out("AbstractModuleConfiguration NotifyServerChange  = " + webProject);
-                        
-                        notifyServerChange(newUri);
-                    }
-                });
-                
-            }
-        }
-    }
-*/
     public boolean supportsCreateDatasource() {
         return true;
     }
@@ -329,11 +301,11 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
      */
     @Override
     public String getContextRoot() throws ConfigurationException {
-
         Properties props = getContextProperties();
+
         String cp = props.getProperty(CONTEXTPATH);
+
         if (cp == null || cp.trim().isEmpty()) {
-            //Project wp = FileOwnerQuery.getOwner(Utilities.toURI(contextConfigFile));
             cp = "/" + webProject.getProjectDirectory().getNameExt();
             changeContext(cp);
         }

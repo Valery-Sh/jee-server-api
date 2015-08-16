@@ -184,7 +184,7 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
             }
 
             String webappUri = provider.getServerInstanceID();
-            String uri = BaseUtils.getUri(serverProject);
+            String uri = BaseUtils.getServerInstanceId(serverProject);
 
             if (uri.equals(webappUri)) {
                 return true;
@@ -264,7 +264,7 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
             Project result = null;
             for (Project p : ps) {
                 if (serverProject != p && BaseUtils.isServerProject(p)
-                        && webappUri.equals(BaseUtils.getUri(p))) {
+                        && webappUri.equals(BaseUtils.getServerInstanceId(p))) {
                     result = p;
                     break;
                 }

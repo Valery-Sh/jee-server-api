@@ -531,7 +531,7 @@ public class BaseUtils {
      * @return an {@literal uri} as it was used to create an instance of the
      * deployment manager
      */
-    public static String getUri(Project project) {
+    public static String getServerInstanceId(Project project) {
         return getServerProperties(project).getUri();
     }
 

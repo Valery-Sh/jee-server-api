@@ -1,14 +1,14 @@
 /**
  * This file is part of Jetty Server suppport in NetBeans IDE.
  *
- * Jetty Server suppport in NetBeans IDE is free software: you can
- * redistribute it and/or modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation, either version 2 of the
- * License, or (at your option) any later version.
+ * Jetty Server suppport in NetBeans IDE is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the License,
+ * or (at your option) any later version.
  *
- * Jetty Server suppport in NetBeans IDE is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Jetty Server suppport in NetBeans IDE is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
  *
  * You should see the GNU General Public License here:
@@ -31,6 +31,7 @@ import javax.lang.model.SourceVersion;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import org.eclipse.jetty.server.Handler;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -47,7 +48,7 @@ import org.xml.sax.SAXException;
 public class Utils {
 
     private static final Logger LOG = Logger.getLogger(Utils.class.getName());
-    
+
     public static final String JETTY_BASE = "jetty.base";
 
     public static final String WEBAPPS_DEFAULT_DIR_NAME = "web-apps";
@@ -83,15 +84,13 @@ public class Utils {
     public static final String EMBEDDED_INSTANCE_PROPERTIES_FILE = "server-instance.properties";
     public static final String EMBEDDED_INSTANCE_PROPERTIES_PATH = WEBAPPLICATIONS_FOLDER + "/" + EMBEDDED_INSTANCE_PROPERTIES_FILE;
     public static final String ANTI_LOCK_PROP_NAME = "antiResourceLocking";
-    
-    protected static final String  WEBAPPS_FOLDER_NAME = "webapps";
-    
-    public static final String  JETTYBASE_FOLDER = "jettybase";
-    public static final String  WEBAPPS_FOLDER = JETTYBASE_FOLDER + "/" + WEBAPPS_FOLDER_NAME;    
-    public static final String  JETTY_HTTP_INI = JETTYBASE_FOLDER + "/start.d/http.ini";
-    public static final String  JETTY_START_INI = JETTYBASE_FOLDER + "/start.ini";
-    
-    
+
+    protected static final String WEBAPPS_FOLDER_NAME = "webapps";
+
+    public static final String JETTYBASE_FOLDER = "jettybase";
+    public static final String WEBAPPS_FOLDER = JETTYBASE_FOLDER + "/" + WEBAPPS_FOLDER_NAME;
+    public static final String JETTY_HTTP_INI = JETTYBASE_FOLDER + "/start.d/http.ini";
+    public static final String JETTY_START_INI = JETTYBASE_FOLDER + "/start.ini";
 
     public static boolean isWindows() {
         return System.getProperty("os.name").startsWith("Windows ");
@@ -244,10 +243,20 @@ public class Utils {
     public static boolean containsBeansXml(String warPath) {
         return new File(warPath + "/WEB-INF/beans.xml").exists();
     }
-    
+
+    public static CommandManager getCommandManager(Handler h) {
+        CommandManager cm = null;
+        
+        Handler[] hs = h.getServer().getChildHandlersByClass(CommandManager.class);
+        if (hs.length > 0) {
+            cm =  (CommandManager) hs[0];
+        }
+        return cm;
+    }
+
     public static Properties getContextProperties(String warPath) {
         final Properties props = new Properties();
-        
+
         File f = new File(warPath + "/WEB-INF/jetty-web.xml");
         if (!f.exists()) {
             f = new File(warPath + "/WEB-INF/web-jetty.xml");
@@ -257,7 +266,7 @@ public class Utils {
         }
         return getContextProperties(f);
     }
-    
+
     public static Properties getContextProperties(File xmlFile) {
         Properties result = new Properties();
         try {
@@ -266,7 +275,7 @@ public class Utils {
             DocumentBuilder builder = domFactory.newDocumentBuilder();
             builder.setEntityResolver(new ParserEntityResolver());
             Document doc = builder.parse(xmlFile);
-            
+
             NodeList nl = doc.getDocumentElement().getElementsByTagName("Set");
 
             if (nl != null) {
@@ -303,7 +312,7 @@ public class Utils {
             DocumentBuilder builder = domFactory.newDocumentBuilder();
             builder.setEntityResolver(new ParserEntityResolver());
             Document doc = builder.parse(xmlFile);
-            
+
             NodeList nl = doc.getDocumentElement().getElementsByTagName("Set");
 
             if (nl != null) {
@@ -331,7 +340,7 @@ public class Utils {
         return result;
 
     }
-    
+
     public static Properties loadProperties(File f) {
 
         final Properties props = new Properties();
@@ -416,7 +425,7 @@ public class Utils {
                             found++;
                             break;
                     }
-                    if (found >= 3 ) {
+                    if (found >= 3) {
                         break;
                     }
                 }
@@ -430,15 +439,14 @@ public class Utils {
         }
 
     }//class SaxHandler
-    
-    public static class ParserEntityResolver implements EntityResolver{
+
+    public static class ParserEntityResolver implements EntityResolver {
 
         @Override
         public InputSource resolveEntity(String pubid, String sysid)
                 throws SAXException, IOException {
-            return new InputSource(new ByteArrayInputStream(new byte[0]));            
+            return new InputSource(new ByteArrayInputStream(new byte[0]));
         }
     }
-    
-    
+
 }
