@@ -14,7 +14,7 @@
  * You should see the GNU General Public License here:
  * <http://www.gnu.org/licenses/>.
  */
-package org.jetty.custom.handlers;
+package org.netbeans.jetty.server.support;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

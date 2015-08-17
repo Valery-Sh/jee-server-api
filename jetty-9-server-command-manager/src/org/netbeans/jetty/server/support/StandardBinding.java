@@ -1,4 +1,4 @@
-package org.jetty.custom.handlers;
+package org.netbeans.jetty.server.support;
 
 import java.util.EnumSet;
 import java.util.Map;

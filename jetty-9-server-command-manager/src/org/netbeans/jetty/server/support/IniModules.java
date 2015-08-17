@@ -1,4 +1,4 @@
-package org.jetty.custom.handlers;
+package org.netbeans.jetty.server.support;
 
 import java.io.BufferedReader;
 import java.io.File;

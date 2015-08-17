@@ -14,7 +14,7 @@
  * You should see the GNU General Public License here:
  * <http://www.gnu.org/licenses/>.
  */
-package org.jetty.custom.handlers;
+package org.netbeans.jetty.server.support;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +42,7 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
@@ -51,8 +52,12 @@ import org.eclipse.jetty.webapp.WebAppContext;
 public class CommandManager extends AbstractHandler implements LifeCycle.Listener {
 
     private static String WELD_INIT_PARAMETER = "org.jboss.weld.environment.container.class";
-    
-    
+    private static final String[] REQUIRED_BEANS_XML_PATHS = new String[]{
+        "/WEB-INF/beans.xml",
+        "/META-INF/beans.xml",
+        "/WEB-INF/classes/META-INF/beans.xml"
+    };
+
     /**
      * When {@literal true} the the server supports annotations.
      */
@@ -97,14 +102,14 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     protected CommandManager() {
         super();
 
-/*        String path = new File(".").getAbsolutePath();
-        if (path.endsWith("/.")) {
-            path = path.substring(0, path.indexOf("/."));
-        } else if (path.endsWith("\\.")) {
-            path = path.substring(0, path.indexOf("\\."));
-        }
-        jettyBase = new File(path);
-*/        
+        /*        String path = new File(".").getAbsolutePath();
+         if (path.endsWith("/.")) {
+         path = path.substring(0, path.indexOf("/."));
+         } else if (path.endsWith("\\.")) {
+         path = path.substring(0, path.indexOf("\\."));
+         }
+         jettyBase = new File(path);
+         */
 //        jsfActivated = new File(jettyBase + "/start.d/jsf.ini").exists();
         init();
     }
@@ -115,6 +120,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         }
         return commandManager;
     }
+
     public static CommandManager getInstance(String msgOption) {
         if (commandManager == null) {
             commandManager = new CommandManager();
@@ -122,15 +128,42 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         commandManager.messageOption = msgOption;
         return commandManager;
     }
-    
+
     public static boolean isCDIEnabled(ContextHandler ctx) {
-        return ctx.getInitParameter(WELD_INIT_PARAMETER) != null;
-    }   
+        //getInstance().out(" CommandManager.isCDIEnabled) cp=" + ctx.getContextPath() + "; init=param=" + ctx.getInitParameter(WELD_INIT_PARAMETER));
+        //    return ctx.getInitParameter(WELD_INIT_PARAMETER) != null;
+
+        Resource baseResource = ctx.getBaseResource();
+
+        boolean foundBeansXml = false;
+
+        // Verify that beans.xml is present, otherwise weld will fail silently.
+        for (String beansXmlPath : REQUIRED_BEANS_XML_PATHS) {
+            try {
+                Resource res = baseResource.addPath(beansXmlPath);
+                if (res == null) {
+                    continue;
+                }
+
+                if (res.exists() && ! res.isDirectory()) {
+                    foundBeansXml = true;
+                    break;
+                }
+
+            } catch (IOException ex) {
+                getInstance().out("NB-DEPLOYER: CommandManager.isCDIEnabled(ContentHandler) continuw process");
+            }
+
+        }    
+        
+        return foundBeansXml;
+    }
     
+
     public static boolean isCDIEnabled() {
-        
+
         boolean result = false;
-        
+
         Collection<DeploymentManager> dms = commandManager.getServer().getBeans(DeploymentManager.class);
         DeploymentManager dm = null;
         int i = 0;
@@ -142,23 +175,25 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         }
         if (dm != null) {
             for (AppLifeCycle.Binding b : dm.getLifeCycleBindings()) {
-                if ( "org.eclipse.jetty.cdi.servlet.WeldDeploymentBinding".equals(b.getClass().getName()) ) {
+                if ("org.eclipse.jetty.cdi.servlet.WeldDeploymentBinding".equals(b.getClass().getName())) {
                     result = true;
                     break;
                 }
             }
         }
-        
+
         return result;
     }
+
     public static boolean isJSFEnabled() {
         return IniModules.isJSFEnabled();
     }
+
     /**
      *
      */
     private void init() {
-        if ( commandManager == null ) {
+        if (commandManager == null) {
             commandManager = this;
         }
         addLifeCycleListener(new ManagerLifeCycleListener(this));

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.jetty.custom.handlers;
+package org.netbeans.jetty.server.support;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -21,10 +21,8 @@ import javax.servlet.ServletRequestEvent;
 import javax.servlet.ServletRequestListener;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
-import org.eclipse.jetty.cdi.servlet.WeldDeploymentBinding;
 import org.eclipse.jetty.deploy.AppLifeCycle.Binding;
 import org.eclipse.jetty.deploy.DeploymentManager;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.webapp.AbstractConfiguration;
 import org.eclipse.jetty.webapp.WebAppContext;
 
@@ -51,73 +49,35 @@ public class WebNbConfig extends AbstractConfiguration {
      */
     @Override
     public void preConfigure(WebAppContext context) throws Exception {
-        
+
         if (context.getTempDirectory() != null) {
             context.getTempDirectory().deleteOnExit();
         }
 
         Map<String, ? extends FilterRegistration> srf = (Map<String, FilterRegistration>) context.getServletContext().getFilterRegistrations();
-        
+
         cm = Utils.getCommandManager(context);
 
         out(" ============ PRECONFIGURE WebAppContext.contextPath = " + context.getContextPath());
-        
+
         out(" temp dir = " + context.getTempDirectory());
-        out(" addFilter(" + JsfFilter.class.getName() + ")");
 
-        out(" ------------ SystemClasses  for WebAppContext.contextPath " + context.getClassPath() + ";");
-        out(" --- addSystemClass(com.sun.faces.)");
-        out(" --- addSystemClass(javax.faces.)");
-        out(" --- addSystemClass(com.google.common.)");
-
-        out(" ------------ Prepend Server Classes  for WebAppContext.contextPath " + context.getClassPath() + ";");
-        out(" --- prependServerClass(-com.sun.faces.)");
-        out(" --- prependServerClass(-javax.faces.)");
-        out(" --- prependServerClass(-com.google.common.)");
+        out(" IsCDIEnabled(" + context.getContextPath() + ") = " + CommandManager.isCDIEnabled(context)
+                + " (needs beans.xml file)");
+        out(" IsCDIEnabled()" + CommandManager.isCDIEnabled());
 
         //
-        // webapp cannot change / replace jsf classes        
+        // Here we must use isCDIEnabled() without parameter. So each webapp is processed
         //
-        context.addSystemClass("com.sun.faces.");
-        context.addSystemClass("javax.faces.");
-        context.addSystemClass("com.google.common.");
-        //
-        // don't hide jsf classes from webapps 
-        // (allow webapp to use ones from system classloader)        
-        //
-        context.prependServerClass("-com.sun.faces.");
-        context.prependServerClass("-javax.faces.");
-        context.prependServerClass("-com.google.common.");
-
-        out(" Is CDI enabled = " + CommandManager.isCDIEnabled());
-        
-        
-        Collection<DeploymentManager> dms = context.getServer().getBeans(DeploymentManager.class);
-        DeploymentManager dm = null;        
-        int i = 0;
-        if   ( dms != null && ! dms.isEmpty() ) {
-            for ( DeploymentManager m : dms ) {
-                dm = m;
-                i++;
-            }
-            
-        }
-        if ( dm != null ) {
-            out(" ------------ Jetty Server Lificycle Bindings -----------");            
-            for ( Binding b : dm.getLifeCycleBindings() ) {
-                out( "----- binding class=" + b.getClass().getName());
-            }
-        }
-            
         if (CommandManager.isCDIEnabled()) {
             //context.getServletContext().addListener("org.jboss.weld.environment.servlet.Listener");
-            out(" --- addListener org.jboss.weld.environment.servlet.Listener");
+            //out(" --- addListener org.jboss.weld.environment.servlet.Listener");
             //context.getServletContext().setAttribute("org.jboss.weld.environment.servlet.listenerUsed", true);
-            out(" --- setAttribute(org.jboss.weld.environment.servlet.listenerUsed, true");
+            //out(" --- setAttribute(org.jboss.weld.environment.servlet.listenerUsed, true");
             if (context.getInitParameter("WELD_CONTEXT_ID_KEY") == null) {
                 if (!"/WEB_APP_FOR_CDI_WELD".equals(context.getContextPath())) {
                     out(" --- setInitParameter(WELD_CONTEXT_ID_KEY, UUID.randomUUID()");
-                    
+
                     UUID id = UUID.randomUUID();
                     context.setInitParameter("WELD_CONTEXT_ID_KEY", id.toString());
                 }
@@ -129,6 +89,32 @@ public class WebNbConfig extends AbstractConfiguration {
         // add config listener for an active jsf module
         //
         if (CommandManager.isJSFEnabled()) {
+            out(" addFilter(" + JsfFilter.class.getName() + ")");
+
+            out(" ------------ SystemClasses  for WebAppContext.contextPath " + context.getClassPath() + ";");
+            out(" --- addSystemClass(com.sun.faces.)");
+            out(" --- addSystemClass(javax.faces.)");
+            out(" --- addSystemClass(com.google.common.)");
+
+            out(" ------------ Prepend Server Classes  for WebAppContext.contextPath " + context.getClassPath() + ";");
+            out(" --- prependServerClass(-com.sun.faces.)");
+            out(" --- prependServerClass(-javax.faces.)");
+            out(" --- prependServerClass(-com.google.common.)");
+
+        //
+            // webapp cannot change / replace jsf classes        
+            //
+            context.addSystemClass("com.sun.faces.");
+            context.addSystemClass("javax.faces.");
+            context.addSystemClass("com.google.common.");
+        
+            // don't hide jsf classes from webapps 
+            // (allow webapp to use ones from system classloader)        
+            //
+            context.prependServerClass("-com.sun.faces.");
+            context.prependServerClass("-javax.faces.");
+            context.prependServerClass("-com.google.common.");
+
             EnumSet<DispatcherType> es = EnumSet.of(DispatcherType.REQUEST);
             context.addFilter(JsfFilter.class, "/", es);
 
@@ -170,54 +156,54 @@ public class WebNbConfig extends AbstractConfiguration {
 
     @Override
     public void postConfigure(WebAppContext context) throws Exception {
-/*        context.getServletContext().setAttribute("org.jboss.weld.environment.servlet.listenerUsed", true);
-        EventListener[] elold = context.getEventListeners();
-        EventListener[] elnew = new EventListener[elold.length + 1];
-        EventListener enh = null;
-        out(" --- Post Configure Listeners BEFORE  WebAppContext.contextPath " + context.getClassPath() + ";");
-        EventListener[] els = context.getEventListeners();
-        for (EventListener el : els) {
-            out("   " + el);
-        }
+        /*        context.getServletContext().setAttribute("org.jboss.weld.environment.servlet.listenerUsed", true);
+         EventListener[] elold = context.getEventListeners();
+         EventListener[] elnew = new EventListener[elold.length + 1];
+         EventListener enh = null;
+         out(" --- Post Configure Listeners BEFORE  WebAppContext.contextPath " + context.getClassPath() + ";");
+         EventListener[] els = context.getEventListeners();
+         for (EventListener el : els) {
+         out("   " + el);
+         }
 
-        out(" --- Post Configure  elold.length=" + elold.length);
-        int n = 0;
-        for (int i = 0; i < elold.length; i++) {
-            elnew[i] = elold[i];
-            /*            out(" --- Post Configure 1  i=" + i + "; n=" + n);
-             out(" --- Post Configure 2 " + elold[i].getClass().getName());
-             if (elold[i].getClass().getName().equals("org.jboss.weld.servlet.WeldTerminalListener")) {
-             out(" --- Post Configure 3 i=" + i + "; n=" + n);
-             enh = elold[i];
-             continue;
-             } else {
-             out(" --- Post Configure 4 i=" + i + "; n=" + n);
-             elnew[n] = elold[i];
-             }
-             n++;
-        }
-        if (enh != null) {
-            out(" --- Post Configure 2");
-            //elnew[elnew.length - 1] = enh;
+         out(" --- Post Configure  elold.length=" + elold.length);
+         int n = 0;
+         for (int i = 0; i < elold.length; i++) {
+         elnew[i] = elold[i];
+         /*            out(" --- Post Configure 1  i=" + i + "; n=" + n);
+         out(" --- Post Configure 2 " + elold[i].getClass().getName());
+         if (elold[i].getClass().getName().equals("org.jboss.weld.servlet.WeldTerminalListener")) {
+         out(" --- Post Configure 3 i=" + i + "; n=" + n);
+         enh = elold[i];
+         continue;
+         } else {
+         out(" --- Post Configure 4 i=" + i + "; n=" + n);
+         elnew[n] = elold[i];
+         }
+         n++;
+         }
+         if (enh != null) {
+         out(" --- Post Configure 2");
+         //elnew[elnew.length - 1] = enh;
 
-        }
-        elnew[elnew.length - 1] = new MyListener();
-        //    context.setEventListeners(elnew);
+         }
+         elnew[elnew.length - 1] = new MyListener();
+         //    context.setEventListeners(elnew);
 
-        out(" --- Post Configure Listeners for WebAppContext.contextPath " + context.getClassPath() + ";");
-        els = context.getEventListeners();
-        for (EventListener el : els) {
-            out("   " + el);
-        }
+         out(" --- Post Configure Listeners for WebAppContext.contextPath " + context.getClassPath() + ";");
+         els = context.getEventListeners();
+         for (EventListener el : els) {
+         out("   " + el);
+         }
 
-        out(" -----------------------------");
-        out(" --- Post Configure WellCome Files  for WebAppContext.contextPath " + context.getClassPath() + ";");
-        String[] wfs = context.getWelcomeFiles();
-        for (String wf : wfs) {
-            out("   " + wf);
-        }
-        out(" -----------------------------");
-*/        
+         out(" -----------------------------");
+         out(" --- Post Configure WellCome Files  for WebAppContext.contextPath " + context.getClassPath() + ";");
+         String[] wfs = context.getWelcomeFiles();
+         for (String wf : wfs) {
+         out("   " + wf);
+         }
+         out(" -----------------------------");
+         */
 
         //context.getTempDirectory().deleteOnExit();
     }
