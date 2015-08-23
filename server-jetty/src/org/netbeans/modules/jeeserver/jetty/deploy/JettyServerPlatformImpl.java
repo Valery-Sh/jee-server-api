@@ -16,6 +16,7 @@
  */
 package org.netbeans.modules.jeeserver.jetty.deploy;
 
+import org.netbeans.modules.jeeserver.jetty.project.JettyLibBuilder;
 import java.awt.Image;
 import java.io.File;
 import java.net.URL;
@@ -34,7 +35,10 @@ import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl2;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
 import org.netbeans.spi.project.libraries.LibraryImplementation;
+import org.openide.DialogDisplayer;
+import org.openide.NotifyDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ImageUtilities;
@@ -66,7 +70,6 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
      * @param manager
      */
     private JettyServerPlatformImpl(BaseDeploymentManager manager) {
-//        BaseUtils.out("JettyServerPlatformImpl CONSTRUCTOR " + System.currentTimeMillis());
         this.manager = manager;
         init();
     }
@@ -91,18 +94,20 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
 
     private void init() {
     }
+
     public void notifyLibrariesChanged() {
         notifyLibrariesChanged(true);
     }
-    
+
     public void fireChangeEvents() {
         firePropertyChange(PROP_LIBRARIES, null, getLibraries());
     }
+
     public void notifyLibrariesChanged(boolean fireEvents) {
         synchronized (this) {
             libraries = null;
         }
-        if ( fireEvents ) {
+        if (fireEvents) {
             firePropertyChange(PROP_LIBRARIES, null, getLibraries());
         }
     }
@@ -129,7 +134,7 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
         if (newcontent == null || newcontent.isEmpty()) {
             return false;
         }
-        if (libraries == null || libraries.length == 0 ) {
+        if (libraries == null || libraries.length == 0) {
             return true;
         }
         LibraryImplementation oldlib = (LibraryImplementation) libraries[0];
@@ -149,7 +154,7 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
         }
         return false;
     }
-    
+
     @Override
     public synchronized LibraryImplementation[] getLibraries() {
         if (libraries == null) {
@@ -290,28 +295,45 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
 
     // --------------- Private helper methods -------------------------------------------------
     private void loadLibraries(LibraryImplementation lib) {
-//        BaseUtils.out(" 1 JettyServerPlatformImpl loadLibraries" + System.currentTimeMillis());
         lib.setContent(J2eeLibraryTypeProvider.VOLUME_TYPE_CLASSPATH, getClasses());
     }
+    public List<String> errorMessages = null;
 
-    //public static final String JETTY_DIR = "lib";
     protected synchronized List<URL> getClasses() {
-        List<URL> list = new ArrayList<>();
+        List<URL> list;// = new ArrayList<>();
         Map<String, URL> target = new HashMap<>();
-        jettyLibBuilter = new JettyLibBuilder(manager);
 
-        List<String> nams = jettyLibBuilter.nams;
-        nams.sort( (s1,s2)  -> {
+        //jettyLibBuilter = new JettyLibBuilder(manager);
+        jettyLibBuilter = JettyConfig.getInstance(manager.getServerProject()).getLibBuilder();
+        jettyLibBuilter.build();
+        
+        errorMessages = jettyLibBuilter.getErrorMessages();
+
+        List<String> nams = jettyLibBuilter.getJarFileNames();
+        nams.sort((s1, s2) -> {
             return s1.compareTo(s2);
         });
-        List<String> mods = jettyLibBuilter.mods;
-        mods.sort( (s1,s2)  -> {
-            return s1.compareTo(s2);
-        });
+
+//        List<String> mods = jettyLibBuilter.getModuleNames();
+//        mods.sort((s1, s2) -> {
+//            return s1.compareTo(s2);
+//        });
         Map<String, String> source = jettyLibBuilter.getLibPathMap();
         addJars(source, target);
         list = new ArrayList(target.values());
-
+        if (!errorMessages.isEmpty()) {
+            final StringBuilder sb = new StringBuilder();
+            errorMessages.forEach(msg -> {
+                sb.append(System.lineSeparator());
+                sb.append(msg);
+            });
+            sb.append(System.lineSeparator());
+            sb.append(System.lineSeparator());
+            sb.append("Fix the error and run the project menu action: --create-files ");
+            NotifyDescriptor d
+                    = new NotifyDescriptor.Message(sb.toString(), NotifyDescriptor.ERROR_MESSAGE);
+            DialogDisplayer.getDefault().notify(d);
+        }
         return list;
     }
 

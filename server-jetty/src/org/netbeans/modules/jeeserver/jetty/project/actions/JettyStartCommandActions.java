@@ -37,19 +37,11 @@ import org.openide.util.RequestProcessor;
  *
  * @author V. Shyshkin
  */
-/*@ActionID(
-        category = "Project",
-        id = "org.netbeans.modules.jeeserver.jetty.project.actions")
-@ActionRegistration(
-        displayName = "#CTL_JettyListCommandAction", lazy = false)
-@ActionReference(path = "Projects/Actions", position = 0)
-@NbBundle.Messages("CTL_JettyListCommandAction=Properties")
-*/
-public final class JettyStartCommandAction extends AbstractAction implements ContextAwareAction {
+public final class JettyStartCommandActions extends AbstractAction implements ContextAwareAction {
     
-    private static final RequestProcessor RP = new RequestProcessor(JettyStartCommandAction.class);
+    private static final RequestProcessor RP = new RequestProcessor(JettyStartCommandActions.class);
 
-    public JettyStartCommandAction() {
+    public JettyStartCommandActions() {
     }
 
     /**
@@ -109,6 +101,10 @@ public final class JettyStartCommandAction extends AbstractAction implements Con
         }
 
         public void perform() {
+//            FileUtil.runAtomicAction((Runnable) () -> {
+//                IniModules.CDISupport.showLicenseDialog(project);
+//            });
+            
 //            RequestProcessor rp = new RequestProcessor("Server processor", 1);
             RP.post(new RunnableImpl(), 0, Thread.NORM_PRIORITY);
         }

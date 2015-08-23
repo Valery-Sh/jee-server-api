@@ -33,7 +33,6 @@ import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPrope
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
-import org.netbeans.modules.jeeserver.jetty.util.IniModules;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.awt.DynamicMenuContent;
 import org.openide.execution.ExecutorTask;
@@ -116,11 +115,8 @@ public final class CreateFilesAction extends AbstractAction implements ContextAw
         }
 
         public void perform() {
-            FileUtil.runAtomicAction((Runnable) () -> {
-                IniModules.CDISupport.showLicenseDialog(project);
-            });
-
-            
+            manager.getSpecifics().licensesAccepted(manager);
+                //IniModules.CDISupport.showLicenseDialog(project);
             RP.post(new RunnableImpl(), 0, Thread.NORM_PRIORITY);
         }
 

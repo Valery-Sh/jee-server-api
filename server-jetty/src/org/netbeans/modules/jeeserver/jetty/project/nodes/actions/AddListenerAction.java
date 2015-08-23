@@ -28,7 +28,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.jetty.util.IniModules.JsfSupport;
+import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -92,7 +92,7 @@ public final class AddListenerAction extends AbstractAction implements ContextAw
             if (p != null) {
                 id = p.getServerInstanceID();
             }
-            if (p != null && id.startsWith("jettystandalone:deploy:server")) {
+            if (p != null && id.startsWith("jettystandalone:deploy:server") && p.getInstanceProperties() != null) {
                 File file = new File(p.getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP));
                 FileObject fo = FileUtil.toFileObject(file);
                 serverProject = FileOwnerQuery.getOwner(fo);
@@ -104,18 +104,12 @@ public final class AddListenerAction extends AbstractAction implements ContextAw
 
             if (enabled) {
 
-                //File f = Paths.get(serverProject.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
-
-                //StartIni startIni = new StartIni(f);
-
-                //String jsfModule = startIni.getEnabledJsfModuleName();
-                
                 File f = Paths.get(serverProject.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER).toFile();                
-                JsfSupport jsfSupport = new JsfSupport(f);
-
-                String jsfModule = jsfSupport.getEnabledJsfModuleName();
+                String jsfListener = JettyConfig.getInstance(serverProject).getJsfListener();
+BaseUtils.out("@@@@@@@@@@@@@@@@@ AddListenerAction listener=" + jsfListener);
+                String jsfModule = JettyConfig.getInstance(serverProject).getJSFModuleName();
                 
-                enabled = jsfModule != null && !DDHelper.hasJsfListener(serverProject, webProject);
+                enabled = jsfModule != null && ! DDHelper.hasJsfListener(serverProject, webProject);
                 setEnabled(enabled);
 
                 String s = isEnabled() ? "(" + jsfModule + ") " : "";

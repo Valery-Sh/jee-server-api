@@ -53,6 +53,7 @@ public class JettyProject implements Project {
     public JettyProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
         this.state = state;
+        
         //init();
     }
 

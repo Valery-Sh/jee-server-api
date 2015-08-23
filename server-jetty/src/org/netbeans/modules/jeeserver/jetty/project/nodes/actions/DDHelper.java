@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
@@ -21,8 +22,8 @@ import org.netbeans.modules.j2ee.dd.api.common.CreateCapability;
 import org.netbeans.modules.j2ee.dd.api.web.DDProvider;
 import org.netbeans.modules.j2ee.dd.api.web.Listener;
 import org.netbeans.modules.j2ee.dd.api.web.WebApp;
+import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.JettyBaseRootNode;
-import org.netbeans.modules.jeeserver.jetty.util.IniModules.JsfSupport;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.StartIni;
 import org.netbeans.modules.web.api.webmodule.WebModule;
@@ -124,17 +125,12 @@ public class DDHelper  {
             return;
         }
 
-//        File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTY_START_INI).toFile();
-
-//        StartIni jsfSupport = new StartIni(f);
-
-//        String listenerClass = jsfSupport.getListenerClassForEnabledJsf();
 
         File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER).toFile();
 
-        JsfSupport jsfSupport = new JsfSupport(f);
-
-        String listenerClass = jsfSupport.getListenerClassForEnabledJsf();
+        //JSFSupport jsfSupport = new JSFSupport(f);
+        String listenerClass = JettyConfig.getInstance(serverProj).getJsfListener();
+        //String listenerClass = jsfSupport.getListenerClassForEnabledJsf();
         
         if (listenerClass == null) {
             return;
@@ -148,15 +144,23 @@ public class DDHelper  {
                     return;
                 }
             }
-            List<String> supported = jsfSupport.getSupportedJsfListenerClasses();
+            //List<String> supported = jsfSupport.getSupportedJsfListenerClasses();
+            Properties props = JettyConfig.getInstance(serverProj).getSupportedJSFListeners();
 
             for (Listener l : listeners) {
+
+                if (props.get(l.getListenerClass()) != null ) {
+                    webapp.removeListener(l);
+                }
+            }
+            
+/*            for (Listener l : listeners) {
 
                 if (supported.contains(l.getListenerClass())) {
                     webapp.removeListener(l);
                 }
             }
-
+*/
             addListener(webapp, listenerClass);
             webapp.write(webFo);
         } catch (Exception ex) {
@@ -193,9 +197,10 @@ public class DDHelper  {
 
         File f = Paths.get(serverProj.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER).toFile();
 
-        JsfSupport jsfSupport = new JsfSupport(f);
+        //JSFSupport jsfSupport = new JSFSupport(f);
 
-        String listenerClass = jsfSupport.getListenerClassForEnabledJsf();
+        //String listenerClass = jsfSupport.getListenerClassForEnabledJsf();
+        String listenerClass = JettyConfig.getInstance(serverProj).getJsfListener();        
         
         if (listenerClass == null) {
             return true;

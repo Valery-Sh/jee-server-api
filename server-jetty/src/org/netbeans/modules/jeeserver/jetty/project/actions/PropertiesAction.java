@@ -47,14 +47,6 @@ import org.openide.util.Lookup;
  *
  * @author V. Shyshkin
  */
-/*@ActionID(
-        category = "Project",
-        id = "org.netbeans.modules.jeeserver.jetty.project.actions")
-@ActionRegistration(
-        displayName = "#CTL_PropertiesAction",lazy=false)
-@ActionReference(path = "Projects/Actions", position = 0)
-@NbBundle.Messages("CTL_PropertiesAction=Properties")
-*/
 public final class PropertiesAction extends AbstractAction implements ContextAwareAction {
 
     private static final Logger LOG = Logger.getLogger(PropertiesAction.class.getName());

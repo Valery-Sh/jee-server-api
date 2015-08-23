@@ -20,6 +20,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
 import org.netbeans.api.project.FileOwnerQuery;
@@ -43,7 +45,7 @@ import org.openide.filesystems.FileUtil;
  */
 public class FactoryDelegate {
 
-    private final HashMap<String, BaseDeploymentManager> managers = new HashMap<>();
+    private final Map<String, BaseDeploymentManager> managers = new ConcurrentHashMap<>();
 
     private final ServerSpecifics specifics;
     private final String serverId;
@@ -74,6 +76,7 @@ public class FactoryDelegate {
             }
             InstanceProperties.getInstanceProperties(uri);
         }
+        
     }
     /**
      * Determine whether a server exists under the specified location.
@@ -135,7 +138,7 @@ public class FactoryDelegate {
         return uri.startsWith(uriPrefix);
     }
     
-    public void removeManager(String uri) {
+    public synchronized void removeManager(String uri) {
         managers.remove(uri);
     }
     /**
@@ -148,7 +151,7 @@ public class FactoryDelegate {
      * @return the deployment manager
      * @throws DeploymentManagerCreationException
      */
-    public BaseDeploymentManager getDeploymentManager(String uri, String username, String password) throws DeploymentManagerCreationException {
+    public synchronized BaseDeploymentManager getDeploymentManager(String uri, String username, String password) throws DeploymentManagerCreationException {
 
         deleteUnusedInstances();
         

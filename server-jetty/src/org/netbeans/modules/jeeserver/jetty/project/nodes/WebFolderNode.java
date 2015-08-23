@@ -22,6 +22,10 @@ public class WebFolderNode extends FilterNode {
         super(original);
         this.original = original;
     }
+    public WebFolderNode(Node original, Children c) {
+        super(original,c);
+        this.original = original;
+    }
     
     @Override
     public String getDisplayName() {

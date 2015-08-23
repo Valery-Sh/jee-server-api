@@ -1,14 +1,14 @@
 /**
  * This file is part of Jetty Server support in NetBeans IDE.
  *
- * Jetty Server support in NetBeans IDE is free software: you can
- * redistribute it and/or modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation, either version 2 of the
- * License, or (at your option) any later version.
+ * Jetty Server support in NetBeans IDE is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the License,
+ * or (at your option) any later version.
  *
- * Jetty Server support in NetBeans IDE is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Jetty Server support in NetBeans IDE is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
  *
  * You should see the GNU General Public License here:
@@ -18,16 +18,16 @@ package org.netbeans.modules.jeeserver.jetty.util;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
-
-public class StartdIni  extends AbsractJettyConfig {
+public class StartdIni extends AbsractJettyConfig {
 
     private static final Logger LOG = Logger.getLogger(StartIni.class.getName());
-
 
     protected StartdIni(File file) {
         setFile(file);
@@ -37,10 +37,11 @@ public class StartdIni  extends AbsractJettyConfig {
         this(FileUtil.toFile(fileObject));
 
     }
-    
+
     public boolean isEnabled(String moduleName) {
-        return moduleLine(moduleName) >= 0; 
+        return moduleLine(moduleName) >= 0;
     }
+
     public int moduleLine(String moduleName) {
         int idx = -1;
         for (int i = 0; i < lines().size(); i++) {
@@ -51,12 +52,12 @@ public class StartdIni  extends AbsractJettyConfig {
         }
         return idx;
     }
-    
+
     public List<String> getEnabledModules() {
         List<String> list = new ArrayList<>();
         for (int i = 0; i < lines().size(); i++) {
             String ln = lines().get(i);
-            if (ln.startsWith("--module=") ) {
+            if (ln.startsWith("--module=")) {
                 list.add(ln.substring("--module=".length()));
             }
         }
@@ -91,44 +92,60 @@ public class StartdIni  extends AbsractJettyConfig {
             return;
         }
         lines().add("--module=" + moduleName);
-        
+
     }
-    
+
+    public Map<String,String> getIniProperties() {
+        List<String> lines = lines();
+        Map<String,String> map = new HashMap<>();
+        lines.forEach(line -> {
+            if ( ! line.trim().isEmpty() && ! line.trim().startsWith("#")) {
+                String[] pair = line.split("=");
+                if ( pair.length == 2 ) {
+                    map.put(pair[0],pair[1]);
+                }
+            }
+        });
+        return map;
+    }
     public List<JsfConfig> getSupportedJsfConfigs() {
         List<JsfConfig> l = new ArrayList<>();
-        l.add( new JsfConfig("jsf-myfaces", "org.apache.myfaces.webapp.StartupServletContextListener"));
-        l.add( new JsfConfig("jsf-mojarra", "com.sun.faces.config.ConfigureListener"));
+        l.add(new JsfConfig("jsf-myfaces", "org.apache.myfaces.webapp.StartupServletContextListener"));
+        l.add(new JsfConfig("jsf-mojarra", "com.sun.faces.config.ConfigureListener"));
         return l;
     }
+
     public List<String> getSupportedJsfListenerClasses() {
         List<JsfConfig> l = getSupportedJsfConfigs();
         List<String> r = new ArrayList<>();
-        for ( JsfConfig  c : l ) {
+        for (JsfConfig c : l) {
             r.add(c.getListenerClass());
         }
         return r;
-    }    
+    }
+
     public String getListenerClassForEnabledJsf() {
         List<JsfConfig> l = getSupportedJsfConfigs();
-        for ( JsfConfig c : l ) {
-            if ( isEnabled(c.getModuleName()) ) {
+        for (JsfConfig c : l) {
+            if (isEnabled(c.getModuleName())) {
                 return c.getListenerClass();
             }
-        }    
+        }
         return null;
     }
+
     public String getEnabledJsfModuleName() {
         List<JsfConfig> l = getSupportedJsfConfigs();
-        for ( JsfConfig c : l ) {
-            if ( isEnabled(c.getModuleName()) ) {
+        for (JsfConfig c : l) {
+            if (isEnabled(c.getModuleName())) {
                 return c.getModuleName();
             }
-        }    
+        }
         return null;
     }
-    
-    
+
     public static class JsfConfig {
+
         private String moduleName;
         private String listenerClass;
 
@@ -152,8 +169,7 @@ public class StartdIni  extends AbsractJettyConfig {
         public void setListenerClass(String listenerClass) {
             this.listenerClass = listenerClass;
         }
-        
+
     }
 
-    
 }//class

@@ -16,7 +16,6 @@
  */
 package org.netbeans.modules.jeeserver.jetty.project.nodes;
 
-import org.netbeans.modules.jeeserver.jetty.project.nodes.*;
 import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +30,7 @@ import org.netbeans.spi.project.ui.support.NodeFactory;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
 import org.netbeans.spi.project.ui.support.NodeList;
 import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.Node;
 
@@ -81,6 +81,7 @@ public class WebModulesNodeFactory implements NodeFactory {
 
     public static Node getNode(Project server, Object key) {
         Node node = null;
+        WebModuleRegisteredNode wfn = null;        
         try {
             WebModuleConfig c = (WebModuleConfig) key;
 

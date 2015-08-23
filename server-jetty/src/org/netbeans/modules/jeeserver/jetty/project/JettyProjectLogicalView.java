@@ -24,7 +24,7 @@ import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
 import static org.netbeans.modules.jeeserver.jetty.project.Bundle.JettyProjectLogicalView_shortDescription;
-import org.netbeans.modules.jeeserver.jetty.project.actions.JettyStartCommandAction;
+import org.netbeans.modules.jeeserver.jetty.project.actions.JettyStartCommandActions;
 
 import org.netbeans.modules.jeeserver.jetty.project.actions.PropertiesAction;
 import org.netbeans.modules.jeeserver.jetty.project.actions.CreateFilesAction;
@@ -149,9 +149,9 @@ public class JettyProjectLogicalView implements LogicalViewProvider {
                 null,
                 new CreateFilesAction().createContextAwareInstance(project.getLookup()),
                 //new ListClasspathAction().createContextAwareInstance(project.getLookup()),
-                new JettyStartCommandAction.ListConfigAction(project.getLookup()),
-                new JettyStartCommandAction.ListModulesAction(project.getLookup()),
-                new JettyStartCommandAction.ListClasspathAction(project.getLookup()),
+                new JettyStartCommandActions.ListConfigAction(project.getLookup()),
+                new JettyStartCommandActions.ListModulesAction(project.getLookup()),
+                new JettyStartCommandActions.ListClasspathAction(project.getLookup()),
                 null,
                 CommonProjectActions.newFileAction(),
                 CommonProjectActions.copyProjectAction(),

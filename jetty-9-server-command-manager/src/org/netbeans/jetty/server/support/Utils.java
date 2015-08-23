@@ -49,7 +49,7 @@ public class Utils {
 
     private static final Logger LOG = Logger.getLogger(Utils.class.getName());
 
-    public static final String JETTY_BASE = "jetty.base";
+//    public static final String JETTY_BASE = "jetty.base";
 
     public static final String WEBAPPS_DEFAULT_DIR_NAME = "web-apps";
     public static final String WEBAPPS_DIR_PROP = "deployWebapps";
@@ -447,6 +447,20 @@ public class Utils {
                 throws SAXException, IOException {
             return new InputSource(new ByteArrayInputStream(new byte[0]));
         }
+    }
+    public static String getJavaVersion() {
+        String java_version = System.getProperty("java.version");
+        if (java_version != null) {
+            String[] parts = java_version.split("\\.");
+            if (parts != null && parts.length > 0) {
+                System.setProperty("java.version.major", parts[0]);
+            }
+            if (parts != null && parts.length > 1) {
+                System.setProperty("java.version.minor", parts[1]);
+            }
+        }
+        return java_version;
+
     }
 
 }

@@ -90,7 +90,7 @@ public final class AddBeanXmlAction extends AbstractAction implements ContextAwa
             if ( p != null) {
                 id = p.getServerInstanceID();
             }
-            if ( p != null && id.startsWith("jettystandalone:deploy:server") ) {
+            if ( p != null && id.startsWith("jettystandalone:deploy:server") && p.getInstanceProperties() != null ) {
                 File file = new File(p.getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP));
                 FileObject fo = FileUtil.toFileObject(file);
                 serverProject = FileOwnerQuery.getOwner(fo);            

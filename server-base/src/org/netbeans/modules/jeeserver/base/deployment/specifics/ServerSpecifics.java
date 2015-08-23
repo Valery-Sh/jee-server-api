@@ -16,13 +16,13 @@
  */
 package org.netbeans.modules.jeeserver.base.deployment.specifics;
 
+import com.sun.corba.se.pept.transport.Acceptor;
 import java.awt.Image;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 
@@ -30,7 +30,8 @@ import org.openide.filesystems.FileObject;
  *
  * @author V. Shyshkin
  */
-public interface ServerSpecifics {
+public interface ServerSpecifics extends LicensesAcceptor {
+
     
     boolean pingServer(Project serverProject);
     boolean shutdownCommand(Project serverProject);
@@ -70,8 +71,6 @@ public interface ServerSpecifics {
     default void serverStarting(DeploymentManager manager) {
         
     }
-    
-    
     
     WizardDescriptorPanel getAddonCreateProjectPanel(WizardDescriptor wiz);
     

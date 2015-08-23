@@ -186,9 +186,6 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
             serverInstanceId = webProject.getLookup().lookup(J2eeModuleProvider.class).getServerInstanceID();
             
         }
-
-//        BaseUtils.out("********** init webProject=" + webProject.getProjectDirectory().getNameExt());
-        
     }
 
     /**

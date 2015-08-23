@@ -40,11 +40,11 @@ import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPrope
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyServerModuleConfiguration;
-import org.netbeans.modules.jeeserver.jetty.project.JettyProjectLogicalView;
+import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
-import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.ImageUtilities;
 import org.openide.windows.InputOutput;
 
@@ -273,12 +273,27 @@ public class JettyServerSpecifics implements ServerSpecifics {
     @Override
     public void serverStarted(DeploymentManager manager) {
         BaseDeploymentManager dm = (BaseDeploymentManager) manager;
+
         LibUtil.updateLibraries(dm.getServerProject());
     }
-    
+
     @Override
     public Properties getContextPoperties(FileObject config) {
         return JettyServerModuleConfiguration.getContextProperties(config);
-    }            
+    }
 
+    /**
+     *
+     * @param dm
+     * @return
+     */
+    @Override
+    public boolean licensesAccepted(DeploymentManager dm) {
+        final boolean[] accepted = new boolean[] {false};
+        FileUtil.runAtomicAction((Runnable) () -> {
+            accepted[0] = JettyConfig.CDISupport.showLicenseDialog(((BaseDeploymentManager)dm).getServerProject());
+        });
+        
+        return accepted[0];
+    }    
 }

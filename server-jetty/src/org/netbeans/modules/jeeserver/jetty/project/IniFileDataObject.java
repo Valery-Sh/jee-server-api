@@ -138,6 +138,8 @@ public class IniFileDataObject extends MultiDataObject {
     }
 
     protected static boolean isJettyIniFile(FileObject pf) {
+  
+  
         if ("IniFileTemplate.ini".equals(pf.getNameExt())) {
             return true;
         }

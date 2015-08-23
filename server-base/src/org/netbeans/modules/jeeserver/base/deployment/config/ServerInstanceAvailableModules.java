@@ -26,14 +26,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import javax.enterprise.deploy.shared.ModuleType;
-import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectManager;
-import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.web.api.webmodule.WebModule;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
@@ -68,8 +63,6 @@ public class ServerInstanceAvailableModules<T extends AbstractModuleConfiguratio
 
     @Override
     public void moduleDispose(T module) {
-        BaseUtils.out("ServerInstanceAvailableModules moduleDispose module= 1 eventType = " + module);
-
         if (configMap.isEmpty()) {
             return;
         }
@@ -218,12 +211,9 @@ public class ServerInstanceAvailableModules<T extends AbstractModuleConfiguratio
                 }
 
                 remove = p1.equals(p2);
-                BaseUtils.out(" SrverInstanceAvailableModules DeleteProjectHandler (5) p1 == p2 " + remove);
-
             }
             if (remove) {
                 configMap.remove(Paths.get(moduleConfig.getWebProjectPath()));
-                BaseUtils.out("$$$$$$$$$$$$$$$ ModulesChangeEvent.REMOVED");
                 fireModulesChange(moduleConfig, ModulesChangeEvent.DELETED);
             }
 

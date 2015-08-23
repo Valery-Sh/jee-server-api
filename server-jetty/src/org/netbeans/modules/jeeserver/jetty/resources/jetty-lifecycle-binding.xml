@@ -4,7 +4,7 @@
     <Ref refid="DeploymentManager">
         <Call name="addLifeCycleBinding">
             <Arg>
-                <New class="org.jetty.custom.handlers.StandardBinding">
+                <New class="org.netbeans.jetty.server.support.StandardBinding">
                 </New>
             </Arg>
         </Call>

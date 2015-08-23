@@ -29,8 +29,9 @@ import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvail
 import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Info;
-import org.netbeans.modules.jeeserver.jetty.deploy.JettyLibBuilder;
+import org.netbeans.modules.jeeserver.jetty.project.JettyLibBuilder;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
+import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.actions.AbstractHotDeployedContextAction;
 import org.openide.filesystems.FileChangeAdapter;
 import org.openide.filesystems.FileEvent;
@@ -232,8 +233,10 @@ public class StartIni extends AbsractJettyConfig {
         public void fileChanged_1(FileEvent ev) {
             ServerInstanceAvailableModules availableModules = project.getLookup().lookup(ServerInstanceAvailableModules.class);
 
-            JettyLibBuilder jmh = new JettyLibBuilder((BaseDeploymentManager) BaseUtils.managerOf(project));
-
+            //JettyLibBuilder jmh = new JettyLibBuilder((BaseDeploymentManager) BaseUtils.managerOf(project));
+            JettyLibBuilder jmh = JettyConfig.getInstance(project).getLibBuilder();            
+            jmh.build();
+            
             Map<String, String> map1 = jmh.getLibPathMap();
             StartIni ini = null;
             try {

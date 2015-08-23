@@ -286,6 +286,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      */
     public synchronized ProgressObject startServer() {
         getSpecifics().serverStarting(this);
+        getSpecifics().licensesAccepted(this);
         initialDeployedModulesOld.clear();
         BaseRunProgressObject starter = new BaseRunProgressObject(this);
         starter.fireRunning(CommandType.START, getDefaultTarget().getName());

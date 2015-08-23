@@ -31,6 +31,7 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTarget;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTargetModuleID;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+
 import org.netbeans.modules.web.api.webmodule.WebModule;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -94,7 +95,6 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         setMode(getManager().getCurrentDeploymentMode());
         BaseUtils.out("command = 'undeploy'");
         fireRunning(CommandType.UNDEPLOY, getManager().getDefaultTarget().getName());
-        //requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
         RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
@@ -110,7 +110,6 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         setMode(getManager().getCurrentDeploymentMode());
         BaseUtils.out("command = 'destroy'");
         fireRunning(CommandType.UNDEPLOY, getManager().getDefaultTarget().getName());
-        //requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
         RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
@@ -120,7 +119,6 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
     }
 
     public BaseDeployProgressObject redeploy(BaseTargetModuleID oldModule, boolean completeImmediately) {
-BaseUtils.out("BaseDeployProgressObject REDEPLOY completeImmediately=" + completeImmediately);
         command = "redeploy";
         BaseTarget target = getManager().getDefaultTarget();
         FileObject projDir = FileUtil.toFileObject(new File(oldModule.getProjectDir()));
@@ -133,7 +131,6 @@ BaseUtils.out("BaseDeployProgressObject REDEPLOY completeImmediately=" + complet
         setCompleteImmediately(completeImmediately);
         setMode(getManager().getCurrentDeploymentMode());
         fireRunning(CommandType.REDEPLOY, getManager().getDefaultTarget().getName());
-        //requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
         RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
@@ -150,7 +147,6 @@ BaseUtils.out("BaseDeployProgressObject REDEPLOY completeImmediately=" + complet
         setCompleteImmediately(completeImmediately);
         setMode(getManager().getCurrentDeploymentMode());
         fireRunning(CommandType.REDEPLOY, getManager().getDefaultTarget().getName());
-        //requestProcessor().post(this, 0, Thread.NORM_PRIORITY);
         RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
     }
@@ -171,9 +167,7 @@ BaseUtils.out("BaseDeployProgressObject REDEPLOY completeImmediately=" + complet
     @Override
     public void run() {
         String command = this.command;
-BaseUtils.out("BaseDeployProgressObject RUN completeImmediately=" + isCompleteImmediately());
         if (!isCompleteImmediately()) {
-BaseUtils.out("BaseDeployProgressObject RUN EXECUTE SEEVER COMMAND");            
             //
             // actual execution
             //

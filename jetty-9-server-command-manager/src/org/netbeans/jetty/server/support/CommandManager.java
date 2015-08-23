@@ -83,50 +83,46 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     //private File jettyBase;
     private String messageOption = "NO";
 
+    private JettyConfig config;
+
     private static CommandManager commandManager;
 
     protected CommandManager(String msgOption) {
         this();
-
-        switch (msgOption.toUpperCase()) {
-            case "NO":
-            case "FALSE":
-                break;
-            default:
-                messageOption = "YES";
+        if (msgOption != null) {
+            switch (msgOption.toUpperCase()) {
+                case "NO":
+                case "FALSE":
+                    break;
+                default:
+                    messageOption = "YES";
+            }
         }
+        config = new JettyConfig();
+        config.getConfigBuilder().build();
 
-        System.out.println("NB-DEPLOYER: CommandManager set verbouse=" + msgOption);
+        System.out.println("NB-DEPLOYER: CommandManager set verbouse=" + this.messageOption);
     }
 
     protected CommandManager() {
         super();
-
-        /*        String path = new File(".").getAbsolutePath();
-         if (path.endsWith("/.")) {
-         path = path.substring(0, path.indexOf("/."));
-         } else if (path.endsWith("\\.")) {
-         path = path.substring(0, path.indexOf("\\."));
-         }
-         jettyBase = new File(path);
-         */
-//        jsfActivated = new File(jettyBase + "/start.d/jsf.ini").exists();
+        messageOption = "NO";
         init();
     }
 
     public static CommandManager getInstance() {
-        if (commandManager == null) {
-            commandManager = new CommandManager();
-        }
-        return commandManager;
+        return getInstance(null);
     }
 
     public static CommandManager getInstance(String msgOption) {
         if (commandManager == null) {
-            commandManager = new CommandManager();
+            commandManager = new CommandManager(msgOption);
         }
-        commandManager.messageOption = msgOption;
         return commandManager;
+    }
+
+    public JettyConfig getJettyConfig() {
+        return config;
     }
 
     public static boolean isCDIEnabled(ContextHandler ctx) {
@@ -145,7 +141,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
                     continue;
                 }
 
-                if (res.exists() && ! res.isDirectory()) {
+                if (res.exists() && !res.isDirectory()) {
                     foundBeansXml = true;
                     break;
                 }
@@ -154,11 +150,10 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
                 getInstance().out("NB-DEPLOYER: CommandManager.isCDIEnabled(ContentHandler) continuw process");
             }
 
-        }    
-        
+        }
+
         return foundBeansXml;
     }
-    
 
     public static boolean isCDIEnabled() {
 
@@ -186,7 +181,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
     }
 
     public static boolean isJSFEnabled() {
-        return IniModules.isJSFEnabled();
+        return getInstance().getJettyConfig().isJSFEnabled();
     }
 
     /**
@@ -1059,7 +1054,8 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
 
         @Override
         public void lifeCycleStarted(LifeCycle lc) {
-            if (IniModules.isCDIEnabled()) {
+            //if (IniModules.isCDIEnabled()) {
+            if (cm.getJettyConfig().isCDIEnabled()) {
                 Handler[] hs = cm.getServer().getChildHandlersByClass(CustomWebAppContext.class);
                 if (hs.length == 0) {
 
@@ -1114,7 +1110,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
 
             cm.out("NB-DEPLOYER: CustomWebAppContext system temp file = " + tmp);
 
-            Path stub = Paths.get(System.getProperty(Utils.JETTY_BASE), "resources", STUB_FILE_NAME);
+            Path stub = Paths.get(JettyConfig.JETTY_BASE, "resources", STUB_FILE_NAME);
 
             cm.out("NB-DEPLOYER: CustomWebAppContext stub  = " + stub);
 
