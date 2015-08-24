@@ -77,6 +77,20 @@ public class Utils {
     public static boolean isWindows() {
         return System.getProperty("os.name").startsWith("Windows ");
     }
+    public static String getJavaVersion() {
+        String java_version = System.getProperty("java.version");
+        if (java_version != null) {
+            String[] parts = java_version.split("\\.");
+            if (parts != null && parts.length > 0) {
+                System.setProperty("java.version.major", parts[0]);
+            }
+            if (parts != null && parts.length > 1) {
+                System.setProperty("java.version.minor", parts[1]);
+            }
+        }
+        return java_version;
+
+    }
 
     public static String resolve(String key, Properties p) {
         String v = p.getProperty(key);

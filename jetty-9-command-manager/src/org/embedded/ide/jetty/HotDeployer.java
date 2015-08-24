@@ -69,7 +69,8 @@ public class HotDeployer {
         
         deployer = new DeploymentManager();
         deployer.setContexts(contextHandlers); //выделил, потому, что здесь context handlers
-
+        deployer.setContextAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
+                ".*/[^/]*servlet-api-[^/]*\\.jar$|.*/javax.servlet.jsp.jstl-.*\\.jar$|.*/org.apache.taglibs.taglibs-standard-impl-.*\\.jar$");
                                                                                          
         webappProvider = new WebAppProvider();
         webappProvider.setMonitoredDirName("./webapps");

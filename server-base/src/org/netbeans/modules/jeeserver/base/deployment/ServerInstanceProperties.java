@@ -38,7 +38,15 @@ public class ServerInstanceProperties {
     private String uri;
     private String serverId;
     private String actualServerId;
+    private String layerProjectFolderPath;
     
+    public String getLayerProjectFolderPath() {
+        return layerProjectFolderPath;
+    }
+
+    public void setLayerProjectFolderPath(String layerProjectFolderPath) {
+        this.layerProjectFolderPath = layerProjectFolderPath;
+    }
     
     /**
      * Returns the current deployment mode. 

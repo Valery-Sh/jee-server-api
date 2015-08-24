@@ -3,3 +3,6 @@
 /build/
 /server-base/build/
 /server-jetty/build/
+/server-ant-base-embedded/build/
+/server-ant-base-embedded/nbproject/private/
+/embedded-ant-jetty/build/

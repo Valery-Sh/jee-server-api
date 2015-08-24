@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.EventListener;
@@ -21,17 +22,21 @@ import java.util.logging.Logger;
 import javax.servlet.DispatcherType;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.deploy.AppLifeCycle;
+import org.eclipse.jetty.deploy.DeploymentManager;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.AbstractHandlerContainer;
+import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.util.IO;
 import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 import static org.embedded.ide.jetty.Utils.isBuildOfMavenProject;
 
@@ -40,6 +45,13 @@ import static org.embedded.ide.jetty.Utils.isBuildOfMavenProject;
  * @author V. Shyshkin
  */
 public class CommandManager extends AbstractHandler implements LifeCycle.Listener {
+
+    private static String WELD_INIT_PARAMETER = "org.jboss.weld.environment.container.class";
+    private static final String[] REQUIRED_BEANS_XML_PATHS = new String[]{
+        "/WEB-INF/beans.xml",
+        "/META-INF/beans.xml",
+        "/WEB-INF/classes/META-INF/beans.xml"
+    };
 
     private Server server;
 
@@ -71,6 +83,10 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
      */
     protected String runtimeShutdownToken;
 
+    private boolean verbose;
+
+    private JettyConfig config;
+    
     protected CommandManager() {
         super();
         annotationsSupported = false;
@@ -89,6 +105,87 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
         //initHandlers(server);
         server.addLifeCycleListener(commandManager);
         return commandManager;
+    }
+
+    public static void setVerbose(boolean verbose) {
+        getInstance().verbose = verbose;
+    }
+
+    public boolean isVerbose() {
+        return verbose;
+    }
+
+    public void out(String msg, boolean... always) {
+        if (always.length > 0) {
+            System.out.println(msg);
+            return;
+        }
+        if (isVerbose()) {
+            System.out.println(msg);
+        }
+    }
+    public JettyConfig getJettyConfig() {
+        return config;
+    }
+
+    public static boolean isJSFEnabled() {
+        //return false;
+        return getInstance().getJettyConfig().isJSFEnabled();
+    }
+
+    public static boolean isCDIEnabled(ContextHandler ctx) {
+        //getInstance().out(" CommandManager.isCDIEnabled) cp=" + ctx.getContextPath() + "; init=param=" + ctx.getInitParameter(WELD_INIT_PARAMETER));
+        //    return ctx.getInitParameter(WELD_INIT_PARAMETER) != null;
+
+        Resource baseResource = ctx.getBaseResource();
+
+        boolean foundBeansXml = false;
+
+        // Verify that beans.xml is present, otherwise weld will fail silently.
+        for (String beansXmlPath : REQUIRED_BEANS_XML_PATHS) {
+            try {
+                Resource res = baseResource.addPath(beansXmlPath);
+                if (res == null) {
+                    continue;
+                }
+
+                if (res.exists() && !res.isDirectory()) {
+                    foundBeansXml = true;
+                    break;
+                }
+
+            } catch (IOException ex) {
+                getInstance().out("NB-DEPLOYER: CommandManager.isCDIEnabled(ContentHandler) continue process");
+            }
+
+        }
+
+        return foundBeansXml;
+    }
+
+    public static boolean isCDIEnabled() {
+
+        boolean result = false;
+
+        Collection<DeploymentManager> dms = commandManager.getServer().getBeans(DeploymentManager.class);
+        DeploymentManager dm = null;
+        int i = 0;
+        if (dms != null && !dms.isEmpty()) {
+            for (DeploymentManager m : dms) {
+                dm = m;
+                i++;
+            }
+        }
+        if (dm != null) {
+            for (AppLifeCycle.Binding b : dm.getLifeCycleBindings()) {
+                if ("org.eclipse.jetty.cdi.servlet.WeldDeploymentBinding".equals(b.getClass().getName())) {
+                    result = true;
+                    break;
+                }
+            }
+        }
+
+        return result;
     }
 
     public static Server createHotDeploymentServer() {
@@ -140,11 +237,11 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
      }
      */
 
-/*    public boolean isAnnotationsSupported() {
-        //System.out.println("anotat: " + annotationsSupported + "; jsf=" + jsfSupported + "; weld=" + weldSupported);
-        return annotationsSupported || jsfSupported || weldSupported;
-    }
-*/
+    /*    public boolean isAnnotationsSupported() {
+     //System.out.println("anotat: " + annotationsSupported + "; jsf=" + jsfSupported + "; weld=" + weldSupported);
+     return annotationsSupported || jsfSupported || weldSupported;
+     }
+     */
     public static void enableAnnotationsJspJNDI(Server server) {
         org.eclipse.jetty.webapp.Configuration.ClassList classlist
                 = org.eclipse.jetty.webapp.Configuration.ClassList
@@ -168,15 +265,15 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
             "org.eclipse.jetty.plus.webapp.EnvConfiguration",
             "org.eclipse.jetty.plus.webapp.PlusConfiguration",
             "org.eclipse.jetty.annotations.AnnotationConfiguration",
-            "org.eclipse.jetty.webapp.JettyWebXmlConfiguration" }
+            "org.eclipse.jetty.webapp.JettyWebXmlConfiguration"}
         );
     }
 
-/*    public CommandManager annotations(boolean supported) {
-        this.annotationsSupported = supported;
-        return this;
-    }
-*/    
+    /*    public CommandManager annotations(boolean supported) {
+     this.annotationsSupported = supported;
+     return this;
+     }
+     */
     /*
      protected static void initHandlers(Server server) {
      if (server.getHandler() == null) {
@@ -203,7 +300,6 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
 
      }
      */
-
     protected final void init(Server server) {
         System.out.println("init(server)");
         if (server.getHandler() == null) {
@@ -1347,7 +1443,7 @@ public class CommandManager extends AbstractHandler implements LifeCycle.Listene
                 System.out.println("    ***** DEPLOY REJECTED cp = " + contextPath + "; appName=" + f.getName());
                 System.out.println("          Already dynamicaly deployed");
                 System.out.println("================================================");
-                
+
                 continue;
             }
 

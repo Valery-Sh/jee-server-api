@@ -73,6 +73,7 @@ public class WebNbCdiConfig extends AbstractConfiguration {
      * Process web-default.xml, web.xml, override-web.xml
      *
      * @param context
+     * @throws java.lang.Exception
      */
     @Override
     public void configure(WebAppContext context) throws Exception {

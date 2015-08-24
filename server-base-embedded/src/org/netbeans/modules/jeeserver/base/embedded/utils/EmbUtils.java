@@ -34,6 +34,11 @@ import org.openide.filesystems.FileUtil;
  */
 public class EmbUtils extends BaseUtils{
 
+
+/*    public static String buildUri(FileObject projectDir) {
+        return getServerId() + ":" + BaseConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath();
+    }
+*/    
     private static final Logger LOG = Logger.getLogger(EmbUtils.class.getName());
 
 /*    

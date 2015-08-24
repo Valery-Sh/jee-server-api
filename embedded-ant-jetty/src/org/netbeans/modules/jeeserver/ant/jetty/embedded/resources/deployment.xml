@@ -1,0 +1,13 @@
+<netbeans-deployment>
+ <!--
+        URL for the disconnected deployment manager
+    -->
+    <disconnected-string>jetty9:embedded:jetty-embedded-server-1.x</disconnected-string>
+
+    <!--
+        Web module's context root xpath
+    -->
+    <web-context-root>
+        <xpath>/</xpath>
+    </web-context-root>
+</netbeans-deployment>
