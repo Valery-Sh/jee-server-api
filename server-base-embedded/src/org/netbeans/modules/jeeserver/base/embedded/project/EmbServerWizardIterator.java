@@ -61,7 +61,7 @@ import org.xml.sax.SAXException;
  *
  * @author Valery
  */
-@TemplateRegistration(folder = "Project/Standard",
+@TemplateRegistration(folder = "Project/EmbeddedServer",
         displayName = "#EmbEmbeddedServer_displayName",
         description = "EmbServerDescription.html",
         iconBase = "org/netbeans/modules/jeeserver/base/embedded/resources/server.png",
@@ -139,7 +139,7 @@ public class EmbServerWizardIterator implements WizardDescriptor./*Progress*/Ins
         String actualServerId = (String) wiz.getProperty(EmbConstants.SERVER_ACTUAL_ID_PROP);
 
         if (p != null) {
-            setServerClassPath(p, serverId,actualServerId);
+            //setServerClassPath(p, serverId,actualServerId);
         }
         HashMap<String, Object> map = new HashMap<>();
         map.putAll(wiz.getProperties());
@@ -149,7 +149,7 @@ public class EmbServerWizardIterator implements WizardDescriptor./*Progress*/Ins
 
     private void setServerProperties(final FileObject projectDir) {
         try {
-            FileObject fo = projectDir.getFileObject(EmbConstants.SERVER_INSTANCE_PROPERTIES_PATH);
+            FileObject fo = projectDir.getFileObject(EmbConstants.INSTANCE_PROPERTIES_PATH);
             EditableProperties props = new EditableProperties(false);
             try {
                 FileInputStream fos = new FileInputStream(fo.getPath());
@@ -364,7 +364,7 @@ public class EmbServerWizardIterator implements WizardDescriptor./*Progress*/Ins
      * @param serverId
      * @param actualServerId
      */
-    protected void setServerClassPath(Project project, String serverId,String actualServerId) {
+    protected void setServerClassPath_NOT_NEEDED(Project project, String serverId,String actualServerId) {
         if (project == null) {
             return;
         }

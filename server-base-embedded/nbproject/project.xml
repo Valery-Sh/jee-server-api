@@ -266,10 +266,10 @@
             <public-packages>
                 <package>org.netbeans.modules.jeeserver.base.embedded</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.actions</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.extender</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.nodes</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project.nodes</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.project.nodes.libs</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project.web</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.specifics</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.utils</package>

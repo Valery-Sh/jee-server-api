@@ -4,6 +4,8 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -12,6 +14,7 @@ import javax.enterprise.deploy.spi.status.ProgressListener;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
+import javax.xml.transform.TransformerException;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
@@ -19,6 +22,7 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.actions.WebAppCommandActions;
 import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil;
 import org.netbeans.spi.project.ActionProvider;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -28,6 +32,7 @@ import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataObject;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.EditableProperties;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
 
@@ -329,6 +334,15 @@ public class Html5RefActions {
 
             public @Override
             void actionPerformed(ActionEvent e) {
+                FileObject pd = serverProject.getProjectDirectory();
+Path p = Paths.get(pd.getPath(),"server-project/pom.xml");
+PomXmlUtil pu = new PomXmlUtil(p);
+Path t = Paths.get(pd.getPath(),"server-project/pom-new.xml");
+                try {
+                    pu.save1(t);
+                } catch (TransformerException ex) {
+                    BaseUtils.out("^^^^^^^^ EXCEPTION pomXml" + ex.getMessage());
+                }
 
                 Properties props = BaseUtils.loadProperties(refFo);
                 if (props == null) {

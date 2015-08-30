@@ -29,7 +29,7 @@ import org.openide.util.NbBundle;
  * @author V. Shyshkin
  */
 public class EmbServerCustomizer
-        implements ProjectCustomizer.CompositeCategoryProvider {
+{//        implements ProjectCustomizer.CompositeCategoryProvider {
     private static final Logger LOG = Logger.getLogger(EmbServerCustomizer.class.getName());
 
     private final String name;
@@ -48,7 +48,7 @@ public class EmbServerCustomizer
      * embedded server. {@code null} if the project doesn't represent an
      * embedded server.
      */
-    @Override
+/*    @Override
     public Category createCategory(Lookup lookup) {
         project = lookup.lookup(Project.class);
         if (BaseUtils.isServerProject(project)) {
@@ -59,7 +59,7 @@ public class EmbServerCustomizer
             return null;
         }
     }
-
+*/
     /**
      * Creates a swing panel to customize embedded server.
      *
@@ -67,16 +67,15 @@ public class EmbServerCustomizer
      * @param lkp
      * @return a component of type {{@link EmbServerCustomizerPanelVisual}
      */
-    @Override
     public JComponent createComponent(Category category, Lookup lkp) {
         jPanel = new EmbServerCustomizerPanelVisual(lkp.lookup(Project.class), category);
         return jPanel;
     }
 
     @NbBundle.Messages({"LBL_Config=Embedded Server"})
-    @ProjectCustomizer.CompositeCategoryProvider.Registration(
-            projectType = "org-netbeans-modules-java-j2seproject",
-            position = 10)
+//    @ProjectCustomizer.CompositeCategoryProvider.Registration(
+//            projectType = "org-netbeans-modules-java-j2seproject",
+//            position = 10)
     public static EmbServerCustomizer createEmbeddedServerConfigurationTab() {
         return new EmbServerCustomizer(Bundle.LBL_Config());
     }
@@ -123,7 +122,7 @@ public class EmbServerCustomizer
                 FileUtil.runAtomicAction(new FileSystem.AtomicAction() {
                     @Override
                     public void run() throws IOException {
-                        FileObject fo = projectDir.getFileObject(EmbConstants.SERVER_INSTANCE_PROPERTIES_PATH);
+                        FileObject fo = projectDir.getFileObject(EmbConstants.INSTANCE_PROPERTIES_PATH);
                         FileLock lock = fo.lock();
                         FileOutputStream fos = new FileOutputStream(fo.getPath());
 

@@ -48,7 +48,7 @@ public class WebApplicationsNode extends FilterNode {
      */
     public WebApplicationsNode(Project serverProj) throws DataObjectNotFoundException {
         super(DataObject.find(serverProj.getProjectDirectory().
-                getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER)).getNodeDelegate(),
+                getFileObject(EmbConstants.REG_WEB_APPS_FOLDER)).getNodeDelegate(),
                 new WebAppKeys(serverProj));
     }
     /**
@@ -60,7 +60,7 @@ public class WebApplicationsNode extends FilterNode {
      */
     protected final void init(Project serverProj) {
         fileChangeHandler = new FileChangeHandler(serverProj, this);
-        serverProj.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER)
+        serverProj.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER)
                 .addFileChangeListener(fileChangeHandler);
 
     }
@@ -211,7 +211,7 @@ public class WebApplicationsNode extends FilterNode {
          */
         @Override
         protected void addNotify() {
-            FileObject rootFolder = serverProj.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+            FileObject rootFolder = serverProj.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
             FileObject[] files = rootFolder.getChildren();
             List keyArray = new ArrayList<>(files.length);
             for (FileObject fo : files) {
@@ -258,7 +258,7 @@ public class WebApplicationsNode extends FilterNode {
         @Override
         public void fileDeleted(FileEvent ev) {
             
-            if (null == project.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER)) {
+            if (null == project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER)) {
                 InstanceProperties.removeInstance(BaseUtils.getServerInstanceId(project));        
             } else {
                 ((WebApplicationsNode.WebAppKeys) node.getChildren()).addNotify();

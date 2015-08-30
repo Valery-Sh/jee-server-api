@@ -299,8 +299,8 @@ public class EmbUtils extends BaseUtils{
      * configuration file
      */
     public static Properties loadServerProperties(Project serverProject) {
-        FileObject fo = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
-        return loadProperties(fo, EmbConstants.SERVER_INSTANCE_PROPERTIES_FILE);
+        FileObject fo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+        return loadProperties(fo, EmbConstants.INSTANCE_PROPERTIES_FILE);
     }
 
     private static Properties loadProperties(FileObject propFolder, String fileName) {

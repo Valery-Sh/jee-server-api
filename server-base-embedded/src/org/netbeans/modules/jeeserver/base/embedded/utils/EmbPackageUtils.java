@@ -387,7 +387,7 @@ public class EmbPackageUtils {
 
         List<String> list = new ArrayList<>();
 
-        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : appsFo.getChildren()) {
             String projName = fo.getName();
             String msg;
@@ -440,7 +440,7 @@ public class EmbPackageUtils {
      */
     public static List<FileObject> getWarFiles(Project serverProject) {
         List<FileObject> list = new ArrayList<>();
-        FileObject webapps = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+        FileObject webapps = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : webapps.getChildren()) {
             FileObject war = getWarFile(fo);
             if (war != null) {
@@ -482,7 +482,7 @@ public class EmbPackageUtils {
     public static List<Project> getWebProjects(Project serverProject) {
         List<Project> list = new ArrayList<>();
 
-        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : appsFo.getChildren()) {
             if (fo.isFolder()) {
                 list.add(FileOwnerQuery.getOwner(fo));
@@ -508,7 +508,7 @@ public class EmbPackageUtils {
     public static List<Project> getHtml5Projects(Project serverProject) {
         List<Project> list = new ArrayList<>();
 
-        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : appsFo.getChildren()) {
             if (EmbConstants.HTML_REF.equals(fo.getExt())) {
                 Properties props = BaseUtils.loadProperties(fo);

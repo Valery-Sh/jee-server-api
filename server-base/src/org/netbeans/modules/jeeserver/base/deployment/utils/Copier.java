@@ -11,12 +11,18 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import static java.nio.file.FileVisitResult.CONTINUE;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -172,12 +178,12 @@ public class Copier {
         Copier copier = new Copier(file);
         return copier.delete();
     }
+
     public static boolean delete(File file, boolean logErrors) {
         Copier copier = new Copier(file);
         return copier.delete(logErrors);
     }
 
-    
     /**
      * Deletes the source file. If the source file is a directory then all the
      * entries of the source file and the directory itself will be deleted.
@@ -200,7 +206,7 @@ public class Copier {
                 deleteDirs(srcFile.toPath());
             }
         } catch (Exception ex) {
-            if ( logErrors ) {
+            if (logErrors) {
                 Logger.getLogger(Copier.class.getName()).log(Level.SEVERE, null, ex);
             }
             System.err.println("Copier#delete(boolean) Delete failed. " + ex.getMessage());
@@ -208,7 +214,7 @@ public class Copier {
         }
         return result;
     }
-    
+
     /**
      * Deletes the file or directory specified by path relative to the source
      * file. If the source file is not a directory then the method returns
@@ -543,7 +549,7 @@ public class Copier {
             //FileSystem srcfs = getZipFileSystem(srcZip);
             //FileSystem targetfs = getZipFileSystem(targetZip);
             //Path pathInZipfile = targetfs.getPath(targetPathInZip);
-            try(FileSystem srcfs = getZipFileSystem(srcZip); FileSystem targetfs = getZipFileSystem(targetZip);) {
+            try (FileSystem srcfs = getZipFileSystem(srcZip); FileSystem targetfs = getZipFileSystem(targetZip);) {
                 Path pathInZipfile = targetfs.getPath(targetPathInZip);
                 if (!Files.exists(pathInZipfile)) {
                     //mkdirs(pathInZipfile);
@@ -572,7 +578,6 @@ public class Copier {
 
             URI uri = URI.create("jar:file:/" + zipFile.getAbsolutePath().replace("\\", "/"));
 
-            
             try {
                 r = FileSystems.getFileSystem(uri);
                 if (r != null) {
@@ -708,6 +713,55 @@ public class Copier {
             return result;
         }
 
+        /**
+         * <pre>
+         * <code>
+         *   <b>Example:</b>
+         *   String s = Copier.ZipUtil.extractEntry(new File("c:/sun/jetty-9.3.2/lib/cdi-core-9.3.2.v20150730.jar"), "pom.properties", "META-INF/maven");
+         *   System.out.println("result = " + s);
+         * </code>
+         * </pre>
+         *
+         * @param zipFile
+         * @param searchEntry
+         * @param startEntry
+         * @return
+         */
+        public static String extractEntry(File zipFile, String searchEntry, String startEntry) {
+
+            String result = null;
+
+            Map<String, String> env = new HashMap<>();
+            env.put("create", "true");
+            URI uri = URI.create("jar:file:/" + zipFile.getAbsolutePath().replace("\\", "/"));
+            Path entryPath;
+            try (FileSystem zipfs = FileSystems.newFileSystem(uri, env)) {
+
+                entryPath = zipfs.getPath(startEntry);
+                if (!Files.exists(entryPath)) {
+                    result = null;
+                } else {
+
+                    EntryVisitor ev = new EntryVisitor(entryPath, searchEntry);
+
+                    List<Path> p = ev.start();
+                    if (p.isEmpty() || p.size() > 1) {
+                        result = null;
+                    } else {
+                        InputStream is = ZipUtil.getZipEntryInputStream(null, zipfs, p.get(0).toString());
+                        result = stringOf(is);
+                    }
+
+                }
+
+            } catch (IOException ex) {
+                Logger.getLogger(ZipUtil.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println("EXEPTION: " + ex.getMessage());
+                result = null;
+            }
+            return result;
+        }
+
         static InputStream getZipEntryInputStream(Copier copier, FileSystem zipFs, String zipEntry)
                 throws IOException {
 
@@ -787,6 +841,57 @@ public class Copier {
         }
 
     }//class ZipUtil
+
+    public static final class EntryVisitor extends SimpleFileVisitor<Path> {
+
+        private List<Path> result;
+
+        private final Path source;
+        private final String searchFile;
+
+        public EntryVisitor(Path source, String searchFile) {
+            this.source = source;
+            this.searchFile = searchFile;
+        }
+
+        public List<Path> start() {
+            result = new ArrayList<>();
+            try {
+                Files.walkFileTree(source, this);
+            } catch (IOException ex) {
+                System.out.println("EXCEPTION " + ex.getMessage());
+            }
+            return result;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file,
+                BasicFileAttributes attr) {
+            if (searchFile.equals(file.getFileName().toString())) {
+                result.add(file);
+            }
+            return CONTINUE;
+        }
+
+        // Print each directory visited.
+        @Override
+        public FileVisitResult postVisitDirectory(Path dir,
+                IOException exc) {
+            return CONTINUE;
+        }
+
+        // If there is some error accessing
+        // the file, let the user know.
+        // If you don't override this method
+        // and an error occurs, an IOException 
+        // is thrown.
+        @Override
+        public FileVisitResult visitFileFailed(Path file,
+                IOException exc) {
+            System.err.println(exc);
+            return CONTINUE;
+        }
+    }//class
 
 }//class
 

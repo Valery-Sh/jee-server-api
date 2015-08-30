@@ -31,10 +31,11 @@ class RegUtils {
      * @param p the project to be checked
      * @return 
      */
-    public static boolean isEmbeddedServer(Project project) {
+/*    public static boolean isEmbeddedServer(Project project) {
         FileObject fo = project.getProjectDirectory().getFileObject(EmbConstants.SERVER_INSTANCE_PROPERTIES_PATH);
         return fo != null;
     }    
+*/    
     /**
      * Returns embedded server configuration properties as an instance of 
      * {@literal java.util.Map } class.
@@ -44,7 +45,7 @@ class RegUtils {
      * doesn't contain a configuration file the returns an empty {@literal Map}.
      */
     public static Map<String, String> getPropertyMap(Project serverProject) {
-        FileObject fo = serverProject.getProjectDirectory().getFileObject(EmbConstants.SERVER_INSTANCE_PROPERTIES_PATH);
+        FileObject fo = serverProject.getProjectDirectory().getFileObject(EmbConstants.INSTANCE_PROPERTIES_PATH);
         if ( fo == null ) {
             return new HashMap<>();
         }

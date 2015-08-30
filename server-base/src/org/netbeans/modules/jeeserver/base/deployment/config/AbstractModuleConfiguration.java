@@ -201,8 +201,6 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
      *
      * @return (@Lookups.fixed(this)}
      */
-    private static int ccc = 0;
-
     @Override
     public synchronized Lookup getLookup() {
 

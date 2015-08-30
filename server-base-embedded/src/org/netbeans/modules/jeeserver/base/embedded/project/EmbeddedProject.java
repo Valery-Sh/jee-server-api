@@ -89,9 +89,9 @@ public abstract class EmbeddedProject implements Project {
     protected Project getProject() {
         return FileOwnerQuery.getOwner(projectDir);
     }
-    public String getServerId() {
-        throw new UnsupportedOperationException("Not Implemented yet EmbeddedProjec.getServerId()");
-    }
+    protected abstract String getServerId();
+    protected abstract String getLayerProjectFolderPath();
+    
     @Override
     public Lookup getLookup() {
 
@@ -101,6 +101,8 @@ public abstract class EmbeddedProject implements Project {
             final String uri = id + ":" + BaseConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath();
             serverProperties.setServerId(id);
             serverProperties.setUri(uri);
+            serverProperties.setLayerProjectFolderPath(this.getLayerProjectFolderPath());
+            
             ProjectOpenedHook openHook = new EmbeddedProjectOpenHook(projectDir, serverProperties);
 
             lookup = Lookups.fixed(new Object[]{
@@ -111,7 +113,7 @@ public abstract class EmbeddedProject implements Project {
                 new ProjectOperations(this),
                 openHook,
                 serverProperties,
-                getStartServerPropertiesProvider(),
+                //getStartServerPropertiesProvider(),
 //                new ServerInstanceAvailableModules<>(this)
             });
         }
@@ -120,7 +122,7 @@ public abstract class EmbeddedProject implements Project {
     
     protected abstract LogicalViewProvider getLogicalViewProvider();
     protected abstract ProjectInformation getProjectInformation();
-    protected abstract StartServerPropertiesProvider getStartServerPropertiesProvider();
+    //protected abstract StartServerPropertiesProvider getStartServerPropertiesProvider();
     protected abstract String getIconImagePath();
 
     

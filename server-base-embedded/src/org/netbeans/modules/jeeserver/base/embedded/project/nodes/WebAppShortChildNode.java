@@ -60,7 +60,7 @@ public class WebAppShortChildNode extends WebAppChildNode {
             Node[] nodeArray = new Node[1];
             try {
                 Node node =  DataObject.find(serverProj.getProjectDirectory().
-                    getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER)
+                    getFileObject(EmbConstants.REG_WEB_APPS_FOLDER)
                         .getFileObject(webAppKey.toString())
                         .getFileObject("web"))
                         .getNodeDelegate();

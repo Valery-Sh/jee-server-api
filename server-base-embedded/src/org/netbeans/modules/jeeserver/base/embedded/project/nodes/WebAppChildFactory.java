@@ -15,7 +15,7 @@ public class WebAppChildFactory {
         String name = key.toString();
         Node node = null;
 
-        FileObject fo = project.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER).getFileObject(name);
+        FileObject fo = project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER).getFileObject(name);
         try {
             if (fo.isFolder() ) {
                 node = new WebAppShortChildNode(project, key);

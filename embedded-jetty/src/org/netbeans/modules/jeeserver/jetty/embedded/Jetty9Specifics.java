@@ -67,7 +67,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     private static final Logger LOG = Logger.getLogger(Jetty9Specifics.class.getName());
 
     @StaticResource
-    public static final String IMAGE = "org/netbeans/modules/jeeserver/jetty/embedded/resources/server.png";
+    public static final String IMAGE = "org/netbeans/modules/jeeserver/jetty/embedded/resources/jetty-server-01-16x16.png";
 
     //private static final String HELPER_JAR = "nb-jetty-helper.jar";
     public static final String JETTY_SHUTDOWN_KEY = "netbeans";
@@ -249,58 +249,19 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
     @Override
     public void projectCreated(FileObject projectDir, Map<String, Object> props) {
-        //
-        // Check whether helper lib contains jar file with a name 
-        // "nb-jetty-helper.jar". If true then we assume that it is a 
-        // jar provided by the plugin.
-        //
-/*        Library nblib = LibraryManager.getDefault().getLibrary("jetty9-" + EmbConstants.SERVER_HELPER_LIBRARY_POSTFIX);
-         if (nblib == null) {
-         return;
-         }
-         List<URL> urls = nblib.getContent("classpath");
-         if (urls.size() > 1) {
-         // My lib must contain a single jar
-         return;
-         }
-
-         URL u = urls.get(0);
-
-         String nm = FileUtil.archiveOrDirForURL(urls.get(0)).getName();
-
-         if (! HELPER_JAR.equals(nm)) {
-         return;
-         }
-         */
-
-        //
-        // Add command-manager.jar to the classpath of the project
-        //
-/*        FileObject libExt = projectDir.getFileObject("lib/ext");
-        FileObject cmFo;// = null;
-        try {
-            cmFo = libExt.createData("command-manager", "jar");
-            try (OutputStream os = cmFo.getOutputStream(); InputStream is = getClass().getClassLoader().getResourceAsStream("/org/netbeans/modules/jeeserver/jetty/embedded/resources/command-manager.jar")) {
-                FileUtil.copy(is, os);
-            }
-            this.addJarToServerClassPath(FileUtil.toFile(cmFo), projectDir);
-        } catch (IOException ex) {
-            LOG.log(Level.INFO, ex.getMessage()); //NOI18N
-        }
-*/
         String actualServerId = (String)props.get(EmbConstants.SERVER_ACTUAL_ID_PROP);
         String cmOut = actualServerId + "-command-manager";
         String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + actualServerId + "-command-manager.jar";
         
                 
-        FileObject libExt = projectDir.getFileObject("lib/ext");
+        FileObject libExt = projectDir.getFileObject(EmbConstants.SERVER_CONFIG_FOLDER + "/lib/ext");
         FileObject cmFo;// = null;
         try {
             cmFo = libExt.createData(cmOut, "jar");
             try (OutputStream os = cmFo.getOutputStream(); InputStream is = getClass().getClassLoader().getResourceAsStream(cmIn)) {
                 FileUtil.copy(is, os);
             }
-            this.addJarToServerClassPath(FileUtil.toFile(cmFo),projectDir);
+            //this.addJarToServerClassPath(FileUtil.toFile(cmFo),projectDir);
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N
         }
@@ -313,9 +274,17 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
         Map<String, Object> templateParams = new HashMap<>(1);
         try {
-            FileObject srcFo = projectDir.getFileObject("src");
-            FileObject toDelete = projectDir.getFileObject("src/javaapplication0");
-            toDelete.delete();
+            String src = EmbConstants.SERVER_PROJECT_FOLDER + "/src/main/java";
+            BaseUtils.out("---------- src=" + src);
+            BaseUtils.out("---------- projDir=" + projectDir.getPath());
+            
+            FileObject srcFo = projectDir.getFileObject(src);
+            BaseUtils.out("---------- srcfo=" + srcFo);
+            
+            FileObject toDelete = srcFo.getFileObject("javaapplication0");
+            if ( toDelete != null ) {
+                toDelete.delete();
+            }
             FileObject targetFo = srcFo.createFolder("org")
                     .createFolder("embedded")
                     .createFolder("server");
@@ -330,7 +299,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
                     outputFolder,
                     "JettyEmbeddedServer.java",
                     templateParams);
-            setMainClass(projectDir);
+            //setMainClass(projectDir);
         } catch (IOException e) {
             Logger.getLogger("global").log(Level.INFO, null, e);
         }

@@ -24,12 +24,9 @@ import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
-import static org.netbeans.modules.jeeserver.base.embedded.project.Bundle.EmbeddedProjectLogicalView_shortDescription;
-//import static org.netbeans.modules.jeeserver.jetty.project.Bundle.JettyProjectLogicalView_shortDescription;
-//import org.netbeans.modules.jeeserver.jetty.project.actions.JettyStartCommandActions;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+//import static org.netbeans.modules.jeeserver.base.embedded.project.Bundle.EmbeddedProjectLogicalView_shortDescription;
 
-//import org.netbeans.modules.jeeserver.jetty.project.actions.PropertiesAction;
-//import org.netbeans.modules.jeeserver.jetty.project.actions.CreateFilesAction;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.CommonProjectActions;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
@@ -74,6 +71,10 @@ public class EmbeddedProjectLogicalView implements LogicalViewProvider {
             DataFolder projectFolder = DataFolder.findFolder(projectDirectory);
             Node nodeOfProjectFolder = projectFolder.getNodeDelegate();
             //Decorate the project directory's node:
+            String folderPath = project.getLookup()
+                                    .lookup(ServerInstanceProperties.class)
+                                    .getLayerProjectFolderPath();
+            BaseUtils.out("%%%%%%%%%%%%%%%% folderPath=" + folderPath);
             projectNode = new ProjectNode(nodeOfProjectFolder, project);
             return projectNode;
         } catch (DataObjectNotFoundException ex) {
@@ -141,8 +142,8 @@ public class EmbeddedProjectLogicalView implements LogicalViewProvider {
         }
 
         private void init() {
-            setShortDescription(
-               EmbeddedProjectLogicalView_shortDescription(project.getProjectDirectory().getPath()));
+//            setShortDescription(
+//               EmbeddedProjectLogicalView_shortDescription(project.getProjectDirectory().getPath()));
         }
 
         @Override
@@ -163,6 +164,7 @@ public class EmbeddedProjectLogicalView implements LogicalViewProvider {
 
         @Override
         public Image getIcon(int type) {
+            //return project.getProjectInformation().getIcon();
             return ImageUtilities.loadImage(this.project.getIconImagePath());
         }
         
@@ -174,7 +176,8 @@ public class EmbeddedProjectLogicalView implements LogicalViewProvider {
 
         @Override
         public String getDisplayName() {
-            return project.getProjectDirectory().getName();
+            //return project.getProjectDirectory().getName();
+            return project.getProjectInformation().getDisplayName();
         }
 
     }

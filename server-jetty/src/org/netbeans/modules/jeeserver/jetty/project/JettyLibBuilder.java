@@ -34,10 +34,8 @@ public class JettyLibBuilder {
 
     public List<String> errorMessages = new ArrayList<>();
 
-    private List<String> moduleNames = new ArrayList<>();
-    private List<String> jarNames = new ArrayList<>();
-    public Long jobtime = 0l;
-
+    // 30.08 private final List<String> moduleNames = new ArrayList<>();
+    //30.08 private final List<String> jarNames = new ArrayList<>();
     private static final Logger LOG = Logger.getLogger(StartIni.class.getName());
 
     private final BaseDeploymentManager manager;
@@ -50,12 +48,12 @@ public class JettyLibBuilder {
     private String baseModules;
     private String homeModules;
     //
-    // Incleds also modules defined in startd directory
+    // Incldes also modules defined in startd directory
     //
     private List<String> startIniModuleNames;
 
     private final Map<String, Module> modulesMap = new HashMap<>();
-    private final Map<String, String> libPathMap = new HashMap<>();
+    //private final Map<String, String> jarsMap = new HashMap<>();
 
     protected JettyLibBuilder(BaseDeploymentManager manager) {
 
@@ -68,8 +66,8 @@ public class JettyLibBuilder {
 
     private void init() {
         BaseUtils.out("HOME = " + System.getProperty("netbeans.HOME"));
-        BaseUtils.out("netbeans.home = " + System.getProperty("netbeans.home")); 
-        
+        BaseUtils.out("netbeans.home = " + System.getProperty("netbeans.home"));
+
         jettyHome = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP).replace("\\", "/");
         jettyBase = Paths.get(manager.getServerProject().getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER)
                 .toString().replace("\\", "/");
@@ -81,13 +79,15 @@ public class JettyLibBuilder {
 
         //startIniModuleNames = IniModules.getEnabledModules(jettyBase);
         startIniModuleNames = getJettyBaseDefinedModules();
+
         //createModules();
     }
+
     /**
-     * Returns  modules that are explicitly defined in ini files of the {@literal  ${jetty.base}
-     * directory. 
+     * Returns modules that are explicitly defined in ini files of the {@literal  ${jetty.base}
+     * directory.
      * Dependent modules are not taken into account.
-     * 
+     *
      * @return all modules that are explicitly defined in ini files of the {@literal  ${jetty.base}
      * directory.
      */
@@ -97,7 +97,7 @@ public class JettyLibBuilder {
         //
         //Path iniFile = Paths.get(jettyBase, "start.ini");
         File iniFile = Paths.get(jettyBase, "start.ini").toFile();
-        IniHelper ini = new IniHelper(iniFile,Paths.get(jettyBase));
+        IniHelper ini = new IniHelper(iniFile, Paths.get(jettyBase));
 
         final List<String> modules = ini.getEnabledModules();
 
@@ -107,7 +107,7 @@ public class JettyLibBuilder {
             Stream<Path> stream = Files.list(startDPath);
             stream.forEach((p) -> {
                 if (p.getFileName().toString().endsWith(".ini")) {
-                    IniHelper dini = new IniHelper(p.toFile(),Paths.get(jettyBase));
+                    IniHelper dini = new IniHelper(p.toFile(), Paths.get(jettyBase));
                     List<String> list = dini.getEnabledModules();
 
                     list.forEach(mod -> {
@@ -122,25 +122,41 @@ public class JettyLibBuilder {
         }
         return modules;
     }
-    
+
     public JettyLibBuilder build() {
         createModules();
         return this;
     }
+
     public Map<String, Module> getModulesMap() {
         return modulesMap;
     }
 
     public Map<String, String> getLibPathMap() {
-        return libPathMap;
+        Map<String, String> map = new HashMap<>();
+        modulesMap.forEach((modName, modObj) -> {
+            map.putAll(modObj.jarsMap);
+        });
+
+        return map;
     }
 
-    public List<String> getJarFileNames() {
-        return jarNames;
+    public List<String> getJarNames() {
+        //30.08 return jarNames;
+        List<String> list = new ArrayList<>();
+        modulesMap.forEach((modName, moduleObj) -> {
+            list.addAll(moduleObj.getJarNames());
+        });
+        return list;
     }
 
     public List<String> getModuleNames() {
-        return moduleNames;
+//30.05        return moduleNames;
+        List<String> list = new ArrayList<>();
+        modulesMap.forEach((k, v) -> {
+            list.add(k);
+        });
+        return list;
     }
 
     public List<String> getErrorMessages() {
@@ -155,25 +171,63 @@ public class JettyLibBuilder {
         //
         // May be for example  "annotations" or alpn-impl/alpn-${java.version} 
         //
-        for (String nameRef : this.startIniModuleNames) {
-            if (this.modulesMap.containsKey(Paths.get(nameRef).getFileName().toString())) {
-                continue;
-            }
-            Path p = findModule(nameRef);
 
-            if (p == null) {
-                continue;
+        List<String> oldIniModules = this.startIniModuleNames;
+        //
+        // get explicitly defined modules in tje jetty.base dir
+        //
+        this.startIniModuleNames = getJettyBaseDefinedModules();
+        for (String nameRef : oldIniModules) {
+            if (!startIniModuleNames.contains(nameRef)) {
+                Module mod = modulesMap.get(Paths.get(nameRef).getFileName().toString());
+                if ( mod != null ) {
+                    mod.delete();
+                }
             }
+        }
+            /*        for (String nameRef : oldIniModules) {
+             Module mod = modulesMap.get(Paths.get(nameRef).getFileName().toString());
+             if (modulesMap.containsKey(Paths.get(nameRef).getFileName().toString())) {
+             // We must delete a module
+             BaseUtils.out("$$$$$$$$$$ module to delete = " + nameRef);
+             // this.jarsMap.clear();
+             this.modulesMap.clear();
+             errorMessages.clear();
+             //moduleNames.clear();
+             //jarNames.clear();
+
+             }
+             //
+             // Module not found. An error registered in tne errorMessages list
+             //
+             //String filePath = p.toString().replace("\\", "/");
+             //new Module(this, filePath);
+
+             }
+             */
+            //int count = 0;
+            for (String nameRef : this.startIniModuleNames) {
+                //BaseUtils.out( (++count) + " module = " + nameRef);
+                if (this.modulesMap.containsKey(Paths.get(nameRef).getFileName().toString())) {
+                    continue;
+                }
+                Path p = findModule(nameRef);
+
+                Module m = modulesMap.get(nameRef);
                 //
-            // Module not found. An error registered in tne errorMessages list
-            //
-            String filePath = p.toString().replace("\\", "/");
-            new Module(this, filePath);
+                // Module not found. An error registered in tne errorMessages list
+                //
+                String filePath = p.toString().replace("\\", "/");
+                new Module(this, filePath);
 
+            }
+
+            return modulesMap;
         }
 
-        return modulesMap;
-    }
+    
+
+    
 
     protected Path findModule(String nameRef) {
         Path p = Paths.get(baseModules, nameRef + ".mod");
@@ -182,7 +236,7 @@ public class JettyLibBuilder {
             if (!Files.exists(p)) {
                 String srv = getManager().getServerProject().getProjectDirectory().getNameExt();
                 String msg = "Server: " + srv + ". The module doesn't exists: " + nameRef;
-                if ( ! errorMessages.contains(msg)) {
+                if (!errorMessages.contains(msg)) {
                     errorMessages.add(msg);
                 }
                 p = null;
@@ -199,65 +253,120 @@ public class JettyLibBuilder {
     public static class Module {
 
         private final JettyLibBuilder libBuilder;
-        private final String modulePath;
-
+        /**
+         * A full path to the module file.
+         */
+        private final String moduleLocation;
+        /**
+         * A low-cased module name without extension.
+         */
         private String name;
+        /**
+         * A line of the {@literal [name] } section in the module file.
+         */
         private String logicalName;
 
-//        private boolean jettyBaseModule;
-        private List<Module> depend;
-        private List<Path> lib;
+        //private List<Module> depend;
+        //private List<Path> lib;
+        /**
+         * The key is a jar name and a value is an absolute path to a jar file
+         */
+        private Map<String, String> jarsMap;
+        /**
+         * A list of the modules that depend on this module
+         */
+        List<String> dependentModules;
 
-        List<String> rawDepend;
-        List<String> rawLib;
+        /**
+         * Lines of a {@literal [depend]} section of the module
+         */
+        List<String> rawDependLines;
+        /**
+         * Lines of a {@literal [lib]} section of the module
+         */
+        List<String> rawLibLines;
 
-        public Module(JettyLibBuilder libBuilder, String modulePath) {
+        public Module(JettyLibBuilder libBuilder, String moduleLocation) {
             this.libBuilder = libBuilder;
-            this.modulePath = modulePath;
-            rawDepend = new ArrayList<>();
-            rawLib = new ArrayList<>();
+            this.moduleLocation = moduleLocation;
+            dependentModules = new ArrayList<>();
+            rawDependLines = new ArrayList<>();
+            rawLibLines = new ArrayList<>();
 
-            name = FileUtil.toFileObject(new File(modulePath))
+            name = FileUtil.toFileObject(new File(moduleLocation))
                     .getName()
-                    .toLowerCase();            
-            
-            if ( ! libBuilder.moduleNames.contains(name)) {
-                libBuilder.moduleNames.add(name);
-            }
+                    .toLowerCase();
+
             logicalName = name;
 
             init();
         }
 
         private void init() {
+            jarsMap = new HashMap<>();
             parseModule();
             libBuilder.modulesMap.put(getName(), this);
 
             addJars();
 
-            for (String line : rawDepend) {
+            for (String line : rawDependLines) {
                 String l = line.replace("${jetty.version}", libBuilder.jettyVersion);
                 l = line.replace("${java.version}", BaseUtils.getJavaVersion());
-
-                if (libBuilder.modulesMap.containsKey(Paths.get(l).getFileName().toString())) {
+                Module mod = libBuilder.modulesMap.get(Paths.get(l).getFileName().toString());
+                if (mod != null) {
+                    mod.addDependentModule(name);
                     continue;
                 }
 
                 Path p = libBuilder.findModule(l);
-                if ( p == null ) {
+                if (p == null) {
                     continue;
                 }
                 String filePath = p.toString().replace("\\", "/");
 
-                new Module(libBuilder, filePath);
+                mod = new Module(libBuilder, filePath);
+                mod.addDependentModule(name);
             }
+        }
 
+        public void delete() {
+            if (dependentModules.isEmpty()) {
+                libBuilder.modulesMap.remove(name);
+                rawDependLines.forEach(line -> {
+                    String l = line.replace("${jetty.version}", libBuilder.jettyVersion);
+                    l = line.replace("${java.version}", BaseUtils.getJavaVersion());
+                    Module mod = libBuilder.modulesMap.get(Paths.get(l).getFileName().toString());
+                    if (mod != null) {
+                        mod.delete();
+                    }
+                });
+            }
+        }
+
+        /**
+         * return a list of the modules that depend on this module
+         *
+         * @return a list of dependent modules
+         */
+        public List<String> getDependentModules() {
+            return dependentModules;
+        }
+
+        /**
+         * Adds a specified module name to a list of dependent modules.
+         *
+         * @param moduleName a module name to be added
+         */
+        public void addDependentModule(String moduleName) {
+            if (!dependentModules.contains(moduleName)) {
+                dependentModules.add(moduleName);
+            }
         }
 
         protected void parseModule() {
             Pattern section = Pattern.compile("\\s*\\[([^]]*)\\]\\s*");
 
-            try (BufferedReader buf = Files.newBufferedReader(Paths.get(modulePath))) {
+            try (BufferedReader buf = Files.newBufferedReader(Paths.get(moduleLocation))) {
                 String sectionType = "";
                 String line;
                 while ((line = buf.readLine()) != null) {
@@ -274,10 +383,10 @@ public class JettyLibBuilder {
                                 case "":
                                     break;
                                 case "DEPEND":
-                                    rawDepend.add(line);
+                                    rawDependLines.add(line);
                                     break;
                                 case "LIB":
-                                    rawLib.add(line);
+                                    rawLibLines.add(line);
                                     break;
                                 case "NAME":
                                     if (line != null && !line.trim().isEmpty()) {
@@ -310,24 +419,19 @@ public class JettyLibBuilder {
                     }//if
                 }//while
             } catch (Exception ex) {
-                throw new RuntimeException("Cannot pars module fole " + modulePath + "; " + ex.getMessage());
-            }//try
+                throw new RuntimeException("Cannot pars module fole " + moduleLocation + "; " + ex.getMessage());
+            }//try//try
         }
 
         protected void addJars() {
-            for (String line : rawLib) {
-
+            rawLibLines.forEach(line -> {
                 String l = line
                         .replace("${jetty.version}", libBuilder.jettyVersion)
                         .replace("${java.version}", BaseUtils.getJavaVersion())
                         .replace("\\", "/");
-                Long l1 = System.currentTimeMillis();
                 addJars(libBuilder.jettyHome, l);
                 addJars(libBuilder.jettyBase, l);
-                Long l2 = System.currentTimeMillis();
-                libBuilder.jobtime += (l2 - l1);
-            }
-
+            });
         }
 
         /**
@@ -344,32 +448,58 @@ public class JettyLibBuilder {
             try {
                 List<Path> list = pf.createPaths(path);
                 for (Path p : list) {
-                    libBuilder.jarNames.add(p.getFileName().toString());
-                    libBuilder.libPathMap.put(p.getFileName().toString(), p.toString());
+                    jarsMap.put(p.getFileName().toString(), p.toString());
                 }
             } catch (IOException ex) {
-                System.err.println(" getPaths.error " + ex.getMessage());
                 LOG.log(Level.INFO, ex.getMessage());
             }
-
         }
 
-        public String getModulePath() {
-            return modulePath;
+        /**
+         * Returns a full path to a module file as a {@literal  String}.
+         *
+         * @return a full path to a module file
+         */
+        public String getModuleLocation() {
+            return moduleLocation;
         }
 
+        /**
+         * Return the line of the {@literal [name] } section in the module file.
+         *
+         * @return a logical name of the module
+         */
         public String getLogicalName() {
             return logicalName;
         }
 
-        public List<String> getRawDepend() {
-            return rawDepend;
+        /**
+         * Returns a character string that matches the string in the
+         * {@literal [depend]} section of the module
+         *
+         * @return a line of a {@literal [depend]} section of the module
+         */
+        public List<String> getRawDependLines() {
+            return rawDependLines;
         }
 
-        public List<String> getRawLib() {
-            return rawLib;
+        /**
+         * Returns a character string that matches the string in the
+         * {@literal [lib]} section of the module.
+         *
+         * @return a line of a {@literal [lib]} section of the module.
+         */
+        public List<String> getRawLibLines() {
+            return rawLibLines;
         }
 
+        /**
+         * Returns a simple module name without extension. The name is
+         * lowercased.
+         *
+         * @return a simple module name without extension. The name is in lower
+         * case.
+         */
         public String getName() {
             return name;
         }
@@ -378,20 +508,14 @@ public class JettyLibBuilder {
             this.name = name;
         }
 
-        public List<Module> getDepend() {
-            return depend;
-        }
-
-        public void setDepend(List<Module> depend) {
-            this.depend = depend;
-        }
-
-        public List<Path> getLib() {
-            return lib;
-        }
-
-        public void setLib(List<Path> lib) {
-            this.lib = lib;
+        /**
+         * Returns a list of {@literal jar} file names which corresponds to a
+         * {@literal [lib]} section in the module file.
+         *
+         * @return a jar file names as a {@literal List}
+         */
+        public List<String> getJarNames() {
+            return new ArrayList<>(jarsMap.keySet());
         }
 
     }//class

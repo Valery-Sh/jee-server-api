@@ -440,7 +440,7 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
                     Path packageDistPath = projPath.resolve(EmbConstants.PACKAGE_DIST);
                     String serverJarName = projPath.getFileName() + ".jar";
                     File serverJar = packageDistPath.resolve(serverJarName).toFile();
-                    File serverProps = projPath.resolve(EmbConstants.SERVER_INSTANCE_PROPERTIES_PATH).toFile();
+                    File serverProps = projPath.resolve(EmbConstants.INSTANCE_PROPERTIES_PATH).toFile();
 
                     try {
 
@@ -492,8 +492,8 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
             }
             if (newFolderName != null && !newFolderName.equals(warsFolderName)) {
                 props.setProperty(EmbConstants.WEBAPPS_DIR_PROP, newFolderName);
-                FileObject target = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
-                EmbUtils.updateProperties(props, target, EmbConstants.SERVER_INSTANCE_PROPERTIES_FILE);
+                FileObject target = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+                EmbUtils.updateProperties(props, target, EmbConstants.INSTANCE_PROPERTIES_FILE);
             }
             return true;
         }

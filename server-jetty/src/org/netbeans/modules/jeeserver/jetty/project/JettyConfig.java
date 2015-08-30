@@ -39,7 +39,7 @@ public class JettyConfig {
 
     private final static Map<Project, JettyConfig> configs = new ConcurrentHashMap<>();
 
-    private Project server;
+    private final Project server;
 
     private JettyLibBuilder libBuilder;
 
@@ -191,10 +191,12 @@ public class JettyConfig {
     private void separateModules(String line, List<String> lines) {
         int idx = line.indexOf('=');
         String value = line.substring(idx + 1);
+//BaseUtils.out("1) %%%%%%%%%%%%%%%%%%%%%% SEPARATE = " + line + "; v=" + value);        
         for (String part : value.split(",")) {
             String s = "--module=" + part;
             s = s.replace("${start.basedir}", jettyBase.toString());
             if (!lines.contains(s)) {
+//BaseUtils.out("2) %%%%%%%%%%%%%%%%%%%%%% SEPARATE = " + s);
                 lines.add(s);
             }
         }
@@ -252,7 +254,10 @@ public class JettyConfig {
         public List<String> lines() {
             return lines;
         }
-
+        /**
+         * 
+         * @return a list of module names without extensions.
+         */
         public List<String> getEnabledModules() {
             List<String> list = new ArrayList<>();
             for (int i = 0; i < lines().size(); i++) {

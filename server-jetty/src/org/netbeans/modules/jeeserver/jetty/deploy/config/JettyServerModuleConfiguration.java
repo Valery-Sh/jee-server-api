@@ -112,10 +112,13 @@ public class JettyServerModuleConfiguration  extends AbstractModuleConfiguration
         try {
             InputSource source = new InputSource(jettyXml.getInputStream());
             Document doc = XMLUtil.parse(source, false, false, null, new ParseEntityResolver());
+            
             NodeList nl = doc.getDocumentElement().getElementsByTagName("Set");
             if (nl != null) {
                 for (int i = 0; i < nl.getLength(); i++) {
+                    
                     Element el = (Element) nl.item(i);
+                    
                     result = el.getTextContent();
                     if ("contextPath".equals(el.getAttribute("name"))) {
                         el.setTextContent(cp);

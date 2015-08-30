@@ -101,7 +101,7 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
                         props.setProperty("webAppLocation", FileUtil.normalizePath(webappFo.getPath()));
                         String selectedPath = FileUtil.normalizePath(webappFo.getPath());
 
-                        FileObject targetFolder = project.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+                        FileObject targetFolder = project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
                         String selectedFileName = selectedFile.getName() + "." + EmbConstants.WEB_REF;//".webref";                        
                         String fileName = selectedFileName;
 
@@ -160,9 +160,9 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
                 return "The selected project is a Html5 Project ";
             }
             fo = webappFo.getParent();
-            if (fo != null && fo.isFolder() && fo.getNameExt().equals(EmbConstants.WEBAPPLICATIONS_FOLDER)) {
+            if (fo != null && fo.isFolder() && fo.getNameExt().equals(EmbConstants.REG_WEB_APPS_FOLDER)) {
                 fo = fo.getParent();
-                fo = fo.getFileObject(EmbConstants.SERVER_INSTANCE_PROPERTIES_PATH);
+                fo = fo.getFileObject(EmbConstants.INSTANCE_PROPERTIES_PATH);
                 if (fo != null) {
                     msg = " The selected project is an inner project of an embedded serverProject";
                     return msg;
@@ -244,7 +244,7 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
         }
         
         private static void deleteWebRef(Project serverProject, FileObject webappFo) {
-                FileObject fo = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+                FileObject fo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
                 // the FileObject fo maybe null when another server is not an embedded server
                 if (fo != null) {
                     for (FileObject f : fo.getChildren()) {

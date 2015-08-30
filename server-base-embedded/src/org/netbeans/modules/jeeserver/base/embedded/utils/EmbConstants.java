@@ -14,6 +14,14 @@ public class EmbConstants extends BaseConstants {
         UNPACKED_WARS,
         WARS
     }
+    public static final String SERVER_CONFIG_FOLDER = "server-config";
+    public static final String SERVER_ACTIVE_MODULES_FOLDER = SERVER_CONFIG_FOLDER + "/active-modules";    
+    public static final String SERVER_MODULES_FOLDER = SERVER_CONFIG_FOLDER + "/modules";        
+    public static final String SERVER_PROJECT_FOLDER = "server-project";
+    
+    public static final String START_INI_FILE = SERVER_CONFIG_FOLDER + "/start.ini";
+    public static final String MODULES_FOLDER = SERVER_CONFIG_FOLDER + "/modules";
+
     
     public static final String SERVER_ALL_LIBRARY_POSTFIX = "all";    
     
@@ -40,12 +48,13 @@ public class EmbConstants extends BaseConstants {
      */
     
     
-    public static final String WEBAPPLICATIONS_FOLDER = "server-instance-config";  
-    public static final String SERVER_INSTANCE_CONFIG_FOLDER = WEBAPPLICATIONS_FOLDER;  
+    public static final String REG_WEB_APPS_FOLDER = SERVER_CONFIG_FOLDER + "/reg-web-apps";  
     
-    public static final String SERVER_INSTANCE_PROPERTIES_FILE = "server-instance.properties";        
-    public static final String SERVER_INSTANCE_PROPERTIES_PATH = WEBAPPLICATIONS_FOLDER + "/" + SERVER_INSTANCE_PROPERTIES_FILE;    
+    public static final String INSTANCE_PROPERTIES_FILE = "server-instance.properties";        
+    //public static final String INSTANCE_PROPERTIES_PATH = REG_WEB_APPS_FOLDER + "/" + INSTANCE_PROPERTIES_FILE;    
     
     public static final String WEBAPPS_DEFAULT_DIR_NAME = "web-apps";
+
+    public static final String INSTANCE_PROPERTIES_PATH = SERVER_PROJECT_FOLDER + "/src/main/resources/" + INSTANCE_PROPERTIES_FILE;
     
 }

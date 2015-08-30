@@ -6,3 +6,11 @@
 /server-ant-base-embedded/build/
 /server-ant-base-embedded/nbproject/private/
 /embedded-ant-jetty/build/
+/embedded-ant-jetty/nbproject/private/
+/jetty-9-OLD-command-manager/jetty-9-ANT-command-manager/build/
+/jetty-9-OLD-command-manager/jetty-9-ANT-command-manager/dist/
+/jetty-9-OLD-command-manager/jetty-9-ANT-command-manager/nbproject/private/
+/jetty-9-command-manager/build/
+/jetty-9-command-manager/dist/
+/jetty-9-command-manager/nbproject/private/
+/jetty-embedded-command-manager/target/

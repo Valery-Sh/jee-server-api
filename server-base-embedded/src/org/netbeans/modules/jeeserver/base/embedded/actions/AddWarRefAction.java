@@ -85,7 +85,7 @@ public final class AddWarRefAction extends AbstractAction implements ContextAwar
                         props.setProperty("webAppLocation", FileUtil.normalizePath(selectedFile.getAbsolutePath()));
                         String selectedPath = FileUtil.normalizePath(webappFo.getPath());
 
-                        FileObject targetFolder = project.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+                        FileObject targetFolder = project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
                         String selectedFileName = webappFo.getName() + "." + EmbConstants.WAR_REF;//".warref";                        
                         String fileName = selectedFileName;
                         if (targetFolder.getFileObject(selectedFileName) != null) {

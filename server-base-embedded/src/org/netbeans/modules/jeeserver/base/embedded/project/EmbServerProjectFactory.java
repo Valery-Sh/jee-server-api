@@ -20,6 +20,8 @@ package org.netbeans.modules.jeeserver.base.embedded.project;
 import com.sun.org.apache.bcel.internal.generic.GETFIELD;
 import java.io.IOException;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.jeeserver.base.embedded.project.nodes.EmbConfigChildNode;
+import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
 import org.netbeans.spi.project.ProjectFactory;
 import org.netbeans.spi.project.ProjectState;
 import org.openide.filesystems.FileObject;
@@ -28,10 +30,6 @@ import org.openide.util.lookup.ServiceProvider;
 //@ServiceProvider(service=ProjectFactory.class)
 public abstract class EmbServerProjectFactory implements ProjectFactory {
     
-    public static final String BASE_FOLDER = "server-config";
-    public static final String START_INI_FILE = BASE_FOLDER + "/start.ini";
-    public static final String MODULES_FOLDER = BASE_FOLDER + "/modules";
-    public static final String ETC_FOLDER = BASE_FOLDER + "/etc-cm";
 
     public EmbServerProjectFactory() {
         
@@ -52,10 +50,9 @@ public abstract class EmbServerProjectFactory implements ProjectFactory {
      */
     @Override
     public boolean isProject(FileObject projectDirectory) {
-        return projectDirectory.getFileObject(BASE_FOLDER) != null 
-                && projectDirectory.getFileObject(MODULES_FOLDER) != null
-                && projectDirectory.getFileObject(ETC_FOLDER) != null
-                && projectDirectory.getFileObject(BASE_FOLDER).getFileObject("server.xml") != null;
+        return projectDirectory.getFileObject(EmbConstants.SERVER_CONFIG_FOLDER) != null 
+                && projectDirectory.getFileObject(EmbConstants.MODULES_FOLDER) != null
+                && projectDirectory.getFileObject(EmbConstants.SERVER_PROJECT_FOLDER) != null;
         
     }
 

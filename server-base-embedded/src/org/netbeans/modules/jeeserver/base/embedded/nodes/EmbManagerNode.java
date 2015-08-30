@@ -12,7 +12,7 @@ import org.openide.util.actions.SystemAction;
 public class EmbManagerNode extends AbstractNode {
     
     @StaticResource
-    private final static String ICON_BASE = "org/netbeans/modules/jeeserver/base/embedded/resources/server.png";
+    private final static String ICON_BASE = "org/netbeans/modules/jeeserver/base/embedded/resources/embedded-server-16x16.png";
     private final Lookup lookup;
 
     public EmbManagerNode(Lookup lookup) {

@@ -18,7 +18,7 @@ import org.openide.loaders.DataObjectNotFoundException;
  * 
  * @author V. Shyshkin
  */
-@NodeFactory.Registration(projectType = "org-netbeans-modules-java-j2seproject")
+//@NodeFactory.Registration(projectType = "org-netbeans-modules-java-j2seproject")
 public class WebApplicationsNodeFactory implements NodeFactory {
     
     private static final Logger LOG = Logger.getLogger(WebApplicationsNodeFactory.class.getName());    
@@ -38,7 +38,7 @@ public class WebApplicationsNodeFactory implements NodeFactory {
             if ( ! BaseUtils.isServerProject(project)) {
                 return NodeFactorySupport.fixedNodeList();
             }
-            if (project.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER) != null) {
+            if (project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER) != null) {
                 try {
                     WebApplicationsNode node = new WebApplicationsNode(project);
                     node.init(project);

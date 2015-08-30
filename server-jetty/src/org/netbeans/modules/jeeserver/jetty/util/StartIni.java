@@ -33,6 +33,7 @@ import org.netbeans.modules.jeeserver.jetty.project.JettyLibBuilder;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
 import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.actions.AbstractHotDeployedContextAction;
+import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
 import org.openide.filesystems.FileChangeAdapter;
 import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
@@ -226,6 +227,8 @@ public class StartIni extends AbsractJettyConfig {
             @Override
             public void run() {
                 ((JettyServerPlatformImpl) manager.getPlatform()).notifyLibrariesChanged();
+                LibUtil.updateLibraries(manager.getServerProject());
+                
             }
 
         }

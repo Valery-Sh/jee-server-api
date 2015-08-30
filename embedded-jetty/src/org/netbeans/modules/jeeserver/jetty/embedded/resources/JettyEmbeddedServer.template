@@ -13,27 +13,54 @@ public class JettyEmbeddedServer {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        Server server = new Server(${port});
-        ${comStart}
-        // May be placed anywhere in the code
-        CommandManager.start(server);
+        Server server = CommandManager.createServer();
+        //------------------------------------------------------------
+        // Of course, you can use a line of code, as shown below:
+        //
+        //  Server server =  new Server(${port});
+        //
+        //------------------------------------------------------------
+        //
+        // The next line is required if you create a server manually for example:
+        // Server server = new Server(8080);
+        // It may appear anywhere in the code, but before the line
+        // server.start() and after the Server definition;
+        //
+        //CommandManager cm = CommandManager.getInstance(server);
+        
+        // ------------------------------------------------------------        // If you wish to shut down the server progranmatically the you vust
+        // specify a "shutdown token":
+        //
+        //      cm.setRuntimeShutdownToken("netbeans");
+        //
+        //-------------------------------------------------------------
+        // ========================= SAMPLE CODE ==========================
 
-        // =================================================================
-        //  You can use the following code to register 
-        //  web applications explicitly.
-        // =================================================================
-        // HandlerCollection hc = new HandlerCollection();
         // ContextHandlerCollection chc = new ContextHandlerCollection();
+
+        // WebAppContext ctx1 = new WebAppContext("WebApp01", "/WebApp01");
+
+        // WebAppContext ctx2 = new WebAppContext("HTML5Application01", "/HTML5Application01");
+
+        // WebAppContext ctx3 = new WebAppContext("d:\\NetBeans802Plugins\\TestWebApps\\WebApp02\\build\\web", "/WebApp02");
+        
+        // WebAppContext ctx4 = new WebAppContext("WebAppMaven02", "/WebAppMaven02");
+
+        // WebAppContext ctx5 = new WebAppContext("BackboneWineCellar", "/BackboneWineCellar");
+
+        
+        // chc.addHandler(ctx1);
+        // chc.addHandler(ctx2);
+        // chc.addHandler(ctx3);
+        // chc.addHandler(ctx4);
+        // chc.addHandler(ctx5);
+        
+        // HandlerCollection hc = new HandlerCollection();
         // hc.addHandler(chc);
         // server.setHandler(hc);
 
-        // WebAppContext ctx1 = new WebAppContext("JettyEmbWebApp02", "/JettyEmbWebApp02");        
-        // WebAppContext ctx2 = new WebAppContext("JettyEmbMavenApp01", "/JettyEmbMavenApp01");
-        // chc.addHandler(ctx1);
-        // chc.addHandler(ctx2);
-        ${comEnd}
-
         server.start();
         server.join();
+
     }
 }

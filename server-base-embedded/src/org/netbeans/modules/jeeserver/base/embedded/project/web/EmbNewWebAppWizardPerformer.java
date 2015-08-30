@@ -86,7 +86,7 @@ public final class EmbNewWebAppWizardPerformer {
             }
         }
         wiz = new WizardDescriptor(new WizardDescriptor.ArrayIterator<WizardDescriptor>(panels));
-        FileObject rootDir = server.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+        FileObject rootDir = server.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
         wiz.putProperty("rootPath", rootDir.getPath());
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
@@ -156,7 +156,7 @@ public final class EmbNewWebAppWizardPerformer {
     public Set<FileObject> instantiate(/*ProgressHandle handle*/) throws IOException {
 
         final Set<FileObject> resultSet = new LinkedHashSet<>();
-        FileObject rootDir = server.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+        FileObject rootDir = server.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
         File f = new File(rootDir.getPath() + "/" + (String) wiz.getProperty("name"));
         final File dirF = FileUtil.normalizeFile(f);
 

@@ -1,14 +1,14 @@
 /**
  * This file is part of Jetty Server support in NetBeans IDE.
  *
- * Jetty Server support in NetBeans IDE is free software: you can
- * redistribute it and/or modify it under the terms of the GNU General Public
- * License as published by the Free Software Foundation, either version 2 of the
- * License, or (at your option) any later version.
+ * Jetty Server support in NetBeans IDE is free software: you can redistribute
+ * it and/or modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the License,
+ * or (at your option) any later version.
  *
- * Jetty Server support in NetBeans IDE is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Jetty Server support in NetBeans IDE is distributed in the hope that it will
+ * be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
  *
  * You should see the GNU General Public License here:
@@ -19,11 +19,13 @@ package org.netbeans.modules.jeeserver.base.embedded.project;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
+import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationException;
@@ -31,10 +33,15 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.embedded.project.EmbeddedProjectLogicalView.ProjectNode;
+import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
 //import org.netbeans.modules.jeeserver.jetty.project.actions.PropertiesAction;
 //import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.nodes.Node;
+import org.openide.util.Exceptions;
 
 /**
  * Allows to hook open and close project actions.
@@ -42,38 +49,70 @@ import org.openide.filesystems.FileObject;
 public class EmbeddedProjectOpenHook extends ProjectOpenedHook {
 
     private static final Logger LOG = Logger.getLogger(EmbeddedProjectOpenHook.class.getName());
-    
-    private final  FileObject projectDir;
+
+    private final FileObject projectDir;
     private final ServerInstanceProperties serverProperties;
 
     public EmbeddedProjectOpenHook(FileObject projectDir, ServerInstanceProperties serverProperties) {
         this.projectDir = projectDir;
         this.serverProperties = serverProperties;
-        
+
     }
 
     @Override
     protected void projectOpened() {
-        
+
         String uri = serverProperties.getUri();
 
         try {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
             if (ip == null) {
                 Map<String, String> map = getDefaultPropertyMap(projectDir);
-                ip = InstanceProperties.createInstanceProperties(uri, null, null,  projectDir.getNameExt(), map);
+                ip = InstanceProperties.createInstanceProperties(uri, null, null, projectDir.getNameExt(), map);
                 // to update with InstanceProperties. 
                 // (The method getLookup() is oveeridden for JettyProject)
-                FileOwnerQuery.getOwner(projectDir).getLookup().lookup(ServerInstanceProperties.class);                
+                FileOwnerQuery.getOwner(projectDir).getLookup().lookup(ServerInstanceProperties.class);
                 //Action a = new PropertiesAction().createContextAwareInstance(getProject().getLookup());                
 //                if (ip.getProperty(BaseConstants.HOME_DIR_PROP) == null) {
 //                    PropertiesAction.perform(getProject().getLookup());
 //                }
             }
-            
+
         } catch (InstanceCreationException ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
+        FileObject fo = projectDir.getFileObject(EmbConstants.SERVER_PROJECT_FOLDER);
+        //Project mvn = null;
+        BaseUtils.out("^^^^^^^^^^^^^^^^ 1) ");
+        final Project mvn;
+        final OpenProjects op = OpenProjects.getDefault();
+        
+        if (fo != null && (mvn = FileOwnerQuery.getOwner(fo)) != null) {
+/*            final Future f = op.openProjects();
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    
+                    while ( ! f.isDone() ) {
+                        try {
+                            Thread.sleep(50);
+                        } catch (InterruptedException ex) {
+                            op.close(new Project[]{mvn});
+                        }
+                    }
+                    op.close(new Project[]{mvn});
+                    
+                }
+            };
+*/        
+            
+            java.awt.EventQueue.invokeLater(() -> {
+                //OpenProjects.getDefault().close(new Project[]{mvn});
+            });
+        
+        }
+
     }
 
     private Map<String, String> getDefaultPropertyMap(FileObject projectDir) {
@@ -93,7 +132,7 @@ public class EmbeddedProjectOpenHook extends ProjectOpenedHook {
         if (projectDir == null) {
             return;
         }
-        
+
         ProjectManager.getDefault().clearNonProjectCache();
         try {
             ProjectManager.getDefault().saveProject(getProject());
@@ -101,8 +140,9 @@ public class EmbeddedProjectOpenHook extends ProjectOpenedHook {
             LOG.log(Level.INFO, ex.getMessage());
         }
     }
+
     protected Project getProject() {
         return FileOwnerQuery.getOwner(projectDir);
     }
-    
+
 }

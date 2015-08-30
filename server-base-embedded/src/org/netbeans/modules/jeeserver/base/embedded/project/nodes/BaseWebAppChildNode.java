@@ -84,7 +84,7 @@ public class BaseWebAppChildNode extends FilterNode {
     }
 
     static String getPath(Object webAppKey) {
-        return EmbConstants.WEBAPPLICATIONS_FOLDER + "/" + webAppKey;
+        return EmbConstants.REG_WEB_APPS_FOLDER + "/" + webAppKey;
     }
     /**
      * Returns ab object that represents a key of the node.

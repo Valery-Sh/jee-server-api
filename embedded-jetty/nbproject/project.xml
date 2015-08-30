@@ -95,6 +95,15 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.netbeans.modules.projectuiapi</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <release-version>1</release-version>
+                        <specification-version>1.81.1.8</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.openide.dialogs</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -144,7 +153,10 @@
                 </dependency>
             </module-dependencies>
             <public-packages>
+                <package>org.embedded.ide.jetty</package>
                 <package>org.netbeans.modules.jeeserver.jetty.embedded</package>
+                <package>org.netbeans.modules.jeeserver.jetty.embedded.project</package>
+                <package>org.netbeans.modules.jeeserver.jetty.embedded.project.nodes</package>
             </public-packages>
             <class-path-extension>
                 <runtime-relative-path>ext/nb-jetty-helper.jar</runtime-relative-path>

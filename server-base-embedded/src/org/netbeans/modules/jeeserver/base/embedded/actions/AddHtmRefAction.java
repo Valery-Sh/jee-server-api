@@ -108,7 +108,7 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
             String html5AppFoPath = FileUtil.normalizePath(html5AppFo.getPath());
             props.setProperty(EmbConstants.WEB_APP_LOCATION_PROP, html5AppFoPath);
 
-            FileObject targetFolder = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+            FileObject targetFolder = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
 
             String fileName = html5RefName;
 
@@ -218,7 +218,7 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
         }
 
         private void deleteHtmlRef(FileObject projFo, FileObject htmlappFo) {
-            FileObject fo = projFo.getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+            FileObject fo = projFo.getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
             // the FileObject fo maybe null when another server is not an embedded server
             if (fo != null) {
                 for (FileObject f : fo.getChildren()) {
@@ -265,7 +265,7 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
             }
 
             if (result == null) {
-                FileObject targetFolder = serverProject.getProjectDirectory().getFileObject(EmbConstants.WEBAPPLICATIONS_FOLDER);
+                FileObject targetFolder = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
                 String selectedFileName = webappFo.getName() + "." + EmbConstants.HTML_REF;
                 String selectedPath = FileUtil.normalizePath(webappFo.getPath());
                 if (targetFolder.getFileObject(selectedFileName) != null) {

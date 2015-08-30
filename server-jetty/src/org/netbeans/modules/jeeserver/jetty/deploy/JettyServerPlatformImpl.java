@@ -107,9 +107,9 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
         synchronized (this) {
             libraries = null;
         }
-        if (fireEvents) {
+        //if (fireEvents) {
             firePropertyChange(PROP_LIBRARIES, null, getLibraries());
-        }
+        //}
     }
 
     public void notifyLibrariesChanged_old() {
@@ -309,7 +309,7 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
         
         errorMessages = jettyLibBuilter.getErrorMessages();
 
-        List<String> nams = jettyLibBuilter.getJarFileNames();
+        List<String> nams = jettyLibBuilter.getJarNames();
         nams.sort((s1, s2) -> {
             return s1.compareTo(s2);
         });
