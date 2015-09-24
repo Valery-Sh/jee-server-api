@@ -10,10 +10,8 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
-import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -64,39 +62,32 @@ public final class PrintServerInfoAction extends AbstractAction implements Conte
 
     private static final class ContextAction extends AbstractAction {
 
-        private final Project project;
-        //private RequestProcessor.Task task;
+
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
-            project = context.lookup(Project.class);
+            manager = BaseUtils.managerOf(context);
 
-            String name = ProjectUtils.getInformation(project).getDisplayName();
+            //String name = ProjectUtils.getInformation(manager.getServerProject()).getDisplayName();
+            String name = "aaaa";
             // TODO state for which projects action should be enabled
-            boolean isEmbedded = EmbUtils.isEmbedded(project);
-            if (isEmbedded) {
-                loadManager();
-            }
+
             //setEnabled(isEmbedded && !manager.isStopped());
-            setEnabled(isEmbedded);
+            setEnabled(manager != null);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, !isEmbedded);
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager==null);
             // TODO menu item label with optional mnemonics
             //putValue(NAME, "&Package Single Jar (" + name + ")");
             putValue(NAME, "&Print Server Info");
         }
 
-        private void loadManager() {
-            manager = BaseUtils.managerOf(project);
-        }
-
         public @Override
         void actionPerformed(ActionEvent e) {
             if (!manager.pingServer()) {
-                BaseUtils.out(EmbUtils.getServerInfo(project).toString());
+                BaseUtils.out(SuiteUtil.getServerInfo(manager.getServerProject()).toString());
             } else {
                 try {
-                    String text = manager.getSpecifics().execCommand(project, "cmd=printinfo");
+                    String text = manager.getSpecifics().execCommand(manager, "cmd=printinfo");
                     Reader r = new StringReader(text != null ? text : "");
                     
                     BufferedReader b = new BufferedReader(r);

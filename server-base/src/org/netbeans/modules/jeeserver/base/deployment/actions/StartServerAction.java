@@ -21,7 +21,6 @@ import javax.enterprise.deploy.spi.status.ProgressObject;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
-import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.awt.ActionID;
@@ -77,27 +76,18 @@ public final class StartServerAction extends AbstractAction implements ContextAw
 
     private static final class ContextAction extends AbstractAction {
 
-        private final Project project;
+
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
-            
-            project = context.lookup(Project.class);
-
-            boolean isServerProject = BaseUtils.isServerProject(project);
-            if ( isServerProject ) { 
-                loadManager();
-            }
-            setEnabled(isServerProject && manager != null && manager.isStopped());
+            manager = BaseUtils.managerOf(context);
+            BaseUtils.out("StartServerAction manager: " + manager);
+            setEnabled(manager != null && manager.isStopped());
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, !isServerProject);
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager==null);
 
             putValue(NAME, "&Start Server");
         
-        }
-
-        private void loadManager() {
-            manager = BaseUtils.managerOf(project);
         }
 
         public @Override

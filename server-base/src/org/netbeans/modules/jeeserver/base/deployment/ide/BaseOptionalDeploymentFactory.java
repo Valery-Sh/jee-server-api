@@ -17,13 +17,13 @@
 package org.netbeans.modules.jeeserver.base.deployment.ide;
 
 import org.netbeans.modules.jeeserver.base.deployment.BaseIncrementalDeployment;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.IncrementalDeployment;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.OptionalDeploymentManagerFactory;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.StartServer;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 

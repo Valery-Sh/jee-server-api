@@ -20,6 +20,8 @@ import org.netbeans.modules.jeeserver.jetty.project.JettyLibBuilder;
 import java.awt.Image;
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,13 +31,15 @@ import java.util.Map;
 import java.util.Set;
 import org.netbeans.api.j2ee.core.Profile;
 import org.netbeans.api.java.platform.JavaPlatform;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl2;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
+import org.netbeans.modules.jeeserver.jetty.project.actions.PropertiesAction;
 import org.netbeans.spi.project.libraries.LibraryImplementation;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -58,6 +62,8 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
 
     private static final String JETTY_SERVER_ICON = "org/netbeans/modules/jeeserver/jetty/resources/jetty01-16x16.jpg";
 
+    private boolean lostHomeDir;
+    
     private String displayName;
     private ServerInstanceProperties sp;
     private BaseDeploymentManager manager;
@@ -76,12 +82,12 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
 
     public static JettyServerPlatformImpl getInstance(BaseDeploymentManager manager) {
         if (manager.getPlatform() == null) {
+            String homePath = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP);
             JettyServerPlatformImpl p = new JettyServerPlatformImpl(manager);
             p.manager = manager;
             manager.setPlatform(p);
+            p.lostHomeDir = homePath == null;
             p.displayName = "Jetty";
-            String homePath = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP);
-
             if (homePath != null) {
                 FileObject fo = FileUtil.toFileObject(new File(homePath));
                 if (fo != null) {
@@ -122,6 +128,9 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
     }
 
     public boolean needsReloadLibraries() {
+        if ( lostHomeDir ) {
+            return false;
+        }
         J2eeLibraryTypeProvider libProvider = new J2eeLibraryTypeProvider();
         LibraryImplementation newlib = libProvider.createLibrary();
 
@@ -157,6 +166,10 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
 
     @Override
     public synchronized LibraryImplementation[] getLibraries() {
+        if ( lostHomeDir ) {
+            return new LibraryImplementation[0];
+        }
+        
         if (libraries == null) {
             J2eeLibraryTypeProvider libProvider = new J2eeLibraryTypeProvider();
             LibraryImplementation lib = libProvider.createLibrary();
@@ -196,7 +209,13 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
      */
     @Override
     public File getServerHome() {
-        return new File(manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP));
+                        
+        String sh = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP);
+        sh = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP);
+        if ( sh == null || ! Files.exists(Paths.get(sh) ) ) {
+            sh = System.getProperty("user.home");
+        }
+        return new File(sh);
     }
 
     /**
@@ -206,7 +225,8 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
      */
     @Override
     public File getDomainHome() {
-        return new File(manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP));
+        //return new File(manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP));
+        return getServerHome();
     }
 
     @Override

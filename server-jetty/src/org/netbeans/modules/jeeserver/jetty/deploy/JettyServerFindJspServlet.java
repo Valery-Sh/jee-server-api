@@ -18,9 +18,9 @@
 package org.netbeans.modules.jeeserver.jetty.deploy;
 
 import java.io.File;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.jsp.BaseFindJSPServlet;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 
 /**
  *

@@ -4,9 +4,8 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
-import org.netbeans.api.project.Project;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.project.web.EmbNewWebAppWizardPerformer;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -42,13 +41,15 @@ public final class NewWebAppAction extends AbstractAction implements ContextAwar
     private static final class ContextAction extends AbstractAction {
 
         private RequestProcessor.Task task;
-        private final Project project;
+//        private final Project project;
+        private final Lookup context;
         
         public ContextAction(Lookup context) {
-            project = context.lookup(Project.class);
+  //          project = context.lookup(Project.class);
+            this.context = context;
            // String name = ProjectUtils.getInformation(project).getDisplayName();
             // TODO state for which projects action should be enabled
-            boolean isEmbedded = EmbUtils.isEmbedded(project);
+            boolean isEmbedded = BaseUtils.managerOf(context) != null;
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
             setEnabled(isEmbedded);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
@@ -59,7 +60,7 @@ public final class NewWebAppAction extends AbstractAction implements ContextAwar
             task = new RequestProcessor("NewProjectBody").create(new Runnable() { // NOI18N
                 @Override
                 public void run() {
-                    EmbNewWebAppWizardPerformer wa = new EmbNewWebAppWizardPerformer(project);
+                    EmbNewWebAppWizardPerformer wa = new EmbNewWebAppWizardPerformer(context);
                     wa.perform();
                 }
             });

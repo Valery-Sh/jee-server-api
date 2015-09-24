@@ -20,10 +20,10 @@ import javax.enterprise.deploy.shared.CommandType;
 import javax.enterprise.deploy.shared.StateType;
 import javax.enterprise.deploy.spi.status.ProgressEvent;
 import javax.enterprise.deploy.spi.status.ProgressListener;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTargetModuleID;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.ServerProgress;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.actions.WebAppOpenInnerProjectAction;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
@@ -44,17 +44,6 @@ public abstract class AbstractProgressObject extends ServerProgress implements R
     private BaseTargetModuleID oldTargetModuleID; 
     private boolean completeImmediately;
     private int listenerCount;
-    /**
-     * Returns an instance of RequestProcessor.
-     * @return 
-     */
-/*    protected static synchronized RequestProcessor requestProcessor() {
-        if (requestProcessor == null) {
-            requestProcessor = new RequestProcessor("Server processor", 1);
-        }
-        return requestProcessor;
-    }
-*/    
     /**
      * Create a new instance of the class for a specified deployment manager.
      * @param manager 

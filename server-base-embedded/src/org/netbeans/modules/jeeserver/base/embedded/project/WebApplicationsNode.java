@@ -9,7 +9,7 @@ import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.embedded.actions.AddHtmRefAction;
 import org.netbeans.modules.jeeserver.base.embedded.actions.AddWarRefAction;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.actions.AddWebRefAction;
 import org.netbeans.modules.jeeserver.base.embedded.actions.NewWebAppAction;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.WebAppChildFactory;
@@ -48,7 +48,7 @@ public class WebApplicationsNode extends FilterNode {
      */
     public WebApplicationsNode(Project serverProj) throws DataObjectNotFoundException {
         super(DataObject.find(serverProj.getProjectDirectory().
-                getFileObject(EmbConstants.REG_WEB_APPS_FOLDER)).getNodeDelegate(),
+                getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER)).getNodeDelegate(),
                 new WebAppKeys(serverProj));
     }
     /**
@@ -60,7 +60,7 @@ public class WebApplicationsNode extends FilterNode {
      */
     protected final void init(Project serverProj) {
         fileChangeHandler = new FileChangeHandler(serverProj, this);
-        serverProj.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER)
+        serverProj.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER)
                 .addFileChangeListener(fileChangeHandler);
 
     }
@@ -211,7 +211,7 @@ public class WebApplicationsNode extends FilterNode {
          */
         @Override
         protected void addNotify() {
-            FileObject rootFolder = serverProj.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+            FileObject rootFolder = serverProj.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
             FileObject[] files = rootFolder.getChildren();
             List keyArray = new ArrayList<>(files.length);
             for (FileObject fo : files) {
@@ -258,8 +258,8 @@ public class WebApplicationsNode extends FilterNode {
         @Override
         public void fileDeleted(FileEvent ev) {
             
-            if (null == project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER)) {
-                InstanceProperties.removeInstance(BaseUtils.getServerInstanceId(project));        
+            if (null == project.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER)) {
+                InstanceProperties.removeInstance(BaseUtils.getServerInstanceId(project.getLookup()));        
             } else {
                 ((WebApplicationsNode.WebAppKeys) node.getChildren()).addNotify();
             }

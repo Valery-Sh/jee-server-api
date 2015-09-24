@@ -3,8 +3,8 @@ package org.netbeans.modules.jeeserver.base.embedded.project;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.spi.project.ui.support.NodeFactory;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
 import org.netbeans.spi.project.ui.support.NodeList;
@@ -35,10 +35,10 @@ public class WebApplicationsNodeFactory implements NodeFactory {
      */
     @Override
     public NodeList createNodes(Project project) {
-            if ( ! BaseUtils.isServerProject(project)) {
+            if ( ! SuiteUtil.isServerProject(project)) {
                 return NodeFactorySupport.fixedNodeList();
             }
-            if (project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER) != null) {
+            if (project.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER) != null) {
                 try {
                     WebApplicationsNode node = new WebApplicationsNode(project);
                     node.init(project);

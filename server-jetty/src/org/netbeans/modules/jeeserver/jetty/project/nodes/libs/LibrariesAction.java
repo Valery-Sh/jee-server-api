@@ -120,7 +120,7 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
         @Override
         public void actionPerformed(ActionEvent e) {
             RP.post(() -> {
-                String jettyHome = BaseUtils.getServerProperties(server).getHomeDir();
+                String jettyHome = BaseUtils.getServerProperties(server.getLookup()).getHomeDir();
 
                 File basePath = new File(jettyHome);
                 File fc = new FileChooserBuilder("jetty.home")

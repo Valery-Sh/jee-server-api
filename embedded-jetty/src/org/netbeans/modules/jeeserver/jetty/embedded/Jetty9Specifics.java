@@ -18,14 +18,12 @@ package org.netbeans.modules.jeeserver.jetty.embedded;
 
 import java.awt.Image;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
-import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -35,28 +33,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.annotations.common.StaticResource;
-import org.netbeans.api.java.classpath.ClassPath;
-import org.netbeans.api.java.project.JavaProjectConstants;
-import org.netbeans.api.java.project.classpath.ProjectClassPathModifier;
-import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.api.project.SourceGroup;
-import org.netbeans.api.project.Sources;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.WizardDescriptorPanel;
-import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
-import org.openide.util.EditableProperties;
 import org.openide.util.ImageUtilities;
-import org.openide.util.Utilities;
 
 /**
  *
@@ -68,15 +56,19 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
     @StaticResource
     public static final String IMAGE = "org/netbeans/modules/jeeserver/jetty/embedded/resources/jetty-server-01-16x16.png";
+    @StaticResource
+    public static final String IMAGE1 = "org/netbeans/modules/jeeserver/jetty/embedded/resources/J1-icon.png";
+    @StaticResource
+    public static final String IMAGE2 = "org/netbeans/modules/jeeserver/jetty/embedded/resources/J-icon.png";
 
     //private static final String HELPER_JAR = "nb-jetty-helper.jar";
     public static final String JETTY_SHUTDOWN_KEY = "netbeans";
 
     @Override
-    public boolean pingServer(Project serverProject) {
+    public boolean pingServer(BaseDeploymentManager dm) {
 
-        ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
-        String urlString = sp.getManager().buildUrl();
+        //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
+        String urlString = dm.buildUrl();
 
         try {
             URL url = new URL(urlString);
@@ -107,11 +99,11 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     }
 
     @Override
-    public boolean shutdownCommand(Project serverProject) {
+    public boolean shutdownCommand(BaseDeploymentManager dm) {
 
         boolean result = false;
 
-        ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
+        //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
 
         String key = JETTY_SHUTDOWN_KEY;
         //for future String pkey = sp.getServerConfigProperties().getProperty("jetty-shutdown-key");
@@ -123,7 +115,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         HttpURLConnection connection = null;
 
         try {
-            URL url = new URL(sp.getManager().buildUrl() + "/shutdown?token=" + key);
+            URL url = new URL(dm.buildUrl() + "/shutdown?token=" + key);
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             int code = connection.getResponseCode();
@@ -144,9 +136,9 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         // We don't know for sure whether the embedded server app supports
         // shutdown handler. So, let try ping.
         //
-        long pingtimeout = System.currentTimeMillis() + EmbConstants.SERVER_TIMEOUT_DELAY;
+        long pingtimeout = System.currentTimeMillis() + SuiteConstants.SERVER_TIMEOUT_DELAY;
         result = true;
-        while (pingServer(serverProject)) {
+        while (pingServer(dm)) {
             try {
                 Thread.sleep(200);
             } catch (InterruptedException ie) {
@@ -160,14 +152,14 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     }
 
     @Override
-    public String execCommand(Project serverProject, String cmd) {
+    public String execCommand(BaseDeploymentManager dm, String cmd) {
         HttpURLConnection connection = null;
         String result = null;
         try {
             //String urlstr = "/jeeserver/manager?deploy=" + l + "&cp=" + c;
             String urlstr = "/jeeserver/manager?" + cmd;
             BaseUtils.out("Jetty9Specifics: deployCommand urlStr=" + urlstr);
-            URL url = new URL(buildUrl(serverProject) + urlstr);
+            URL url = new URL(dm.buildUrl() + urlstr);
 
             connection = (HttpURLConnection) url.openConnection();
 
@@ -231,11 +223,10 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         return sb.toString().trim();
     }
 
-    private String buildUrl(Project p) {
-
-        return BaseUtils.managerOf(p).buildUrl();
+//    private String buildUrl(Project p) {
+//        return BaseUtils.managerOf(p.getLookup()).buildUrl();
         //return "http://" + sp.getHost() + ":" + sp.getHttpPort();
-    }
+//    }
 
     @Override
     public FindJSPServlet getFindJSPServlet(DeploymentManager dm) {
@@ -244,17 +235,17 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
     @Override
     public Image getProjectImage(Project serverProject) {
-        return ImageUtilities.loadImage(IMAGE);
+        return ImageUtilities.loadImage(IMAGE2);
     }
 
     @Override
     public void projectCreated(FileObject projectDir, Map<String, Object> props) {
-        String actualServerId = (String)props.get(EmbConstants.SERVER_ACTUAL_ID_PROP);
+        String actualServerId = (String)props.get(SuiteConstants.SERVER_ACTUAL_ID_PROP);
         String cmOut = actualServerId + "-command-manager";
         String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + actualServerId + "-command-manager.jar";
         
                 
-        FileObject libExt = projectDir.getFileObject(EmbConstants.SERVER_CONFIG_FOLDER + "/lib/ext");
+        FileObject libExt = projectDir.getFileObject(SuiteConstants.SERVER_CONFIG_FOLDER + "/lib/ext");
         FileObject cmFo;// = null;
         try {
             cmFo = libExt.createData(cmOut, "jar");
@@ -274,7 +265,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
         Map<String, Object> templateParams = new HashMap<>(1);
         try {
-            String src = EmbConstants.SERVER_PROJECT_FOLDER + "/src/main/java";
+            String src = SuiteConstants.SERVER_PROJECT_FOLDER + "/src/main/java";
             BaseUtils.out("---------- src=" + src);
             BaseUtils.out("---------- projDir=" + projectDir.getPath());
             
@@ -291,7 +282,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
             outputFolder = DataFolder.findFolder(targetFo);
             template = DataObject.find(
                     FileUtil.getConfigFile("Templates/jetty9/JettyEmbeddedServer"));
-            templateParams.put("port", props.get(EmbConstants.HTTP_PORT_PROP));
+            templateParams.put("port", props.get(SuiteConstants.HTTP_PORT_PROP));
             templateParams.put("comStart", "");
             templateParams.put("comEnd", "");
 
@@ -305,7 +296,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         }
     }
 
-    protected void addJarToServerClassPath(File jar, FileObject projectDir) throws IOException {
+/*    protected void addJarToServerClassPath(File jar, FileObject projectDir) throws IOException {
 
         if (projectDir == null || jar == null || !jar.exists()) {
             return;
@@ -313,8 +304,8 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         URI[] uri = new URI[]{Utilities.toURI(jar)};
         ProjectClassPathModifier.addRoots(uri, getSourceRoot(projectDir), ClassPath.COMPILE);
     }
-
-    protected FileObject getSourceRoot(FileObject projectDir) {
+*/
+/*    protected FileObject getSourceRoot(FileObject projectDir) {
         Project p = FileOwnerQuery.getOwner(projectDir);
         Sources sources = ProjectUtils.getSources(p);
         SourceGroup[] sourceGroups
@@ -331,22 +322,17 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         }
         return result;
     }
-
-    protected void setMainClass(FileObject projDir) {
+*/
+/*    protected void setMainClass(FileObject projDir) {
         FileObject fo = projDir.getFileObject("nbproject/project.properties");
         EditableProperties props = BaseUtils.loadEditableProperties(fo);
         props.setProperty("main.class", "org.embedded.server.JettyEmbeddedServer");
         BaseUtils.storeEditableProperties(props, fo);
     }
-
+*/
     @Override
     public boolean needsShutdownPort() {
         return false;
-    }
-
-    @Override
-    public WizardDescriptorPanel getAddonCreateProjectPanel(org.openide.WizardDescriptor wiz) {
-        return null;
     }
 
     @Override
@@ -371,7 +357,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     }
 
     @Override
-    public boolean supportsDistributeAs(EmbConstants.DistributeAs distributeAs) {
+    public boolean supportsDistributeAs(SuiteConstants.DistributeAs distributeAs) {
         boolean result = true;
         switch (distributeAs) {
             case SINGLE_JAR_WARS:
@@ -382,12 +368,23 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     }
 
     @Override
-    public boolean isEmbedded() {
-        return true;
-    }
-    @Override
     public Properties getContextPoperties(FileObject config) {
         return JettyModuleConfiguration.getContextProperties(config);
     }            
+    
+    @Override
+    public InstanceBuilder getInstanceBuilder(Properties props) {
+        InstanceBuilder ib = null;
+        
+        if ( "ant".equals(props.getProperty("project.based.type")) ) {
+            ib = new JettyInstanceBuilder(props);
+            ((JettyInstanceBuilder)ib).setMavenbased(false);
+        } else if ( "maven".equals(props.getProperty("project.based.type")) ) {
+            ib = new JettyInstanceBuilder(props);
+            ((JettyInstanceBuilder)ib).setMavenbased(true);
+        }
+        
+        return ib;
+    }
 
 }

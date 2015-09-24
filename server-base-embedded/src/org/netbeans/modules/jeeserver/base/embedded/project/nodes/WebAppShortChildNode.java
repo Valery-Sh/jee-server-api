@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.Node;
@@ -60,7 +60,7 @@ public class WebAppShortChildNode extends WebAppChildNode {
             Node[] nodeArray = new Node[1];
             try {
                 Node node =  DataObject.find(serverProj.getProjectDirectory().
-                    getFileObject(EmbConstants.REG_WEB_APPS_FOLDER)
+                    getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER)
                         .getFileObject(webAppKey.toString())
                         .getFileObject("web"))
                         .getNodeDelegate();

@@ -18,7 +18,6 @@ package org.netbeans.modules.jeeserver.jetty.util;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -44,12 +42,12 @@ import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
+import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils.getServerProperties;
 import org.netbeans.modules.jeeserver.jetty.project.JettyProjectFactory;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
 import org.openide.windows.IOProvider;
 import org.openide.windows.InputOutput;
@@ -106,6 +104,17 @@ public class Utils {
         System.out.println("R=" + r + "; i=" + i);
         return r;
     }
+    /**
+     * Return string {@literal uri} for the given server project
+     *
+     * @param project a server project
+     * @return an {@literal uri} as it was used to create an instance of the
+     * deployment manager
+     */
+    public static String getServerInstanceId(Project project) {
+        return BaseUtils.getServerProperties(project.getLookup()).getUri();
+    }
+    
     public static String getFullJettyVersion(String jettyHome) {
         Path lib = Paths.get(jettyHome, "lib");
 
@@ -220,6 +229,11 @@ public class Utils {
     }
 
     public static boolean isJettyServer(Project proj) {
+        ServerInstanceProperties sip = proj.getLookup().lookup(ServerInstanceProperties.class);
+        if ( sip == null || ! sip.isValid()) {
+            return false;
+        }
+        
         return new JettyProjectFactory().isProject(proj.getProjectDirectory());
     }
 
@@ -334,7 +348,7 @@ public class Utils {
         sb.append(BaseUtils.encode(contextPath));
 
         
-        return manager.getSpecifics().execCommand(manager.getServerProject(), sb.toString()); 
+        return manager.getSpecifics().execCommand(manager, sb.toString()); 
 /*        switch(state)
         {
             case __FAILED: return FAILED;

@@ -19,9 +19,9 @@ package org.netbeans.modules.jeeserver.base.deployment.progress;
 import javax.enterprise.deploy.shared.CommandType;
 import javax.enterprise.deploy.spi.Target;
 import javax.enterprise.deploy.spi.status.ProgressObject;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTargetModuleID;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.DeploymentContext;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.openide.filesystems.FileUtil;
 
 /**

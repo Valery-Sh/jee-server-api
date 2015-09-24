@@ -127,7 +127,6 @@ public abstract class AbstractJettyInstanceIterator implements WizardDescriptor.
         instantiateStartDIniFiles(dir);
         JettyProject.enableJSFLibrary(dir);
         return resultSet;
-
     }
 
     public void createBuildXml(FileObject projectDir) throws IOException {

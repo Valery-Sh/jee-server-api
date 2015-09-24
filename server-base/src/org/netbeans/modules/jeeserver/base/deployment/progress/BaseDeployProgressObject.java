@@ -207,7 +207,7 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         if (!getManager().pingServer()) {
             return;
         }
-        getManager().getSpecifics().execCommand(getManager().getServerProject(), createCommand());
+        getManager().getSpecifics().execCommand(getManager(), createCommand());
     }
 
     /**

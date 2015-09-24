@@ -67,25 +67,16 @@ public final class StopServerAction extends AbstractAction implements ContextAwa
 
     private static final class ContextAction extends AbstractAction {
 
-        private final Project project;
+        
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
-            project = context.lookup(Project.class);
-            boolean isServerProject = BaseUtils.isServerProject(project);
+            manager = BaseUtils.managerOf(context);
             
-            if ( isServerProject ) { 
-                loadManager();
-            }
-            
-            setEnabled(isServerProject && manager != null && ! manager.isStopped());
+            setEnabled(manager != null && ! manager.isStopped());
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, !isServerProject);
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager==null);
             putValue(NAME, "&Stop Server");
-        }
-
-        private void loadManager() {
-            manager = BaseUtils.managerOf(project);
         }
 
         public boolean isStopped() {
@@ -102,7 +93,7 @@ public final class StopServerAction extends AbstractAction implements ContextAwa
 
         public @Override
         void actionPerformed(ActionEvent e) {
-            BaseUtils.managerOf(project).stopServer();
+            manager.stopServer();
         }
     }
 }

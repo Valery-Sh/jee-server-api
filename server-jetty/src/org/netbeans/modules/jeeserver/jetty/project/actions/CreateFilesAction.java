@@ -106,7 +106,7 @@ public final class CreateFilesAction extends AbstractAction implements ContextAw
         }
 
         private void loadManager() {
-            manager = BaseUtils.managerOf(project);
+            manager = BaseUtils.managerOf(project.getLookup());
         }
 
         public @Override

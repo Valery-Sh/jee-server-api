@@ -19,8 +19,8 @@ package org.netbeans.modules.jeeserver.base.deployment.progress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.DialogDisplayer;
@@ -67,7 +67,7 @@ public class BaseStopProgressObject extends AbstractProgressObject {
 
     private boolean httpRequestShutdown() {
         ServerSpecifics s = getManager().getSpecifics();
-        return s.shutdownCommand(getManager().getServerProject());
+        return s.shutdownCommand(getManager());
     }
 
     @Override

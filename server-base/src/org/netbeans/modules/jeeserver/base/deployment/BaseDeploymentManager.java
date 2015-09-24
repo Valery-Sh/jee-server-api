@@ -70,14 +70,14 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     /**
      * The deployment mode the server started.
      */
-    private Deployment.Mode currentDeploymentMode;
+    protected Deployment.Mode currentDeploymentMode;
 
     private boolean waiting;
     /**
      * The value that uniquely identifies the instance of the class
      */
-    private final String uri;
-    private final BaseTarget defaultTarget;
+    protected final String uri;
+    protected final BaseTarget defaultTarget;
     /**
      * ExecutorTask instance of the started server
      */
@@ -154,7 +154,9 @@ public class BaseDeploymentManager implements DeploymentManager2 {
         
         return FileOwnerQuery.getOwner(fo);
     }
-
+    public Lookup getServerContext() {
+        return getSpecifics().getServerContext(this);
+    }
     /**
      * Returns the object that represents the specific server functionality. For
      * example, Jetty module provides it's own implementation of
@@ -228,7 +230,8 @@ public class BaseDeploymentManager implements DeploymentManager2 {
         this.currentDeploymentMode = currentDeploymentMode;
         if (old == null && currentDeploymentMode != null
                 || old != null && currentDeploymentMode == null) {
-            ServerInstanceProperties sp = getServerProject().getLookup().lookup(ServerInstanceProperties.class);
+            
+            ServerInstanceProperties sp = getServerContext().lookup(ServerInstanceProperties.class);
             sp.setCurrentDeploymentMode(currentDeploymentMode);
             updateServerIconAnnotator();
         }
@@ -338,7 +341,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     /**
-     * Returns identifier of BaseDeploymentManager. The value is the same as in
+     * Returns identifier of ProjectDeploymentManager. The value is the same as in
      * {@literal URL} property of the {@literal InstanceProperties}.
      *
      * @return identifier including project directory
@@ -368,11 +371,11 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * @return {@literal true} if the server is running. {@literal false} otherwise.
      */
     public boolean isServerRunning() {
-        return getSpecifics().pingServer(getServerProject());
+        return getSpecifics().pingServer(this);
     }
 
     public boolean pingServer() {
-        return getSpecifics().pingServer(getServerProject());
+        return getSpecifics().pingServer(this);
     }
 
     //============================================================

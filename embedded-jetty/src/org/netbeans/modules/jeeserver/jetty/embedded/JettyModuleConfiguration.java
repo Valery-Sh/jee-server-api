@@ -203,5 +203,6 @@ public class JettyModuleConfiguration  extends AbstractModuleConfiguration {
         }
         return result;
     }
-
+    protected void notifyAvailableModule(String instanceId, final boolean dispose) {
+    }
 }

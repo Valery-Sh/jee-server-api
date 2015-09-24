@@ -61,7 +61,7 @@ public class EmbPackageUtils {
      */
 /*    public static void deletePackageDist(Project serverProject) {
 
-        final FileObject dir = serverProject.getProjectDirectory().getFileObject(EmbConstants.PACKAGE_DIST);
+        final FileObject dir = serverProject.getProjectDirectory().getFileObject(SuiteConstants.PACKAGE_DIST);
         if (dir == null) {
             return;
         }
@@ -144,7 +144,7 @@ public class EmbPackageUtils {
         FileObject fo = html5Proj.getProjectDirectory();
         Properties html5Props = BaseUtils.loadHtml5ProjectProperties(fo.getPath());
 
-        String siteRoot = BaseUtils.resolve(EmbConstants.HTML5_SITE_ROOT_PROP, html5Props);
+        String siteRoot = BaseUtils.resolve(SuiteConstants.HTML5_SITE_ROOT_PROP, html5Props);
         if (siteRoot == null) {
             siteRoot = BaseConstants.HTML5_DEFAULT_SITE_ROOT_PROP;
         }
@@ -167,8 +167,8 @@ public class EmbPackageUtils {
         try {
             String web_apps_pack = webappsFolderName;
             
-            String web_app_config = EmbConstants.WEBAPP_CONFIG_FILE;
-            FileObject package_dist = serverDir.getFileObject(EmbConstants.PACKAGE_DIST);
+            String web_app_config = SuiteConstants.WEBAPP_CONFIG_FILE;
+            FileObject package_dist = serverDir.getFileObject(SuiteConstants.PACKAGE_DIST);
             File serverJar = Paths.get(package_dist.getPath(),
                     serverDir.getNameExt() + ".jar").toFile();
 
@@ -176,7 +176,7 @@ public class EmbPackageUtils {
             io.getOut().println("Package Html5 project " + fo.getNameExt() + ". " + new Date());
             Properties props = createHtml5Properties(html5Proj);
             
-            File siteRoot = FileUtil.toFile(fo.getFileObject(props.getProperty(EmbConstants.HTML5_SITE_ROOT_PROP)));
+            File siteRoot = FileUtil.toFile(fo.getFileObject(props.getProperty(SuiteConstants.HTML5_SITE_ROOT_PROP)));
             
             File webappsFolder = Paths.get(package_dist.getPath(),web_apps_pack).toFile();
             
@@ -208,8 +208,8 @@ public class EmbPackageUtils {
         try {
             String web_apps_pack = webappsFolderName;
             
-            String web_app_config = EmbConstants.WEBAPP_CONFIG_FILE;
-            FileObject package_dist = serverDir.getFileObject(EmbConstants.PACKAGE_DIST);
+            String web_app_config = SuiteConstants.WEBAPP_CONFIG_FILE;
+            FileObject package_dist = serverDir.getFileObject(SuiteConstants.PACKAGE_DIST);
             File serverJar = Paths.get(package_dist.getPath(),
                     serverDir.getNameExt() + ".jar").toFile();
 
@@ -217,7 +217,7 @@ public class EmbPackageUtils {
             io.getOut().println("Package Html5 project " + fo.getNameExt() + ". " + new Date());
             Properties props = createHtml5Properties(html5Proj);
             
-            File siteRoot = FileUtil.toFile(fo.getFileObject(props.getProperty(EmbConstants.HTML5_SITE_ROOT_PROP)));
+            File siteRoot = FileUtil.toFile(fo.getFileObject(props.getProperty(SuiteConstants.HTML5_SITE_ROOT_PROP)));
             
             File webappsFolder = Paths.get(package_dist.getPath(),web_apps_pack).toFile();
             Copier copier = new Copier(siteRoot, io);
@@ -244,9 +244,9 @@ public class EmbPackageUtils {
     public static void html5ProjectToServerJar(Project html5Proj, FileObject serverDir, InputOutput io) {
 
         try {
-            String web_apps_pack = EmbConstants.WEB_APPS_PACK;
-            String web_app_config = EmbConstants.WEBAPP_CONFIG_FILE;
-            FileObject package_dist = serverDir.getFileObject(EmbConstants.PACKAGE_DIST);
+            String web_apps_pack = SuiteConstants.WEB_APPS_PACK;
+            String web_app_config = SuiteConstants.WEBAPP_CONFIG_FILE;
+            FileObject package_dist = serverDir.getFileObject(SuiteConstants.PACKAGE_DIST);
             File serverJar = Paths.get(package_dist.getPath(),
                     serverDir.getNameExt() + ".jar").toFile();
 
@@ -254,7 +254,7 @@ public class EmbPackageUtils {
             io.getOut().println("Package Html5 project " + fo.getNameExt() + ". " + new Date());
             Properties props = createHtml5Properties(html5Proj);
             
-            File siteRoot = FileUtil.toFile(fo.getFileObject(props.getProperty(EmbConstants.HTML5_SITE_ROOT_PROP)));
+            File siteRoot = FileUtil.toFile(fo.getFileObject(props.getProperty(SuiteConstants.HTML5_SITE_ROOT_PROP)));
             Copier.ZipUtil.copy(siteRoot, serverJar, web_apps_pack + "/" + fo.getNameExt());
 
             BaseUtils.storeProperties(props, package_dist, web_app_config);
@@ -387,15 +387,15 @@ public class EmbPackageUtils {
 
         List<String> list = new ArrayList<>();
 
-        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : appsFo.getChildren()) {
             String projName = fo.getName();
             String msg;
-            if (EmbConstants.WEB_REF.equals(fo.getExt())) {
+            if (SuiteConstants.WEB_REF.equals(fo.getExt())) {
                 msg = validateWebRef(fo);
-            } else if (EmbConstants.WAR_REF.equals(fo.getExt())) {
+            } else if (SuiteConstants.WAR_REF.equals(fo.getExt())) {
                 msg = validateWarRef(fo);
-            } else if (EmbConstants.HTML_REF.equals(fo.getExt())) {
+            } else if (SuiteConstants.HTML_REF.equals(fo.getExt())) {
                 msg = validateHtmRef(fo);
             } else if (fo.isFolder()) {
                 msg = validateWebProject(fo);
@@ -440,16 +440,16 @@ public class EmbPackageUtils {
      */
     public static List<FileObject> getWarFiles(Project serverProject) {
         List<FileObject> list = new ArrayList<>();
-        FileObject webapps = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+        FileObject webapps = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : webapps.getChildren()) {
             FileObject war = getWarFile(fo);
             if (war != null) {
                 list.add(war);
                 continue;
             }
-            if (!fo.isFolder() && EmbConstants.WEB_REF.equals(fo.getExt())) {
+            if (!fo.isFolder() && SuiteConstants.WEB_REF.equals(fo.getExt())) {
                 Properties props = BaseUtils.loadProperties(fo);
-                String location = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 war = getWarFile(FileUtil.toFileObject(new File(location)));
                 if (war != null) {
                     list.add(war);
@@ -457,9 +457,9 @@ public class EmbPackageUtils {
                 continue;
             }
 
-            if (!fo.isFolder() && EmbConstants.WAR_REF.equals(fo.getExt())) {
+            if (!fo.isFolder() && SuiteConstants.WAR_REF.equals(fo.getExt())) {
                 Properties props = BaseUtils.loadProperties(fo);
-                String location = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (new File(location).exists()) {
                     war = FileUtil.toFileObject(new File(location));
                     if (war != null) {
@@ -482,14 +482,14 @@ public class EmbPackageUtils {
     public static List<Project> getWebProjects(Project serverProject) {
         List<Project> list = new ArrayList<>();
 
-        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : appsFo.getChildren()) {
             if (fo.isFolder()) {
                 list.add(FileOwnerQuery.getOwner(fo));
             }
-            if (EmbConstants.WEB_REF.equals(fo.getExt())) {
+            if (SuiteConstants.WEB_REF.equals(fo.getExt())) {
                 Properties props = BaseUtils.loadProperties(fo);
-                String location = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 FileObject webref = FileUtil.toFileObject(new File(location));
                 list.add(FileOwnerQuery.getOwner(webref));
             }
@@ -508,11 +508,11 @@ public class EmbPackageUtils {
     public static List<Project> getHtml5Projects(Project serverProject) {
         List<Project> list = new ArrayList<>();
 
-        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+        FileObject appsFo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : appsFo.getChildren()) {
-            if (EmbConstants.HTML_REF.equals(fo.getExt())) {
+            if (SuiteConstants.HTML_REF.equals(fo.getExt())) {
                 Properties props = BaseUtils.loadProperties(fo);
-                String location = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 FileObject ref = FileUtil.toFileObject(new File(location));
                 list.add(FileOwnerQuery.getOwner(ref));
             }
@@ -530,7 +530,7 @@ public class EmbPackageUtils {
     public static String validateWebRef(FileObject webRef) {
         String msg;
         Properties props = BaseUtils.loadProperties(webRef);
-        String location = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+        String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
         String msg1 = ".webref refers to ";
         File file = new File(location);
         if (location == null || !file.exists()) {
@@ -559,7 +559,7 @@ public class EmbPackageUtils {
     public static String validateWarRef(FileObject warRef) {
         String msg = null;
         Properties props = BaseUtils.loadProperties(warRef);
-        String location = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+        String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
         String msg1 = ".warref refers to ";
         File file = new File(location);
         if (location == null || !file.exists()) {
@@ -580,7 +580,7 @@ public class EmbPackageUtils {
     public static String validateHtmRef(FileObject ref) {
         String msg = null;
         Properties props = BaseUtils.loadProperties(ref);
-        String location = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+        String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
         String msg1 = ".htmref refers to ";
         File file = new File(location);
         FileObject fo = FileUtil.toFileObject(file);
@@ -590,7 +590,7 @@ public class EmbPackageUtils {
             msg = msg1 + " not existing Html5 project.";
         } else {
             String type = BaseUtils.projectTypeByProjectXml(fo.getFileObject("nbproject/project.xml"));
-            if (!EmbConstants.HTML5_PROJECTTYPE.equals(type)) {
+            if (!SuiteConstants.HTML5_PROJECTTYPE.equals(type)) {
                 msg = msg1 + " not an Html5 project.";
             }
         }

@@ -268,9 +268,17 @@
                 <package>org.netbeans.modules.jeeserver.base.embedded.actions</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.nodes</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.project.ant</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.project.config</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.project.maven</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project.nodes</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project.nodes.libs</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project.web</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.server.project</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.server.project.nodes</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.server.project.wizard</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.server.project.wizards</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.specifics</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.utils</package>
             </public-packages>

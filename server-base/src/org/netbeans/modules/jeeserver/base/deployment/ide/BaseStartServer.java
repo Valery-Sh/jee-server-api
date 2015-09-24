@@ -20,12 +20,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.modules.jeeserver.base.deployment.INFO;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTarget;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import javax.enterprise.deploy.spi.Target;
 import javax.enterprise.deploy.spi.status.ProgressObject;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.ServerDebugInfo;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.StartServer;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 
 /**

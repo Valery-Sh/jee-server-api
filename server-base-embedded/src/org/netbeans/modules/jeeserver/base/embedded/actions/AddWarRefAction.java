@@ -9,8 +9,7 @@ import static javax.swing.Action.NAME;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 
 import org.openide.awt.ActionID;
@@ -56,7 +55,8 @@ public final class AddWarRefAction extends AbstractAction implements ContextAwar
         public ContextAction(Lookup context) {
             project = context.lookup(Project.class);
             // TODO state for which projects action should be enabled
-            boolean isEmbedded = EmbUtils.isEmbedded(project);
+            //boolean isEmbedded = SuiteUtil.isEmbedded(project);
+            boolean isEmbedded = false;
             setEnabled(isEmbedded);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
             setEnabled(isEmbedded);
@@ -85,8 +85,8 @@ public final class AddWarRefAction extends AbstractAction implements ContextAwar
                         props.setProperty("webAppLocation", FileUtil.normalizePath(selectedFile.getAbsolutePath()));
                         String selectedPath = FileUtil.normalizePath(webappFo.getPath());
 
-                        FileObject targetFolder = project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
-                        String selectedFileName = webappFo.getName() + "." + EmbConstants.WAR_REF;//".warref";                        
+                        FileObject targetFolder = project.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
+                        String selectedFileName = webappFo.getName() + "." + SuiteConstants.WAR_REF;//".warref";                        
                         String fileName = selectedFileName;
                         if (targetFolder.getFileObject(selectedFileName) != null) {
                             props = BaseUtils.loadProperties(targetFolder.getFileObject(selectedFileName));
@@ -94,8 +94,8 @@ public final class AddWarRefAction extends AbstractAction implements ContextAwar
                             if (selectedPath.equals(existingPath)) {
                                 return;
                             }
-                            fileName = FileUtil.findFreeFileName(targetFolder, selectedFile.getName(), EmbConstants.WAR_REF);
-                            fileName += "." + EmbConstants.WAR_REF;
+                            fileName = FileUtil.findFreeFileName(targetFolder, selectedFile.getName(), SuiteConstants.WAR_REF);
+                            fileName += "." + SuiteConstants.WAR_REF;
                         }
                         BaseUtils.storeProperties(props, targetFolder, fileName);
                         

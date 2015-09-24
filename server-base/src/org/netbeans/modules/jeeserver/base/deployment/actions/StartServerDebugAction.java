@@ -65,28 +65,19 @@ public final class StartServerDebugAction extends AbstractAction implements Cont
 
     private static final class ContextAction extends AbstractAction {
 
-        private final Project project;
         //private RequestProcessor.Task task;
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
-            project = context.lookup(Project.class);
+            manager = BaseUtils.managerOf(context);
             // TODO state for which projects action should be enabled
-            boolean isServerProject = BaseUtils.isServerProject(project);
-            if ( isServerProject ) { 
-                loadManager();
-            }
             
-            setEnabled(isServerProject && manager != null && manager.isStopped());
+            setEnabled(manager != null && manager.isStopped());
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, !isServerProject);
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager==null);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
             // TODO menu item label with optional mnemonics
             putValue(NAME, "&Start in Debug Mode");
-        }
-
-        private void loadManager() {
-            manager = BaseUtils.managerOf(project);
         }
 
 

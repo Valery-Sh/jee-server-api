@@ -93,7 +93,7 @@ public abstract class AbstractHotDeployedContextAction extends AbstractAction {
     }
     
     private void loadManager() {
-        manager = BaseUtils.managerOf(project);
+        manager = BaseUtils.managerOf(project.getLookup());
     }
 
     public @Override
@@ -112,7 +112,7 @@ public abstract class AbstractHotDeployedContextAction extends AbstractAction {
             return;
         }
 
-        manager.getSpecifics().execCommand(project, createCommand(command, props));
+        manager.getSpecifics().execCommand(manager, createCommand(command, props));
     }
 
     /**

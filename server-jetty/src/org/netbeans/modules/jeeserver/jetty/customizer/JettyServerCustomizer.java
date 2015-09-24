@@ -32,8 +32,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyServerInstancePanelVisual;
@@ -237,7 +238,7 @@ public class JettyServerCustomizer extends JettyServerInstancePanelVisual implem
     }
 
     @Override
-    protected void saveChanges() {
+    public void saveChanges() {
         Utils.out("--------- CUSTOMIZER SAVE CHANGES ---------");
         store(wiz);
         InstanceProperties ip = InstanceProperties.getInstanceProperties(manager.getUri());

@@ -16,15 +16,16 @@
  */
 package org.netbeans.modules.jeeserver.base.deployment.specifics;
 
-import com.sun.corba.se.pept.transport.Acceptor;
 import java.awt.Image;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
-import org.openide.WizardDescriptor;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.openide.filesystems.FileObject;
+import org.openide.util.Lookup;
 
 /**
  *
@@ -32,10 +33,11 @@ import org.openide.filesystems.FileObject;
  */
 public interface ServerSpecifics extends LicensesAcceptor {
 
+    Lookup getServerContext(BaseDeploymentManager dm);
     
-    boolean pingServer(Project serverProject);
-    boolean shutdownCommand(Project serverProject);
-    String execCommand(Project serverProject, String cmd);
+    boolean pingServer(BaseDeploymentManager dm);
+    boolean shutdownCommand(BaseDeploymentManager dm);
+    String execCommand(BaseDeploymentManager dm, String cmd);
     
     /**
      * 
@@ -71,7 +73,24 @@ public interface ServerSpecifics extends LicensesAcceptor {
     default void serverStarting(DeploymentManager manager) {
         
     }
+    default ProjectWizardBuilder getWizardBuilder() {
+        return null;
+    }
+    default InstanceBuilder getInstanceBuilder(Properties config) {
+        return null;
+    }
     
-    WizardDescriptorPanel getAddonCreateProjectPanel(WizardDescriptor wiz);
+    /**
+     * Returns a java code of the main class of a server instance project
+     * as a template
+     * 
+     * @return default value as {@literal null}
+     */
+/*    default InputStream getServerInstanceMainClass() {
+        return null;
+    }
+*/    
+    
+    //WizardDescriptorPanel getAddonCreateProjectPanel(WizardDescriptor wiz);
     
 }

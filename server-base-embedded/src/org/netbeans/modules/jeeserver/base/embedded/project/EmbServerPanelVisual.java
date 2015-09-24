@@ -20,8 +20,8 @@ import javax.swing.text.Document;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.WizardDescriptor;
@@ -427,14 +427,14 @@ public class EmbServerPanelVisual extends JPanel implements DocumentListener, Ch
 
         }
         port = Integer.parseInt(getPort(serverPort_Spinner));
-        if (EmbUtils.isHttpPortBusy(port, null)) {
+        if (SuiteUtil.isHttpPortBusy(port, null)) {
             wizardDescriptor.putProperty("WizardPanel_warningMessage",
                     NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_HTTP_PORT_IN_USE", String.valueOf(port)));
             return true;
         }
         if (needsShutdownPort()) {
             port = Integer.parseInt(getPort(shutdownPort_Spinner));
-            if (EmbUtils.isShutdownPortBusy(port, null)) {
+            if (SuiteUtil.isShutdownPortBusy(port, null)) {
                 wizardDescriptor.putProperty("WizardPanel_warningMessage",
                         NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_SHUTDOWN_PORT_IN_USE", String.valueOf(port)));
                 return true;
@@ -460,20 +460,20 @@ public class EmbServerPanelVisual extends JPanel implements DocumentListener, Ch
         d.putProperty("projdir", new File(folder));
         d.putProperty("name", name);
 
-        d.putProperty(EmbConstants.HTTP_PORT_PROP, getPort());
-        d.putProperty(EmbConstants.DEBUG_PORT_PROP, getDebugPort());
-        d.putProperty(EmbConstants.HOST_PROP, getHost());
+        d.putProperty(SuiteConstants.HTTP_PORT_PROP, getPort());
+        d.putProperty(SuiteConstants.DEBUG_PORT_PROP, getDebugPort());
+        d.putProperty(SuiteConstants.HOST_PROP, getHost());
 //        String p = getShutdownPort();
-        d.putProperty(EmbConstants.SHUTDOWN_PORT_PROP, getShutdownPort());
+        d.putProperty(SuiteConstants.SHUTDOWN_PORT_PROP, getShutdownPort());
         DefaultComboBoxModel<String> dcm = (DefaultComboBoxModel<String>) serverId_ComboBox.getModel();
 
         String actualServerId = (String) dcm.getSelectedItem();
         String serverId = BaseUtils.getServerIdByAcualId(actualServerId);
-        d.putProperty(EmbConstants.SERVER_ID_PROP, serverId);
+        d.putProperty(SuiteConstants.SERVER_ID_PROP, serverId);
         
-        d.putProperty(EmbConstants.SERVER_ACTUAL_ID_PROP, actualServerId);
+        d.putProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP, actualServerId);
         
-        d.putProperty(EmbConstants.INCREMENTAL_DEPLOYMENT, isIncrementalDeployment());
+        d.putProperty(SuiteConstants.INCREMENTAL_DEPLOYMENT, isIncrementalDeployment());
     }
     
     String isIncrementalDeployment() {
@@ -516,12 +516,9 @@ public class EmbServerPanelVisual extends JPanel implements DocumentListener, Ch
 
     DefaultComboBoxModel<String> buildComboModel() {
         DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
-/*        String[] sids = Deployment.getDefault().getServerIDs();
-        if ( sids == null ) {
-            sids = new String[]{};
-        }
-*/        
+        
         DeploymentFactory[] fs = DeploymentFactoryManager.getInstance().getDeploymentFactories();
+        
         for (DeploymentFactory f : fs) {
             if (!(f instanceof ServerSpecificsProvider)) {
                 continue;
@@ -530,8 +527,7 @@ public class EmbServerPanelVisual extends JPanel implements DocumentListener, Ch
             if ( ! (ssp.getSpecifics() instanceof EmbeddedServerSpecifics) ) {
                 continue;
             }
-            EmbeddedServerSpecifics specifics = (EmbeddedServerSpecifics) ssp.getSpecifics();
-            if ( ! specifics.isEmbedded() ) {
+            if ( ssp.getSpecifics() instanceof EmbeddedServerSpecifics ) {
                 continue;
             }
             // OLD m.addElement(((ServerSpecificsProvider) f).getServerId());
@@ -548,7 +544,7 @@ public class EmbServerPanelVisual extends JPanel implements DocumentListener, Ch
         //-----  Server ID ---------
         DefaultComboBoxModel<String> dcm = buildComboModel();
         serverId_ComboBox.setModel(dcm);
-        String actualServerId = (String) settings.getProperty(EmbConstants.SERVER_ACTUAL_ID_PROP);
+        String actualServerId = (String) settings.getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);
         if (actualServerId != null && dcm.getIndexOf(actualServerId) >= 0) {
             dcm.setSelectedItem(actualServerId);
         }
@@ -584,19 +580,19 @@ public class EmbServerPanelVisual extends JPanel implements DocumentListener, Ch
 
     void readDefaultPortSettings(WizardDescriptor settings) {
         
-        String port = (String) settings.getProperty(EmbConstants.HTTP_PORT_PROP);
+        String port = (String) settings.getProperty(SuiteConstants.HTTP_PORT_PROP);
         if (port == null) {
             port = String.valueOf(getSpecifics().getDefaultPort());
         }
         serverPort_Spinner.setValue(Integer.parseInt(port));
 
-        port = (String) settings.getProperty(EmbConstants.DEBUG_PORT_PROP);
+        port = (String) settings.getProperty(SuiteConstants.DEBUG_PORT_PROP);
         if (port == null) {
             port = String.valueOf(getSpecifics().getDefaultDebugPort());
         }
         serverDebugPort_Spinner.setValue(Integer.parseInt(port));
 
-        port = (String) settings.getProperty(EmbConstants.SHUTDOWN_PORT_PROP);
+        port = (String) settings.getProperty(SuiteConstants.SHUTDOWN_PORT_PROP);
 
         if (port == null) {
             port = String.valueOf(getSpecifics().getDefaultShutdownPort());

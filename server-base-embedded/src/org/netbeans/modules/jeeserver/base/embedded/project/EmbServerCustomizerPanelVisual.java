@@ -14,34 +14,39 @@ import javax.swing.JSpinner;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer.Category;
+import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
 public class EmbServerCustomizerPanelVisual extends JPanel implements ActionListener {
 
     public static final String PROP_PROJECT_NAME = "projectName";
-    private final Project project;
+    //private final Project project;
+    private final Lookup context;
+    
     private final Properties settings;
     private final Category category;
 
-    public EmbServerCustomizerPanelVisual(Project project, Category category) {
+    public EmbServerCustomizerPanelVisual(Lookup context, Category category) {
         initComponents();
-        this.project = project;
+        //this.project = BaseUtils.managerOf(context).getServerProject();
+        this.context = context;
         this.category = category;
-        this.settings = EmbUtils.loadServerProperties(project);
+        this.settings = context.lookup(ServerInstanceProperties.class).getProperties();
         read();
         checkServerRunning();
         addListeners();
     }
 
     private void checkServerRunning() {
-        BaseDeploymentManager manager = null;
-        manager = BaseUtils.managerOf(project);
+        BaseDeploymentManager manager = BaseUtils.managerOf(context);
+
         if (manager.isServerRunning()) {
             serverPort_Spinner.setEnabled(false);
             serverDebugPort_Spinner.setEnabled(false);
@@ -272,12 +277,12 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
     // End of variables declaration//GEN-END:variables
 
     void store() {
-        settings.setProperty(EmbConstants.HTTP_PORT_PROP, getPort());
-        settings.setProperty(EmbConstants.DEBUG_PORT_PROP, getDebugPort());
-        settings.setProperty(EmbConstants.SHUTDOWN_PORT_PROP, getShutdownPort());
-        settings.setProperty(EmbConstants.SERVER_ID_PROP, getServerId());
-        settings.setProperty(EmbConstants.SERVER_ACTUAL_ID_PROP, getActualServerId());
-        settings.setProperty(EmbConstants.INCREMENTAL_DEPLOYMENT, isIncrementalDeployment());        
+        settings.setProperty(SuiteConstants.HTTP_PORT_PROP, getPort());
+        settings.setProperty(SuiteConstants.DEBUG_PORT_PROP, getDebugPort());
+        settings.setProperty(SuiteConstants.SHUTDOWN_PORT_PROP, getShutdownPort());
+        settings.setProperty(SuiteConstants.SERVER_ID_PROP, getServerId());
+        settings.setProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP, getActualServerId());
+        settings.setProperty(SuiteConstants.INCREMENTAL_DEPLOYMENT, isIncrementalDeployment());        
     }
 
     Properties getSettings() {
@@ -312,20 +317,22 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
     }
 
     private void read() {
+        Project project = BaseUtils.managerOf(context).getServerProject();
+        
         projectLocationTextField.setText(project.getProjectDirectory().getPath());
 
         projectNameTextField.setText(project.getProjectDirectory().getName());
 
-        hostTextField.setText(settings.getProperty(EmbConstants.HOST_PROP));
+        hostTextField.setText(settings.getProperty(SuiteConstants.HOST_PROP));
 
-        //OLDString serverId = settings.getProperty(EmbConstants.SERVER_ID_PROP);
-        String actualServerId = settings.getProperty(EmbConstants.SERVER_ACTUAL_ID_PROP);        
+        //OLDString serverId = settings.getProperty(SuiteConstants.SERVER_ID_PROP);
+        String actualServerId = settings.getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);        
         serverID_TextField.setText(actualServerId);
 
-        String port = settings.getProperty(EmbConstants.HTTP_PORT_PROP);
+        String port = settings.getProperty(SuiteConstants.HTTP_PORT_PROP);
         serverPort_Spinner.setValue(Integer.parseInt(port));
 
-        port = settings.getProperty(EmbConstants.SHUTDOWN_PORT_PROP);
+        port = settings.getProperty(SuiteConstants.SHUTDOWN_PORT_PROP);
         if (port == null) {
             port = "-1";
         }
@@ -347,7 +354,7 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
             incremental_Deployment_CheckBox.setSelected(false);
         }
 
-        port = settings.getProperty(EmbConstants.DEBUG_PORT_PROP);
+        port = settings.getProperty(SuiteConstants.DEBUG_PORT_PROP);
         serverDebugPort_Spinner.setValue(Integer.parseInt(port));
         initialValidatePorts();
 
@@ -356,10 +363,10 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
     void initialValidatePorts() {
         category.setValid(true);
         category.setErrorMessage(null);
-        if (EmbUtils.isHttpPortBusy(Integer.parseInt(getPort()), project)) {
+        if (SuiteUtil.isHttpPortBusy(Integer.parseInt(getPort()), context)) {
             // Warning message do not use setValid
             category.setErrorMessage(NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_HTTP_PORT_IN_USE", getPort()));
-        } else if (needsShutdownPort() && EmbUtils.isShutdownPortBusy(Integer.parseInt(getShutdownPort()), project)) {
+        } else if (needsShutdownPort() && SuiteUtil.isShutdownPortBusy(Integer.parseInt(getShutdownPort()), context)) {
             category.setErrorMessage(NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_SHUTDOWN_PORT_IN_USE", getShutdownPort()));
         }
     }
@@ -419,7 +426,7 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
             }
         }
         
-        if (EmbUtils.isHttpPortBusy(Integer.parseInt(port), project)) {
+        if (SuiteUtil.isHttpPortBusy(Integer.parseInt(port), context)) {
             // Warning message do not use setValid
             category.setErrorMessage(NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_HTTP_PORT_IN_USE", port));
             return;
@@ -427,7 +434,7 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
 
         msg = NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_SHUTDOWN_PORT_IN_USE", shutdownPort);
         if (needsShutdownPort()) {
-            if (EmbUtils.isShutdownPortBusy(Integer.parseInt(shutdownPort), project)) {
+            if (SuiteUtil.isShutdownPortBusy(Integer.parseInt(shutdownPort), context)) {
                 category.setErrorMessage(msg);
             }
         }

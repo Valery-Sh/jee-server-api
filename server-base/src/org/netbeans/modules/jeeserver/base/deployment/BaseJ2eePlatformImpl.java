@@ -42,6 +42,7 @@ import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.libraries.LibraryImplementation;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -51,11 +52,12 @@ import org.openide.util.ImageUtilities;
  *
  * @author V. Shyshkin
  */
-public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
+public class BaseJ2eePlatformImpl extends J2eePlatformImpl implements PropertyChangeListener{
 
     private static final Logger LOG = Logger.getLogger(BaseJ2eePlatformImpl.class.getName());
 
     private LibraryImplementation[] libraries;
+
     private final BaseDeploymentManager manager;
 
     @StaticResource
@@ -71,21 +73,28 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
         this.manager = (BaseDeploymentManager) manager;
         init();
     }
-
+    ClassPath rootClassPath = null;
+  
     private void init() {
         loadLibraries();
         FileObject f = getSourceRoot();
-        ClassPath cp = ClassPath.getClassPath(f, ClassPath.COMPILE);
-        if ( cp == null ) {
+        rootClassPath = ClassPath.getClassPath(f, ClassPath.COMPILE);
+BaseUtils.out("BaseJ2eePlatformImpl init() 1 " + rootClassPath);
+        if (rootClassPath == null) {
             return;
         }
-        cp.addPropertyChangeListener((PropertyChangeEvent evt) -> {
+BaseUtils.out("BaseJ2eePlatformImpl init() 2 " + rootClassPath);
+        rootClassPath.addPropertyChangeListener(this);        
+/*        rootClassPath.addPropertyChangeListener((PropertyChangeEvent evt) -> {
             if (ClassPath.PROP_ROOTS.equals(evt.getPropertyName())) {
+BaseUtils.out("BaseJ2eePlatformImpl rootClassPath listener " + rootClassPath);
+                
                 notifyLibrariesChanged();// Update your stuff, because classpath roots have changed.
             }
         });
+*/        
     }
-
+    
     /**
      * We must realize that NetBeans uses this method to create java class path
      * for web projects and not for server.
@@ -104,7 +113,7 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
      */
     @Override
     public String getDisplayName() {
-        
+
         return "JEE Server";
     }
 
@@ -207,8 +216,8 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
 
     /**
      * Returns a set of J2SE platform versions this J2EE platform can run with.
-     * The {@code plugin} supports {@code jdk7}. So the result set contains a single string
-     * value "1.7".
+     * The {@code plugin} supports {@code jdk7}. So the result set contains a
+     * single string value "1.7".
      *
      * @return a set of J2SE platform versions
      */
@@ -236,10 +245,18 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
      *
      */
     protected void notifyLibrariesChanged() {
+        synchronized (this) {
+            libraries = null;
+        }
+        //if (fireEvents) {
+        LibraryImplementation[] libs = loadLibraries();
+        firePropertyChange(PROP_LIBRARIES, null, libs);
+        //}        
         // Reload libraries
-        loadLibraries();
+//BaseUtils.out("PLATFORM: notifyLibrariesChanged" );        
+//        loadLibraries();
         // Fire changes
-        //firePropertyChange(PROP_LIBRARIES, null, libraries.clone());
+//        firePropertyChange(PROP_LIBRARIES, null, libraries.clone());
     }
 
     /**
@@ -255,17 +272,18 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
         return manager.getInstanceProperties().getProperty(BaseConstants.SERVER_ID_PROP);
     }
 
-    private void loadLibraries() {
+    private synchronized LibraryImplementation[] loadLibraries() {
         LibraryImplementation lib = createLibraryByServerProject();
         if (lib == null) {
             libraries = new LibraryImplementation[]{};
         } else {
             libraries = new LibraryImplementation[]{lib};
         }
+        return libraries;
     }
 
     private LibraryImplementation createLibraryByServerProject() {
-        
+
         if (manager == null || manager.getInstanceProperties() == null) {
             return null;
         }
@@ -292,8 +310,17 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
             for (SourceGroup sourceGroup : sourceGroups) {
 
                 FileObject fos = sourceGroup.getRootFolder();
-                ClassPath cp = ClassPath.getClassPath(fos, ClassPath.COMPILE);
-                List<ClassPath.Entry> l = cp.entries();
+                
+                ClassPath classPath = ClassPath.getClassPath(fos, ClassPath.COMPILE);
+BaseUtils.out("PLATFORM oldClasspath=" + classPath);                
+  /*              classPath.addPropertyChangeListener((PropertyChangeEvent evt) -> {
+                    if (ClassPath.PROP_ROOTS.equals(evt.getPropertyName())) {
+                        notifyLibrariesChanged();// Update your stuff, because classpath roots have changed.
+                    }
+                });
+*/
+                BaseUtils.out("PLATFORM newClasspath=" + classPath);
+                List<ClassPath.Entry> l = classPath.entries();
                 int i = 0;
                 for (ClassPath.Entry e : l) {
                     File file = FileUtil.archiveOrDirForURL(e.getURL());
@@ -326,6 +353,7 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
     }
 
     protected FileObject getSourceRoot() {
+BaseUtils.out("getSourceRoot manager.getServerProject() = " + manager.getServerProject());
         Sources sources = ProjectUtils.getSources(manager.getServerProject());
         SourceGroup[] sourceGroups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
         FileObject result = null;
@@ -339,5 +367,15 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl {
             LOG.log(Level.INFO, ex.getMessage());
         }
         return result;
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+            if (ClassPath.PROP_ROOTS.equals(evt.getPropertyName())) {
+                BaseUtils.out("BaseJ2eePlatformImpl rootClassPath listener " + rootClassPath);
+                
+                notifyLibrariesChanged();// Update your stuff, because classpath roots have changed.
+            }
+
     }
 }

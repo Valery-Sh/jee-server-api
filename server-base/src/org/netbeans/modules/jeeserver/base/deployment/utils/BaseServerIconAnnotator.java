@@ -20,70 +20,85 @@ import java.awt.Image;
 import javax.swing.event.ChangeListener;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.spi.project.ProjectIconAnnotator;
 import org.openide.util.ChangeSupport;
 import org.openide.util.ImageUtilities;
+import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.ServiceProvider;
 
 /**
- * The NetBeans project that represents a Server may be in running
- * or not-running state. 
- * 
- * The class annotates the project with an icon that visually indicates the state in
- * the Project View of the IDE.
- * 
+ * The NetBeans project that represents a Server may be in running or
+ * not-running state.
+ *
+ * The class annotates the project with an icon that visually indicates the
+ * state in the Project View of the IDE.
+ *
  * @author V. Shyshkin
  */
- @ServiceProvider(service=ProjectIconAnnotator.class)
- public class BaseServerIconAnnotator implements ProjectIconAnnotator {
-     private final ChangeSupport changeSupport = new ChangeSupport(this);
-     private boolean enabled;
-     
-     @StaticResource
-     private static final String IMAGE = "org/netbeans/modules/jeeserver/base/deployment/resources/server.png";     
-     
-     @StaticResource     
-     private static final String RUNNING_IMAGE = "org/netbeans/modules/jeeserver/base/deployment/resources/running.png";          
-     
-     @Override 
-     public  Image annotateIcon(Project p, Image orig, boolean openedNode) {
-         if ( ! BaseUtils.isServerProject(p)) {
-             return orig;
-         }
-         
-         ServerInstanceProperties sp = p.getLookup().lookup(ServerInstanceProperties.class);
-         if ( sp == null || sp.getServerId() == null) {         
-             return ImageUtilities.loadImage(IMAGE);
-         }
-         Image im = BaseUtils.getServerImage(sp.getServerId());
-         if ( im == null) {
-             return ImageUtilities.loadImage(IMAGE);
-         }
-         Image mim = im;
-         if ( sp.isServerRunning() ) {
-            mim = ImageUtilities.mergeImages(im,ImageUtilities.loadImage(RUNNING_IMAGE),16,8);         
-         }
-         return mim;
-     }
-     
-     
-     public @Override void addChangeListener(ChangeListener listener) {
-         changeSupport.addChangeListener(listener);
-     }
-     public @Override void removeChangeListener(ChangeListener listener) {
-         changeSupport.removeChangeListener(listener);
-     }
-     void setEnabled(boolean enabled) {
-         this.enabled = enabled;
-         changeSupport.fireChange();
-     }
+@ServiceProvider(service = ProjectIconAnnotator.class)
+public class BaseServerIconAnnotator implements ProjectIconAnnotator {
 
+    protected static final RequestProcessor RP = new RequestProcessor(BaseServerIconAnnotator.class);
+
+    private final ChangeSupport changeSupport = new ChangeSupport(this);
+    private boolean enabled;
+
+//    @StaticResource
+//    private static final String IMAGE = "org/netbeans/modules/jeeserver/base/deployment/resources/server.png";
+
+    @StaticResource
+    private static final String RUNNING_IMAGE = "org/netbeans/modules/jeeserver/base/deployment/resources/running.png";
+
+    public BaseServerIconAnnotator() {
+    }
+
+    @Override
+    public Image annotateIcon(Project p, Image orig, boolean openedNode) {
+
+        BaseDeploymentManager dm = BaseUtils.managerOf(p);
+        if (dm == null) {
+            return orig;
+        }
+        if ( dm.getServerContext() == null ) {
+            // it's a global context and does it's work earlier 
+            return orig;
+        }
+        ServerInstanceProperties sp = dm.getServerContext().lookup(ServerInstanceProperties.class);
+        Image im = dm.getSpecifics().getProjectImage(null);
+
+        if (im == null) {
+            return orig;
+        }
+        Image mim = im;
+        /**
+         * We don't ping a server as we can by calling dm.getServerRunning
+         */
+        if (sp.isServerRunning()) {
+            mim = ImageUtilities.mergeImages(im, ImageUtilities.loadImage(RUNNING_IMAGE), 16, 8);
+        }
+        return mim;
+    }
+
+
+    public @Override
+    void addChangeListener(ChangeListener listener) {
+        changeSupport.addChangeListener(listener);
+    }
+
+    public @Override
+    void removeChangeListener(ChangeListener listener) {
+        changeSupport.removeChangeListener(listener);
+    }
+
+    void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+        changeSupport.fireChange();
+    }
 
     public void serverStateChanged() {
         changeSupport.fireChange();
     }
-     
-     
-    
- }
+
+}

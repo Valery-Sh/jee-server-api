@@ -21,6 +21,7 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformFactory;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 
 /**
  *
@@ -33,6 +34,8 @@ public class JettyPlatformFactory extends J2eePlatformFactory {
     
     @Override
     public J2eePlatformImpl getJ2eePlatformImpl(DeploymentManager manager) {
+        String s = manager == null ? "NULL" : ((BaseDeploymentManager)manager).getUri();
+BaseUtils.out("JettyPlatformFactory manager=" + manager);
         return new BaseJ2eePlatformImpl((BaseDeploymentManager) manager);
     }
     

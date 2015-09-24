@@ -211,7 +211,7 @@ public class StartIni extends AbsractJettyConfig {
          */
         @Override
         public void fileChanged(FileEvent ev) {
-            BaseDeploymentManager manager = BaseUtils.managerOf(project);
+            BaseDeploymentManager manager = BaseUtils.managerOf(project.getLookup());
             //RequestProcessor rp = new RequestProcessor("Server processor", 1);
             RP.post(new RunnableImpl(manager), 0, Thread.NORM_PRIORITY);
         }
@@ -236,7 +236,7 @@ public class StartIni extends AbsractJettyConfig {
         public void fileChanged_1(FileEvent ev) {
             ServerInstanceAvailableModules availableModules = project.getLookup().lookup(ServerInstanceAvailableModules.class);
 
-            //JettyLibBuilder jmh = new JettyLibBuilder((BaseDeploymentManager) BaseUtils.managerOf(project));
+            //JettyLibBuilder jmh = new JettyLibBuilder((ProjectDeploymentManager) BaseUtils.managerOf(project));
             JettyLibBuilder jmh = JettyConfig.getInstance(project).getLibBuilder();            
             jmh.build();
             
@@ -250,7 +250,7 @@ public class StartIni extends AbsractJettyConfig {
             String baseDir = Paths.get(
                     project.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER)
                     .toString();
-            String homeDir = BaseUtils.getServerProperties(project).getHomeDir();
+            String homeDir = BaseUtils.getServerProperties(project.getLookup()).getHomeDir();
 
             List<String> modules = ini.getEnabledModules();
             //Map<String, List<String>> byIniName = IniModules.getEnabledModulesByIniName(baseDir, homeDir);

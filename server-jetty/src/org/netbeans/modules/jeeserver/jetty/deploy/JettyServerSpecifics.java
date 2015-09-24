@@ -18,6 +18,7 @@ package org.netbeans.modules.jeeserver.jetty.deploy;
 
 import java.awt.Image;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -33,9 +34,9 @@ import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.WizardDescriptorPanel;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
@@ -45,7 +46,10 @@ import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObject;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.ImageUtilities;
+import org.openide.util.Lookup;
 import org.openide.windows.InputOutput;
 
 /**
@@ -60,10 +64,10 @@ public class JettyServerSpecifics implements ServerSpecifics {
     public static final String IMAGE = "org/netbeans/modules/jeeserver/jetty/resources/jetty01-16x16.jpg";
 
     @Override
-    public boolean pingServer(Project serverProject) {
+    public boolean pingServer(BaseDeploymentManager dm) {
 
-        ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
-        String urlString = sp.getManager().buildUrl();
+        //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject.getLookup());
+        String urlString = dm.buildUrl();
 
         try {
             URL url = new URL(urlString);
@@ -94,11 +98,11 @@ public class JettyServerSpecifics implements ServerSpecifics {
     }
 
     @Override
-    public boolean shutdownCommand(Project serverProject) {
+    public boolean shutdownCommand(BaseDeploymentManager dm) {
 
         boolean result;
 
-        ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
+        //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject.getLookup());
 
         String key = JETTY_SHUTDOWN_KEY;
 
@@ -109,14 +113,14 @@ public class JettyServerSpecifics implements ServerSpecifics {
         }
 
         ExecutorTask task;
-
+        Project serverProject = dm.getServerProject();
         StartServerPropertiesProvider pp = serverProject.getLookup().lookup(StartServerPropertiesProvider.class);
 
         String[] targets = new String[]{"stop"};
 
         FileObject buildXml = pp.getBuildXml(serverProject);
         Properties props = pp.getStopProperties(serverProject);
-        ExecutorTask st = BaseUtils.managerOf(serverProject).getServerTask();
+        ExecutorTask st = BaseUtils.managerOf(serverProject.getLookup()).getServerTask();
         InputOutput stio = null;
         if (st != null) {
             stio = st.getInputOutput();
@@ -139,7 +143,7 @@ public class JettyServerSpecifics implements ServerSpecifics {
 
         long pingtimeout = System.currentTimeMillis() + BaseConstants.SERVER_TIMEOUT_DELAY;
         result = true;
-        while (pingServer(serverProject)) {
+        while (pingServer(dm)) {
             try {
                 Thread.sleep(200);
             } catch (InterruptedException ie) {
@@ -153,12 +157,12 @@ public class JettyServerSpecifics implements ServerSpecifics {
     }
 
     @Override
-    public String execCommand(Project serverProject, String cmd) {
+    public String execCommand(BaseDeploymentManager dm, String cmd) {
         HttpURLConnection connection = null;
         String result = null;
         try {
             String urlstr = "/jeeserver/manager?" + cmd;
-            URL url = new URL(buildUrl(serverProject) + urlstr);
+            URL url = new URL(dm.buildUrl() + urlstr);
 
             connection = (HttpURLConnection) url.openConnection();
 
@@ -222,7 +226,7 @@ public class JettyServerSpecifics implements ServerSpecifics {
     }
 
     private String buildUrl(Project p) {
-        return BaseUtils.managerOf(p).buildUrl();
+        return BaseUtils.managerOf(p.getLookup()).buildUrl();
     }
 
     @Override
@@ -244,10 +248,6 @@ public class JettyServerSpecifics implements ServerSpecifics {
         return true;
     }
 
-    @Override
-    public WizardDescriptorPanel getAddonCreateProjectPanel(org.openide.WizardDescriptor wiz) {
-        return null;
-    }
 
     @Override
     public int getDefaultPort() {
@@ -295,5 +295,10 @@ public class JettyServerSpecifics implements ServerSpecifics {
         });
         
         return accepted[0];
+    }    
+    
+    @Override
+    public Lookup getServerContext(BaseDeploymentManager dm) {
+        return dm.getServerProject().getLookup();
     }    
 }

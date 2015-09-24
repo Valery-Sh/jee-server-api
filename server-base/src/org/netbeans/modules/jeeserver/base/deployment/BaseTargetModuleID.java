@@ -48,15 +48,6 @@ public class BaseTargetModuleID implements TargetModuleID {
         this.port = port;
         this.contextPath = contextPath;
     }
-    /*    private static BaseTargetModuleID getDefault(BaseDeploymentManager dm) {
-     int p = Integer.parseInt(InstanceProperties.getInstanceProperties(dm.getUri())
-     .getProperty(EmbConstants.HTTP_PORT_PROP));
-     String h = InstanceProperties.getInstanceProperties(dm.getUri())
-     .getProperty(EmbConstants.HOST_PROP);
-     String c = "/";
-     return new BaseTargetModuleID(dm.getDefaultTarget(), h, p, c);
-     }
-     */
 
     private static BaseTargetModuleID getInstance(BaseDeploymentManager dm, BaseTarget t, String cp) {
         int p = Integer.parseInt(InstanceProperties.getInstanceProperties(dm.getUri())

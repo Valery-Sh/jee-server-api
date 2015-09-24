@@ -71,10 +71,12 @@ public class EmbeddedProjectLogicalView implements LogicalViewProvider {
             DataFolder projectFolder = DataFolder.findFolder(projectDirectory);
             Node nodeOfProjectFolder = projectFolder.getNodeDelegate();
             //Decorate the project directory's node:
-            String folderPath = project.getLookup()
+/*            String folderPath = project.getLookup()
                                     .lookup(ServerInstanceProperties.class)
                                     .getLayerProjectFolderPath();
+        
             BaseUtils.out("%%%%%%%%%%%%%%%% folderPath=" + folderPath);
+*/        
             projectNode = new ProjectNode(nodeOfProjectFolder, project);
             return projectNode;
         } catch (DataObjectNotFoundException ex) {

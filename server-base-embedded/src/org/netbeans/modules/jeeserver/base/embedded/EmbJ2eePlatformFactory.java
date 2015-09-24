@@ -1,9 +1,9 @@
 package org.netbeans.modules.jeeserver.base.embedded;
 import org.netbeans.modules.jeeserver.base.deployment.BaseJ2eePlatformImpl;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformFactory;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 
 /**
  * Mandatory factory class for producing J2eePlatformImpl. 

@@ -60,12 +60,12 @@ public class EmbServerWizardPanel implements WizardDescriptor.Panel,
     protected final void fireChangeEvent() {
         Set<ChangeListener> ls;
         synchronized (listeners) {
-            ls = new HashSet<ChangeListener>(listeners);
+            ls = new HashSet<>(listeners);
         }
         ChangeEvent ev = new ChangeEvent(this);
-        for (ChangeListener l : ls) {
+        ls.stream().forEach((l) -> {
             l.stateChanged(ev);
-        }
+        });
     }
 
     @Override

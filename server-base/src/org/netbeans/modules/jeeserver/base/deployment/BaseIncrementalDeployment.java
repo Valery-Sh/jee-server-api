@@ -23,8 +23,6 @@ import javax.enterprise.deploy.spi.DeploymentManager;
 import javax.enterprise.deploy.spi.Target;
 import javax.enterprise.deploy.spi.TargetModuleID;
 import javax.enterprise.deploy.spi.status.ProgressObject;
-import org.netbeans.api.project.FileOwnerQuery;
-import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseDeployProgressObject;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseIncrementalProgressObject;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.InstanceRemovedException;
@@ -69,7 +67,7 @@ public class BaseIncrementalDeployment extends IncrementalDeployment implements 
         }
 
         BaseUtils.out("BaseIncrementalDeployment execServerCommand cmd=" + cmd);
-        return manager.getSpecifics().execCommand(manager.getServerProject(), cmd);
+        return manager.getSpecifics().execCommand(manager, cmd);
     }
 
     @Override

@@ -37,6 +37,7 @@ import static org.netbeans.modules.jeeserver.base.deployment.config.ModulesChang
 import org.netbeans.modules.jeeserver.base.deployment.config.ModulesChangeListener;
 import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
 import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.Bundle.WebModulesRootNode_availableWebApps;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.Bundle.WebModulesRootNode_shortDescription;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
@@ -308,6 +309,7 @@ public class WebModulesRootNode extends FilterNode {
         private final Project serverProj;
 
         /**
+         * 
          * Created a new instance of the class for the specified server
          * serverProject.
          *
@@ -353,7 +355,6 @@ public class WebModulesRootNode extends FilterNode {
 
             this.setKeys(keyArray);
         }
-
         /**
          * Called when all the children Nodes are freed from memory. The
          * implementation just invokes 

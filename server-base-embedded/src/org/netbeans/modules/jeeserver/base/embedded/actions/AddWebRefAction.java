@@ -13,8 +13,8 @@ import javax.swing.JFileChooser;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.web.api.webmodule.WebModule;
@@ -66,7 +66,8 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
 
         public ContextAction(Lookup context, boolean enabled) {
             project = context.lookup(Project.class);
-            boolean isEmbedded = EmbUtils.isEmbedded(project);
+            //boolean isEmbedded = SuiteUtil.isEmbedded(project);
+            boolean isEmbedded = false;
             setEnabled(isEmbedded);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
@@ -101,8 +102,8 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
                         props.setProperty("webAppLocation", FileUtil.normalizePath(webappFo.getPath()));
                         String selectedPath = FileUtil.normalizePath(webappFo.getPath());
 
-                        FileObject targetFolder = project.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
-                        String selectedFileName = selectedFile.getName() + "." + EmbConstants.WEB_REF;//".webref";                        
+                        FileObject targetFolder = project.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
+                        String selectedFileName = selectedFile.getName() + "." + SuiteConstants.WEB_REF;//".webref";                        
                         String fileName = selectedFileName;
 
                         if (targetFolder.getFileObject(selectedFileName) != null) {
@@ -113,10 +114,10 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
                             if (selectedPath.equals(existingPath)) {
                                 return;
                             }
-                            fileName = FileUtil.findFreeFileName(targetFolder, selectedFile.getName(), EmbConstants.WEB_REF);
-                            fileName += "." + EmbConstants.WEB_REF;
+                            fileName = FileUtil.findFreeFileName(targetFolder, selectedFile.getName(), SuiteConstants.WEB_REF);
+                            fileName += "." + SuiteConstants.WEB_REF;
                         }
-                        EmbUtils.storeProperties(props, targetFolder, fileName);
+                        SuiteUtil.storeProperties(props, targetFolder, fileName);
 
                     } else {
                         System.out.println("File access cancelled by user.");
@@ -156,13 +157,13 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
                 return msg + "(not a project)";
             }
             FileObject fo = webProj.getProjectDirectory().getFileObject("nbproject/project.xml");
-            if (fo != null && EmbUtils.projectTypeByProjectXml(fo).equals(EmbConstants.HTML5_PROJECTTYPE)) {
+            if (fo != null && SuiteUtil.projectTypeByProjectXml(fo).equals(SuiteConstants.HTML5_PROJECTTYPE)) {
                 return "The selected project is a Html5 Project ";
             }
             fo = webappFo.getParent();
-            if (fo != null && fo.isFolder() && fo.getNameExt().equals(EmbConstants.REG_WEB_APPS_FOLDER)) {
+            if (fo != null && fo.isFolder() && fo.getNameExt().equals(SuiteConstants.REG_WEB_APPS_FOLDER)) {
                 fo = fo.getParent();
-                fo = fo.getFileObject(EmbConstants.INSTANCE_PROPERTIES_PATH);
+                fo = fo.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_PATH);
                 if (fo != null) {
                     msg = " The selected project is an inner project of an embedded serverProject";
                     return msg;
@@ -177,14 +178,14 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
         public static boolean accept(Project serverProject, FileObject webappFo) {
 
             Project webProj = FileOwnerQuery.getOwner(webappFo);
-            J2eeModuleProvider provider = EmbUtils.getJ2eeModuleProvider(webProj);
+            J2eeModuleProvider provider = SuiteUtil.getJ2eeModuleProvider(webProj);
 
             if (provider == null) {
                 return false;
             }
 
             String webappUri = provider.getServerInstanceID();
-            String uri = BaseUtils.getServerInstanceId(serverProject);
+            String uri = BaseUtils.getServerInstanceId(serverProject.getLookup());
 
             if (uri.equals(webappUri)) {
                 return true;
@@ -237,18 +238,18 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
             provider.getConfigSupport().ensureConfigurationReady();
 
             //webProj.getLookup().lookup(WebModuleProviderImpl.class);            
-            //provider = EmbUtils.getJ2eeModuleProvider(webProj);
+            //provider = SuiteUtil.getJ2eeModuleProvider(webProj);
             //BaseUtils.out(provider.getDeploymentName());
             return true;
 
         }
         
         private static void deleteWebRef(Project serverProject, FileObject webappFo) {
-                FileObject fo = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+                FileObject fo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
                 // the FileObject fo maybe null when another server is not an embedded server
                 if (fo != null) {
                     for (FileObject f : fo.getChildren()) {
-                        if (!f.isFolder() && f.getNameExt().equals(webappFo.getName() + "." + EmbConstants.WEB_REF)) {
+                        if (!f.isFolder() && f.getNameExt().equals(webappFo.getName() + "." + SuiteConstants.WEB_REF)) {
                             try {
                                 f.delete();
                             } catch (IOException ex) {
@@ -263,8 +264,8 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
             Project[] ps = OpenProjects.getDefault().getOpenProjects();
             Project result = null;
             for (Project p : ps) {
-                if (serverProject != p && BaseUtils.isServerProject(p)
-                        && webappUri.equals(BaseUtils.getServerInstanceId(p))) {
+                if (serverProject != p && SuiteUtil.isServerProject(p)
+                        && webappUri.equals(BaseUtils.getServerInstanceId(p.getLookup()))) {
                     result = p;
                     break;
                 }

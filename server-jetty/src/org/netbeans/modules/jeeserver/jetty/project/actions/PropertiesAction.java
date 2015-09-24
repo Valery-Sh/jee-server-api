@@ -26,10 +26,11 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationException;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.customizer.JettyServerCustomizer;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
@@ -40,6 +41,7 @@ import org.openide.awt.DynamicMenuContent;
 import org.openide.filesystems.FileObject;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
+import sun.util.calendar.BaseCalendar;
 
 /**
  * The class provides implementations of the context aware action to be
@@ -70,6 +72,12 @@ public final class PropertiesAction extends AbstractAction implements ContextAwa
         action.perform();
     }
 
+    public static boolean performAndModify(Lookup context) {
+        PropertiesAction pa = new PropertiesAction();
+        PropertiesAction.ContextAction action = (PropertiesAction.ContextAction) pa.createContextAwareInstance(context);
+        return action.performAndModify();
+    }
+    
     /**
      * Creates an action for the given context.
      *
@@ -105,7 +113,7 @@ public final class PropertiesAction extends AbstractAction implements ContextAwa
         }
 
         private void loadManager() {
-            manager = BaseUtils.managerOf(project);
+            manager = BaseUtils.managerOf(project.getLookup());
         }
 
         public @Override
@@ -116,7 +124,7 @@ public final class PropertiesAction extends AbstractAction implements ContextAwa
         public void perform() {
             if (manager == null) {
                 createServerInstance();
-                manager = BaseUtils.managerOf(project);
+                manager = BaseUtils.managerOf(project.getLookup());
             }
 
             JettyServerCustomizer c = new JettyServerCustomizer(manager);
@@ -126,10 +134,29 @@ public final class PropertiesAction extends AbstractAction implements ContextAwa
             c.getWizardDescriptor().setTitle("Jetty Server Properties");
             c.stateChanged(null);
             if (DialogDisplayer.getDefault().notify(c.getWizardDescriptor()) == WizardDescriptor.FINISH_OPTION) {
+                
+            }
+
+        }
+        public boolean performAndModify() {
+            JettyServerCustomizer c = new JettyServerCustomizer(manager);
+            // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
+            c.setName("Jetty Server Properties");
+            c.getWizardDescriptor().setTitleFormat(new MessageFormat("{0}"));
+            c.getWizardDescriptor().setTitle("Jetty Server Properties");
+            c.stateChanged(null);
+            if (DialogDisplayer.getDefault().notify(c.getWizardDescriptor()) == WizardDescriptor.FINISH_OPTION) {
+                c.saveChanges();
+                return true;
+//                manager.getInstanceProperties().setProperty(BaseConstants.HOME_DIR_PROP,
+//                        (String)c.getWizardDescriptor().getProperty(BaseConstants.HOME_DIR_PROP));
+            } else {
+                return false;
             }
 
         }
 
+        
         protected void createServerInstance() {
             String uri = Utils.buildUri(project.getProjectDirectory());
             FileObject projectDir = project.getProjectDirectory();

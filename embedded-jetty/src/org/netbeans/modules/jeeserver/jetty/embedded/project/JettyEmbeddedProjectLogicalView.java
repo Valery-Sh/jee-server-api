@@ -9,12 +9,10 @@ import java.awt.Image;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
-import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.project.EmbeddedProject;
-import static org.netbeans.modules.jeeserver.jetty.embedded.project.Bundle.JettyEmbeddedProjectLogicalView_shortDescription;
+
 import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.CommonProjectActions;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
@@ -127,8 +125,8 @@ public class JettyEmbeddedProjectLogicalView implements LogicalViewProvider {
         }
 
         private void init() {
-            setShortDescription(
-               JettyEmbeddedProjectLogicalView_shortDescription(project.getProjectDirectory().getPath()));
+//            setShortDescription(
+//               JettyEmbeddedProjectLogicalView_shortDescription(project.getProjectDirectory().getPath()));
         }
 
         @Override

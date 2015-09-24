@@ -16,13 +16,19 @@
  */
 package org.netbeans.modules.jeeserver.base.deployment;
 
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
 import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
+import javax.swing.event.ChangeListener;
 
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.openide.util.ChangeSupport;
 
 /**
  * Each Server project contains a instance of this class in its Lookup.
@@ -37,11 +43,20 @@ public class ServerInstanceProperties {
     private Deployment.Mode currentDeploymentMode;
     private String uri;
     private String serverId;
-    private String actualServerId;
+    //private String actualServerId;
     private String layerProjectFolderPath;
+    private boolean valid = true;
     
     public String getLayerProjectFolderPath() {
         return layerProjectFolderPath;
+    }
+
+    public boolean isValid() {
+        return valid;
+    }
+
+    public void setValid(boolean valid) {
+        this.valid = valid;
     }
 
     public void setLayerProjectFolderPath(String layerProjectFolderPath) {
@@ -50,7 +65,7 @@ public class ServerInstanceProperties {
     
     /**
      * Returns the current deployment mode. 
-     * The value is assigned when the method {@link ESDeploymentManager#setCurrentDeploymentMode(org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment.Mode) 
+     * The value is assigned when the method {@link BaseDeploymentManager#setCurrentDeploymentMode(org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment.Mode) 
      * is invoked.
      * 
      * @return an object of type {@literal Deployment.Mode}
@@ -58,6 +73,7 @@ public class ServerInstanceProperties {
     public Deployment.Mode getCurrentDeploymentMode() {
         return currentDeploymentMode;
     }
+    
     /**
      * Set the current deployment mode. 
      * The value is assigned when the method {@link ESDeploymentManager#setCurrentDeploymentMode(org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment.Mode) 
@@ -67,8 +83,12 @@ public class ServerInstanceProperties {
      *  that represents the current deployment mode. 
      */
     public void setCurrentDeploymentMode(Deployment.Mode currentDeploymentMode) {
+        boolean old = isServerRunning();
         this.currentDeploymentMode = currentDeploymentMode;
+        
+        propertyChangeSupport.firePropertyChange("serverRunning", old, isServerRunning());
     }
+    
     /**
      * Returns the server identifier.
      * @return serverIdentifier. For example embedded jetty server identifier
@@ -87,14 +107,14 @@ public class ServerInstanceProperties {
         this.serverId = serverId;
     }
 
-    public String getActualServerId() {
+/*    public String getActualServerId() {
         return actualServerId;
     }
 
     public void setActualServerId(String actualServerId) {
         this.actualServerId = actualServerId;
     }
-
+*/
     /**
      * Return a string prefix that is used to create a unique server URI.
      * @return server URI prefix. For example: "jetty9:deploy:server"
@@ -123,6 +143,7 @@ public class ServerInstanceProperties {
         }
         return dm;
     }
+    
     /**
      * The method is used by {@link ESServerIconAnnotator}.
      * The value returned may affect only the visual representation of the
@@ -147,48 +168,67 @@ public class ServerInstanceProperties {
      * Returns a string representation of the server's {@literal remote debug port number}.
      * @return a {@literal remote debug port}
      */
-    public String getDebugPort() {
+/*    public String getDebugPort() {
        return getManager().getInstanceProperties().getProperty(BaseConstants.DEBUG_PORT_PROP);
     }
+*/    
     /**
      * Returns a string representation of the server's {@literal remote shutdown port number}.
      * @return a {@literal remote shutdown port}. May be null.
      */
-    public String getShutdownPort() {
+/*    public String getShutdownPort() {
        return getManager().getInstanceProperties().getProperty(BaseConstants.SHUTDOWN_PORT_PROP);
     }
-    
+*/    
     /**
      * Returns  the server's host name.
      * @return the server's host name.
      */
-    public String getHost() {
+/*    public String getHost() {
        return getManager().getInstanceProperties().getProperty(BaseConstants.HOST_PROP);
     }
+*/    
     /**
      * Returns the server project's directory.
      * @return an absolute path of the project's directory
      */
-    public String getServerProjectLocation() {
+/*    public String getServerProjectLocation() {
        return getManager().getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
     }
-
+*/
     /**
      * Returns the server project's directory.
      * @return an absolute path of the project's directory
      */
     public String getHomeDir() {
+        
        return getManager().getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP);
     }
     /**
      * Returns the server version.
      * @return server version. May return null.
      */
-    public String getServerVersion() {
+/*    public String getServerVersion() {
        return getManager().getInstanceProperties().getProperty(BaseConstants.SERVER_VERSION_PROP);
     }
-    
-    public String getDisplayName() {
+*/    
+/*    public String getDisplayName() {
        return getManager().getInstanceProperties().getProperty(BaseConstants.DISPLAY_NAME_PROP);
+    }
+*/    
+    private Properties properties = new Properties();
+    
+    private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+    
+    public Properties getProperties() {
+        return properties;
+    }
+    
+    public void addPropertyChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.addPropertyChangeListener(listener);
+    }
+
+    public void removeChangeListener(PropertyChangeListener listener) {
+        propertyChangeSupport.removePropertyChangeListener(listener);
     }
 }

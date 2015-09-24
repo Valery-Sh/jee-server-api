@@ -21,7 +21,7 @@ import com.sun.org.apache.bcel.internal.generic.GETFIELD;
 import java.io.IOException;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.EmbConfigChildNode;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.spi.project.ProjectFactory;
 import org.netbeans.spi.project.ProjectState;
 import org.openide.filesystems.FileObject;
@@ -50,9 +50,9 @@ public abstract class EmbServerProjectFactory implements ProjectFactory {
      */
     @Override
     public boolean isProject(FileObject projectDirectory) {
-        return projectDirectory.getFileObject(EmbConstants.SERVER_CONFIG_FOLDER) != null 
-                && projectDirectory.getFileObject(EmbConstants.MODULES_FOLDER) != null
-                && projectDirectory.getFileObject(EmbConstants.SERVER_PROJECT_FOLDER) != null;
+        return projectDirectory.getFileObject(SuiteConstants.SERVER_CONFIG_FOLDER) != null 
+                && projectDirectory.getFileObject(SuiteConstants.MODULES_FOLDER) != null
+                && projectDirectory.getFileObject(SuiteConstants.SERVER_PROJECT_FOLDER) != null;
         
     }
 

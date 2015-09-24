@@ -17,10 +17,10 @@ import static javax.swing.Action.NAME;
 import javax.xml.transform.TransformerException;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.deployment.actions.WebAppCommandActions;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil;
 import org.netbeans.spi.project.ActionProvider;
@@ -38,7 +38,7 @@ import org.openide.util.RequestProcessor;
 
 public class Html5RefActions {
 
-    public static boolean assignHtml5ExternalServer(Project serverProject, FileObject webappFo) {
+    public static boolean assignHtml5ExternalServer(BaseDeploymentManager dm, FileObject webappFo) {
         boolean success = true;
 
         //
@@ -49,13 +49,12 @@ public class Html5RefActions {
         FileObject fo = webappFo.getFileObject("nbproject/private/private.properties");
         EditableProperties ep = BaseUtils.loadEditableProperties(fo);
 
-        String contextPath = BaseUtils.resolve(EmbConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5Props);
+        String contextPath = BaseUtils.resolve(SuiteConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5Props);
         if (contextPath == null) {
             contextPath = "/" + appName;
         }
 
-        String url = BaseUtils.managerOf(serverProject)
-                .buildUrl() + contextPath;
+        String url = dm.buildUrl() + contextPath;
 
         boolean accept = true;
         if (ep.getProperty("server").equals("EXTERNAL")) {
@@ -85,7 +84,7 @@ public class Html5RefActions {
         if (accept) {
             ep.setProperty("server", "EXTERNAL");
             ep.setProperty("external.project.url", url);
-            EmbUtils.storeEditableProperties(ep, fo);
+            SuiteUtil.storeEditableProperties(ep, fo);
             webappFo.getFileObject("nbproject/private/private.properties").refresh();
         }
 
@@ -110,7 +109,7 @@ public class Html5RefActions {
 
         private static final class ContextAction extends AbstractAction implements ProgressListener {
 
-            private final Project serverProject;
+            //private final Project serverProject;
             private final FileObject refFo;
             private final BaseDeploymentManager dm;
             private String webAppLocation;
@@ -121,9 +120,9 @@ public class Html5RefActions {
             public ContextAction(Lookup context) {
                 DataObject dataObj = context.lookup(DataObject.class);
                 refFo = dataObj.getPrimaryFile();
-                serverProject = FileOwnerQuery.getOwner(refFo);
+                //serverProject = FileOwnerQuery.getOwner(refFo);
                 putValue(NAME, "&Run");
-                dm = BaseUtils.managerOf(serverProject);
+                dm = BaseUtils.managerOf(context);
 
             }
 
@@ -133,27 +132,27 @@ public class Html5RefActions {
                 if (props == null) {
                     return;
                 }
-                webAppLocation = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                webAppLocation = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (webAppLocation == null) {
                     return;
                 }
                 
                 FileObject html5ProjFo = FileUtil.toFileObject(new File(webAppLocation));
-                if ( ! assignHtml5ExternalServer(serverProject, html5ProjFo)){
+                if ( ! assignHtml5ExternalServer(dm, html5ProjFo)){
                     return;
                 }                
                 html5Project = FileOwnerQuery.getOwner(html5ProjFo);
                 Properties html5ProjProps = BaseUtils.loadProperties(html5ProjFo.getFileObject("nbproject/project.properties"));
                 contextPath = html5ProjProps.getProperty("web.context.root");
                 if (contextPath == null) {
-                    contextPath = "/" + html5ProjFo.getName();// + "/" + html5ProjProps.getProperty(EmbConstants.HTML5_SITE_ROOT_PROP);
+                    contextPath = "/" + html5ProjFo.getName();// + "/" + html5ProjProps.getProperty(SuiteConstants.HTML5_SITE_ROOT_PROP);
                 }
 
-                String port = dm.getInstanceProperties().getProperty(EmbConstants.HTTP_PORT_PROP);
-                String host = dm.getInstanceProperties().getProperty(EmbConstants.HOST_PROP);
+                String port = dm.getInstanceProperties().getProperty(SuiteConstants.HTTP_PORT_PROP);
+                String host = dm.getInstanceProperties().getProperty(SuiteConstants.HOST_PROP);
                 urlStr = "http://" + host + ":" + port + contextPath;
 
-                if (WarRefActions.startServer(dm, serverProject, this) == null) {
+                if (WarRefActions.startServer(dm, dm.getServerProject(), this) == null) {
                     HtmRefDeployAction.perform(dm, contextPath, webAppLocation);
                     WebAppCommandActions.doInvokeAction(ActionProvider.COMMAND_RUN, html5Project);
                 }
@@ -197,7 +196,7 @@ public class Html5RefActions {
                     if (!dm.pingServer()) {
                         return;
                     }
-                    dm.getSpecifics().execCommand(dm.getServerProject(), EmbUtils.createCommand("deploy", contextPath, webAppLocation, EmbConstants.DEPLOY_HTML5_PROJECTTYPE));
+                    dm.getSpecifics().execCommand(dm, SuiteUtil.createCommand("deploy", contextPath, webAppLocation, SuiteConstants.DEPLOY_HTML5_PROJECTTYPE));
                 }
             });
 
@@ -224,7 +223,7 @@ public class Html5RefActions {
                 DataObject wardo = context.lookup(DataObject.class);
                 refFo = wardo.getPrimaryFile();
                 serverProject = FileOwnerQuery.getOwner(refFo);
-                dm = BaseUtils.managerOf(serverProject);
+                dm = BaseUtils.managerOf(context);
                 putValue(NAME, "&Deploy");
             }
 
@@ -235,7 +234,7 @@ public class Html5RefActions {
                 if (props == null) {
                     return;
                 }
-                webAppLocation = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                webAppLocation = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (webAppLocation == null) {
                     return;
                 }
@@ -243,7 +242,7 @@ public class Html5RefActions {
                         
                 FileObject html5ProjFo = FileUtil.toFileObject(new File(webAppLocation));
 //                Html5RefActions.assignHtml5ExternalServer(serverProject, html5ProjFo);
-                if ( ! assignHtml5ExternalServer(serverProject, html5ProjFo)){
+                if ( ! assignHtml5ExternalServer(dm, html5ProjFo)){
                     return;
                 }                
                 
@@ -251,7 +250,7 @@ public class Html5RefActions {
                 Properties html5ProjProps = BaseUtils.loadProperties(html5ProjFo.getFileObject("nbproject/project.properties"));
                 contextPath = html5ProjProps.getProperty("web.context.root");
                 if (contextPath == null) {
-                    contextPath = "/" + html5ProjFo.getName();// + "/" + html5ProjProps.getProperty(EmbConstants.HTML5_SITE_ROOT_PROP);
+                    contextPath = "/" + html5ProjFo.getName();// + "/" + html5ProjProps.getProperty(SuiteConstants.HTML5_SITE_ROOT_PROP);
                 }
 
                 if (WarRefActions.startServer(dm, serverProject, this) == null) {
@@ -271,7 +270,7 @@ public class Html5RefActions {
                         if (!dm.pingServer()) {
                             return;
                         }
-                        dm.getSpecifics().execCommand(dm.getServerProject(), EmbUtils.createCommand("deploy", contextPath, webAppLocation, EmbConstants.DEPLOY_HTML5_PROJECTTYPE));
+                        dm.getSpecifics().execCommand(dm, SuiteUtil.createCommand("deploy", contextPath, webAppLocation, SuiteConstants.DEPLOY_HTML5_PROJECTTYPE));
                     }
                 });
 
@@ -299,7 +298,7 @@ public class Html5RefActions {
                     if (!dm.pingServer()) {
                         return;
                     }
-                    dm.getSpecifics().execCommand(dm.getServerProject(), EmbUtils.createCommand("undeploy", contextPath, webApprLocation, EmbConstants.DEPLOY_HTML5_PROJECTTYPE));
+                    dm.getSpecifics().execCommand(dm, SuiteUtil.createCommand("undeploy", contextPath, webApprLocation, SuiteConstants.DEPLOY_HTML5_PROJECTTYPE));
                 }
             });
 
@@ -328,7 +327,7 @@ public class Html5RefActions {
                 DataObject dataObj = context.lookup(DataObject.class);
                 refFo = dataObj.getPrimaryFile();
                 serverProject = FileOwnerQuery.getOwner(refFo);
-                dm = BaseUtils.managerOf(serverProject);
+                dm = BaseUtils.managerOf(context);
                 putValue(NAME, "&Undeploy");
             }
 
@@ -348,7 +347,7 @@ Path t = Paths.get(pd.getPath(),"server-project/pom-new.xml");
                 if (props == null) {
                     return;
                 }
-                webAppLocation = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                webAppLocation = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (webAppLocation == null) {
                     return;
                 }
@@ -358,7 +357,7 @@ Path t = Paths.get(pd.getPath(),"server-project/pom-new.xml");
                 Properties html5ProjProps = BaseUtils.loadProperties(html5ProjFo.getFileObject("nbproject/project.properties"));
                 contextPath = html5ProjProps.getProperty("web.context.root");
                 if (contextPath == null) {
-                    contextPath = "/" + html5ProjFo.getName();// + "/" + html5ProjProps.getProperty(EmbConstants.HTML5_SITE_ROOT_PROP);
+                    contextPath = "/" + html5ProjFo.getName();// + "/" + html5ProjProps.getProperty(SuiteConstants.HTML5_SITE_ROOT_PROP);
                 }
 
                 if (WarRefActions.startServer(dm, serverProject, this) == null) {
@@ -381,7 +380,7 @@ Path t = Paths.get(pd.getPath(),"server-project/pom-new.xml");
                         if (!dm.pingServer()) {
                             return;
                         }
-                        dm.getSpecifics().execCommand(dm.getServerProject(), EmbUtils.createCommand("undeploy", contextPath, webAppLocation, EmbConstants.DEPLOY_HTML5_PROJECTTYPE));
+                        dm.getSpecifics().execCommand(dm, SuiteUtil.createCommand("undeploy", contextPath, webAppLocation, SuiteConstants.DEPLOY_HTML5_PROJECTTYPE));
                     }
                 });
 
@@ -420,7 +419,7 @@ Path t = Paths.get(pd.getPath(),"server-project/pom-new.xml");
                 htmrefFo = dataObj.getPrimaryFile();
                 project = FileOwnerQuery.getOwner(htmrefFo);
                 putValue(NAME, "&Show in browser");
-                dm = BaseUtils.managerOf(project);
+                dm = BaseUtils.managerOf(context);
 
             }
 
@@ -430,14 +429,14 @@ Path t = Paths.get(pd.getPath(),"server-project/pom-new.xml");
                 if (props == null) {
                     return;
                 }
-                webAppLocation = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                webAppLocation = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (webAppLocation == null) {
                     return;
                 }
                 FileObject html5ProjFo = FileUtil.toFileObject(new File(webAppLocation));
                 //Properties html5ProjProps = BaseUtils.loadProperties(html5ProjFo.getFileObject("nbproject/project.properties"));
-                contextPath = "/" + html5ProjFo.getName();// + "/" + html5ProjProps.getProperty(EmbConstants.HTML5_SITE_ROOT_PROP);
-                String port = dm.getInstanceProperties().getProperty(EmbConstants.HTTP_PORT_PROP);
+                contextPath = "/" + html5ProjFo.getName();// + "/" + html5ProjProps.getProperty(SuiteConstants.HTML5_SITE_ROOT_PROP);
+                String port = dm.getInstanceProperties().getProperty(SuiteConstants.HTTP_PORT_PROP);
                 String host = "localhost";
                 urlStr = "http://" + host + ":" + port + contextPath;
 

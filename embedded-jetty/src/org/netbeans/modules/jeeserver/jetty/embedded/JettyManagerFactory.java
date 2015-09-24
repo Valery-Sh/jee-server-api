@@ -20,9 +20,10 @@ import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
 import javax.enterprise.deploy.spi.factories.DeploymentFactory;
+import org.netbeans.modules.jeeserver.base.deployment.FactoryDelegate;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
-import org.netbeans.modules.jeeserver.base.deployment.FactoryDelegate;
+import org.netbeans.modules.jeeserver.base.embedded.EmbeddedFactoryDelegate;
 
 /**
  * Factory to create {@literal DeploymentManager } that can deploy to {@literal Jetty Embedded Server}.
@@ -52,7 +53,7 @@ public class JettyManagerFactory implements DeploymentFactory, ServerSpecificsPr
     public synchronized static JettyManagerFactory getInstance() {
         if (null == instance) {
             instance = new JettyManagerFactory();
-            delegateInstance = new FactoryDelegate(SERVER_ID ,((ServerSpecificsProvider)instance).getSpecifics());
+            delegateInstance = new EmbeddedFactoryDelegate(SERVER_ID ,((ServerSpecificsProvider)instance).getSpecifics());
             DeploymentFactoryManager.getInstance().registerDeploymentFactory(instance);
         }
         return instance;

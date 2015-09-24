@@ -20,10 +20,10 @@ import javax.swing.JMenuItem;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.EmbPackageUtils;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.ActionProvider;
 import org.openide.DialogDisplayer;
@@ -100,7 +100,7 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
 
             this.context = context;
             Project project = context.lookup(Project.class);
-            boolean isEmbedded = EmbUtils.isEmbedded(project);
+            boolean isEmbedded = SuiteUtil.isEmbedded(project);
             setEnabled(isEmbedded);
             putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, !isEmbedded);
             putValue(NAME, "&Package...");
@@ -120,7 +120,7 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
         @Override
         public JMenuItem getPopupPresenter() {
             Project project = context.lookup(Project.class);
-            boolean isEmbedded = BaseUtils.isServerProject(project);
+            boolean isEmbedded = SuiteUtil.isServerProject(project);
             JMenu result = new JMenu("Package...");  //remember JMenu is a subclass of JMenuItem
             result.add(new JMenuItem(new SingleJarAction(context)));
             result.add(new JMenuItem(new WarsToFolderAction(context)));
@@ -341,7 +341,7 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
             Project project = context.lookup(Project.class);
             String name = ProjectUtils.getInformation(project).getDisplayName();
             // TODO state for which projects action should be enabled
-            boolean isEmbedded = BaseUtils.isServerProject(project);
+            boolean isEmbedded = SuiteUtil.isServerProject(project);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
             setEnabled(isEmbedded);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
@@ -375,10 +375,10 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
 
             io.getOut().println("Delete web projects build dirs success. " + (new Date()));
             try {
-                File f = Paths.get(serverDirPath, EmbConstants.PACKAGE_DIST).toFile();                
+                File f = Paths.get(serverDirPath, SuiteConstants.PACKAGE_DIST).toFile();                
                 boolean b = true;
                 if ( f.exists() ) {
-                    b = Copier.delete(Paths.get(serverDirPath, EmbConstants.PACKAGE_DIST).toFile(), false);
+                    b = Copier.delete(Paths.get(serverDirPath, SuiteConstants.PACKAGE_DIST).toFile(), false);
                 }
                 if (b) {
                     io.getOut().println("Delete the package-dist directory success. " + (new Date()));
@@ -437,10 +437,10 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
                     io.select();
 
                     Path projPath = Paths.get(serverProject.getProjectDirectory().getPath());
-                    Path packageDistPath = projPath.resolve(EmbConstants.PACKAGE_DIST);
+                    Path packageDistPath = projPath.resolve(SuiteConstants.PACKAGE_DIST);
                     String serverJarName = projPath.getFileName() + ".jar";
                     File serverJar = packageDistPath.resolve(serverJarName).toFile();
-                    File serverProps = projPath.resolve(EmbConstants.INSTANCE_PROPERTIES_PATH).toFile();
+                    File serverProps = projPath.resolve(SuiteConstants.INSTANCE_PROPERTIES_PATH).toFile();
 
                     try {
 
@@ -467,23 +467,23 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
         }
 
         protected File getWebappsFolder(Project serverProject) {
-            Properties props = EmbUtils.loadServerProperties(serverProject);
+            Properties props = SuiteUtil.loadServerProperties(serverProject);
 
-            String warsFolderName = props.getProperty(EmbConstants.WEBAPPS_DIR_PROP);
+            String warsFolderName = props.getProperty(SuiteConstants.WEBAPPS_DIR_PROP);
             if (warsFolderName == null) {
                 warsFolderName = "web-apps";
                 
             }
-            return FileUtil.toFile(serverProject.getProjectDirectory()).toPath().resolve(EmbConstants.PACKAGE_DIST).resolve(warsFolderName).toFile();
+            return FileUtil.toFile(serverProject.getProjectDirectory()).toPath().resolve(SuiteConstants.PACKAGE_DIST).resolve(warsFolderName).toFile();
         }
 
         protected boolean updateWebappsFolder(Project serverProject) {
-            Properties props = EmbUtils.loadServerProperties(serverProject);
+            Properties props = SuiteUtil.loadServerProperties(serverProject);
 
-            String warsFolderName = props.getProperty(EmbConstants.WEBAPPS_DIR_PROP);
+            String warsFolderName = props.getProperty(SuiteConstants.WEBAPPS_DIR_PROP);
             String newFolderName = warsFolderName;
             if (warsFolderName == null) {
-                newFolderName = EmbConstants.WEBAPPS_DEFAULT_DIR_NAME;
+                newFolderName = SuiteConstants.WEBAPPS_DEFAULT_DIR_NAME;
                 Object o = notifyWarsToFolder(newFolderName);
                 if (o == null) {
                     return false; // cancel
@@ -491,9 +491,9 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
                 newFolderName = o.toString();
             }
             if (newFolderName != null && !newFolderName.equals(warsFolderName)) {
-                props.setProperty(EmbConstants.WEBAPPS_DIR_PROP, newFolderName);
-                FileObject target = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
-                EmbUtils.updateProperties(props, target, EmbConstants.INSTANCE_PROPERTIES_FILE);
+                props.setProperty(SuiteConstants.WEBAPPS_DIR_PROP, newFolderName);
+                FileObject target = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
+                SuiteUtil.updateProperties(props, target, SuiteConstants.INSTANCE_PROPERTIES_FILE);
             }
             return true;
         }
@@ -502,7 +502,7 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
             final Project serverProject = context.lookup(Project.class);
             Path projPath = Paths.get(serverProject.getProjectDirectory().getPath());
             String serverJarName = projPath.getFileName() + ".jar";
-            File serverJar = projPath.resolve(EmbConstants.PACKAGE_DIST).resolve(serverJarName).toFile();
+            File serverJar = projPath.resolve(SuiteConstants.PACKAGE_DIST).resolve(serverJarName).toFile();
 
             io.select();
 
@@ -513,17 +513,17 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
 
             for (FileObject fo : warFiles) {
                 String warName = fo.getNameExt(); // with ext
-                EmbeddedServerSpecifics specifics = (EmbeddedServerSpecifics) BaseUtils.managerOf(serverProject).getSpecifics();
-                if (specifics.supportsDistributeAs(EmbConstants.DistributeAs.SINGLE_JAR_WARS)) {
+                EmbeddedServerSpecifics specifics = (EmbeddedServerSpecifics) BaseUtils.managerOf(context).getSpecifics();
+                if (specifics.supportsDistributeAs(SuiteConstants.DistributeAs.SINGLE_JAR_WARS)) {
                     Copier copier = new Copier(FileUtil.toFile(fo), io);
-                    if (!copier.copyToZip(serverJar, EmbConstants.WEB_APPS_PACK)) {
+                    if (!copier.copyToZip(serverJar, SuiteConstants.WEB_APPS_PACK)) {
                         notUnzipped.add(fo);
                         break;
                     }
                 } else {
                     warName = fo.getName(); // without ext
                     if (!Copier.ZipUtil.copyZipToZip(FileUtil.toFile(fo),
-                            serverJar, EmbConstants.WEB_APPS_PACK + "/" + warName)) {
+                            serverJar, SuiteConstants.WEB_APPS_PACK + "/" + warName)) {
                         notUnzipped.add(fo);
                         break;
                     }
@@ -535,7 +535,7 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
 /*            for (FileObject fo : warFiles) {
                 String warName = fo.getName(); // without ext
                 if (!Copier.ZipUtil.copyZipToZip(FileUtil.toFile(fo),
-                        serverJar, EmbConstants.WEB_APPS_PACK + "/" + warName)) {
+                        serverJar, SuiteConstants.WEB_APPS_PACK + "/" + warName)) {
                     notUnzipped.add(fo);
                     break;
                 }

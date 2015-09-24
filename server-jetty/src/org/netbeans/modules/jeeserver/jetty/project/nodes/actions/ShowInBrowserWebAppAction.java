@@ -126,7 +126,7 @@ public class ShowInBrowserWebAppAction extends AbstractAction implements Context
             String host = manager.getInstanceProperties().getProperty(BaseConstants.HOST_PROP);
             urlStr = "http://" + host + ":" + port + contextPath;
 
-            if (manager.getSpecifics().pingServer(project)) {
+            if (manager.getSpecifics().pingServer(manager)) {
                 for (int i = 0; i < 100; i++) {
                     String state = Utils.getState(manager, contextPath);
                     if (state != null) {

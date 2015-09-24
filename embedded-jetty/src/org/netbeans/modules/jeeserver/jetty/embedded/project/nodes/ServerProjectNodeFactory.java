@@ -16,25 +16,19 @@
  */
 package org.netbeans.modules.jeeserver.jetty.embedded.project.nodes;
 
-import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ui.OpenProjects;
-import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.spi.java.project.support.ui.PackageView;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.support.NodeFactory;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
 import org.netbeans.spi.project.ui.support.NodeList;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataObject;
-import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.Node;
 
 /**
@@ -64,10 +58,10 @@ public class ServerProjectNodeFactory implements NodeFactory {
     public NodeList createNodes(Project project) {
         PackageView p;
         Node node = null;
-        if (!EmbUtils.isEmbedded(project)) {
+        if (!SuiteUtil.isEmbedded(project)) {
             return NodeFactorySupport.fixedNodeList();
         }
-        FileObject mvnFolder = project.getProjectDirectory().getFileObject(EmbConstants.SERVER_PROJECT_FOLDER);
+        FileObject mvnFolder = project.getProjectDirectory().getFileObject(SuiteConstants.SERVER_PROJECT_FOLDER);
         if (mvnFolder != null) {
             try {
                 Project mvnProject = FileOwnerQuery.getOwner(mvnFolder);

@@ -92,7 +92,7 @@ public final class JettyStartCommandActions extends AbstractAction implements Co
         }
 
         private void loadManager() {
-            manager = BaseUtils.managerOf(project);
+            manager = BaseUtils.managerOf(project.getLookup() );
         }
 
         public @Override

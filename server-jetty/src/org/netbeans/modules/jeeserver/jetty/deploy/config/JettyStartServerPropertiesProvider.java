@@ -19,8 +19,8 @@ package org.netbeans.modules.jeeserver.jetty.deploy.config;
 import java.util.Properties;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerSpecifics;
@@ -48,13 +48,13 @@ public class JettyStartServerPropertiesProvider implements StartServerProperties
     }
 
     protected String getStartJar(Project serverProject) {
-        InstanceProperties ip = BaseUtils.managerOf(serverProject).getInstanceProperties();
+        InstanceProperties ip = BaseUtils.managerOf(serverProject.getLookup()).getInstanceProperties();
         return ip.getProperty(BaseConstants.HOME_DIR_PROP) + "/start.jar";
 
     }
 
     protected Properties getProps(Project serverProject) {
-        BaseDeploymentManager manager = BaseUtils.managerOf(serverProject);
+        BaseDeploymentManager manager = BaseUtils.managerOf(serverProject.getLookup());
         Properties props = new Properties();
         props.setProperty("target", "run");
         props.setProperty("runtime.encoding", "UTF-8");
@@ -93,7 +93,7 @@ public class JettyStartServerPropertiesProvider implements StartServerProperties
     @Override
     public Properties getStopProperties(Project serverProject) {
         if (stopProperties == null) {
-            BaseDeploymentManager manager = BaseUtils.managerOf(serverProject);
+            BaseDeploymentManager manager = BaseUtils.managerOf(serverProject.getLookup());
             stopProperties = new Properties();
             stopProperties.setProperty("target", "stop");
             stopProperties.setProperty("start.jar", getStartJar(serverProject));
@@ -114,10 +114,10 @@ public class JettyStartServerPropertiesProvider implements StartServerProperties
 
     @Override
     public Properties getProfileProperties(Project serverProject) {
-        BaseDeploymentManager manager = BaseUtils.managerOf(serverProject);        
+        BaseDeploymentManager manager = BaseUtils.managerOf(serverProject.getLookup());        
         profileProperties = new Properties();
         profileProperties.setProperty("target", "profile");
-        String profile_args = BaseUtils.getProfileArgs(BaseUtils.managerOf(serverProject));
+        String profile_args = BaseUtils.getProfileArgs(BaseUtils.managerOf(serverProject.getLookup()));
         profileProperties.setProperty("profiler.args", profile_args);
         profileProperties.setProperty("start.jar", getStartJar(serverProject));
         profileProperties.setProperty("stop.port", manager.getInstanceProperties().getProperty(BaseConstants.SHUTDOWN_PORT_PROP));

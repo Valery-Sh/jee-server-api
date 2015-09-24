@@ -33,8 +33,8 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
@@ -986,23 +986,18 @@ public class JettyServerInstancePanelVisual extends JPanel implements DocumentLi
             return false;
         }
 
-        Project exclude = null;
-        if (getManager() != null) {
-            exclude = getManager().getServerProject();
-        }
-
-        if (BaseUtils.isPortBusy(port, exclude)) {
+        if (BaseUtils.isPortBusy(port, getManager())) {
             wizardDescriptor.putProperty("WizardPanel_warningMessage",
                     getMessage("MSG_HTTP_PORT_IN_USE", String.valueOf(port)));
             return true;
         }
 
-        if (BaseUtils.isPortBusy(debugPort, exclude)) {
+        if (BaseUtils.isPortBusy(debugPort, getManager())) {
             wizardDescriptor.putProperty("WizardPanel_warningMessage",
                     getMessage("MSG_DEBUG_PORT_IN_USE", String.valueOf(debugPort)));
             return true;
         }
-        if (BaseUtils.isPortBusy(stopPort, exclude)) {
+        if (BaseUtils.isPortBusy(stopPort, getManager())) {
             wizardDescriptor.putProperty("WizardPanel_warningMessage",
                     getMessage("MSG_STOP_PORT_IN_USE", String.valueOf(stopPort)));
             return true;

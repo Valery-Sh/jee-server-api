@@ -14,10 +14,10 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.awt.HtmlBrowser;
 import org.openide.filesystems.FileObject;
@@ -67,7 +67,7 @@ public class WarRefActions {
                 warrefFo = wardo.getPrimaryFile();
                 project = FileOwnerQuery.getOwner(warrefFo);
                 putValue(NAME, "&Run war");
-                dm = BaseUtils.managerOf(project);
+                dm = BaseUtils.managerOf(context);
 
             }
 
@@ -77,19 +77,19 @@ public class WarRefActions {
                 if (props == null) {
                     return;
                 }
-                contextPath = props.getProperty(EmbConstants.CONTEXTPATH_PROP);
+                contextPath = props.getProperty(SuiteConstants.CONTEXTPATH_PROP);
                 if (contextPath == null) {
                     contextPath = "/" + warrefFo.getName();
                 }
                 if (!contextPath.startsWith("/")) {
                     contextPath = "/" + contextPath;
                 }
-                warLocation = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                warLocation = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (warLocation == null) {
                     return;
                 }
-                String port = dm.getInstanceProperties().getProperty(EmbConstants.HTTP_PORT_PROP);
-                String host = dm.getInstanceProperties().getProperty(EmbConstants.HOST_PROP);
+                String port = dm.getInstanceProperties().getProperty(SuiteConstants.HTTP_PORT_PROP);
+                String host = dm.getInstanceProperties().getProperty(SuiteConstants.HOST_PROP);
                 urlStr = "http://" + host + ":" + port;// + contextPath;
 
                 if (WarRefActions.startServer(dm, project, this) == null) {
@@ -149,7 +149,7 @@ public class WarRefActions {
                         ar[0] = null;
                         return;
                     }
-                    ar[0] = dm.getSpecifics().execCommand(dm.getServerProject(), EmbUtils.createCommand("deploywar", contextPath, warLocation));
+                    ar[0] = dm.getSpecifics().execCommand(dm, SuiteUtil.createCommand("deploywar", contextPath, warLocation));
                 }
             });
             
@@ -175,7 +175,7 @@ public class WarRefActions {
                 DataObject wardo = context.lookup(DataObject.class);
                 warrefFo = wardo.getPrimaryFile();
                 project = FileOwnerQuery.getOwner(warrefFo);
-                dm = BaseUtils.managerOf(project);
+                dm = BaseUtils.managerOf(context);
                 putValue(NAME, "&Deploy");
             }
 
@@ -186,14 +186,14 @@ public class WarRefActions {
                 if (props == null) {
                     return;
                 }
-                contextPath = props.getProperty(EmbConstants.CONTEXTPATH_PROP);
+                contextPath = props.getProperty(SuiteConstants.CONTEXTPATH_PROP);
                 if (contextPath == null) {
                     contextPath = "/" + warrefFo.getName();
                 }
                 if (!contextPath.startsWith("/")) {
                     contextPath = "/" + contextPath;
                 }
-                warLocation = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                warLocation = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (warLocation == null) {
                     return;
                 }
@@ -217,7 +217,7 @@ public class WarRefActions {
                         if (!dm.pingServer()) {
                             return;
                         }
-                        dm.getSpecifics().execCommand(dm.getServerProject(), EmbUtils.createCommand("deploywar", contextPath, warLocation));
+                        dm.getSpecifics().execCommand(dm, SuiteUtil.createCommand("deploywar", contextPath, warLocation));
                     }
                 });
 
@@ -245,7 +245,7 @@ public class WarRefActions {
                     if (!dm.pingServer()) {
                         return;
                     }
-                    dm.getSpecifics().execCommand(dm.getServerProject(), EmbUtils.createCommand("undeploywar", contextPath, warLocation));
+                    dm.getSpecifics().execCommand(dm, SuiteUtil.createCommand("undeploywar", contextPath, warLocation));
 
                 }
             });
@@ -269,13 +269,13 @@ public class WarRefActions {
             private final BaseDeploymentManager dm;
             private String contextPath;
             private String warLocation;
-
+            private final Lookup context;
             public ContextAction(Lookup context) {
-
+                this.context = context; 
                 DataObject wardo = context.lookup(DataObject.class);
                 warrefFo = wardo.getPrimaryFile();
                 project = FileOwnerQuery.getOwner(warrefFo);
-                dm = BaseUtils.managerOf(project);
+                dm = BaseUtils.managerOf(context);
                 putValue(NAME, "&Undeploy");
             }
 
@@ -286,18 +286,18 @@ public class WarRefActions {
                 if (props == null) {
                     return;
                 }
-                contextPath = props.getProperty(EmbConstants.CONTEXTPATH_PROP);
+                contextPath = props.getProperty(SuiteConstants.CONTEXTPATH_PROP);
                 if (contextPath == null) {
                     contextPath = "/" + warrefFo.getName();
                 }
                 if (!contextPath.startsWith("/")) {
                     contextPath = "/" + contextPath;
                 }
-                warLocation = props.getProperty(EmbConstants.WEB_APP_LOCATION_PROP);
+                warLocation = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (warLocation == null) {
                     return;
                 }
-                final BaseDeploymentManager dm = BaseUtils.managerOf(project);
+                final BaseDeploymentManager dm = BaseUtils.managerOf(context);
 
                 if (WarRefActions.startServer(dm, project, this) == null) {
                     handleProgressEvent(null);
@@ -320,7 +320,7 @@ public class WarRefActions {
                             return;
                         }
                         String cp = contextPath;
-                        dm.getSpecifics().execCommand(dm.getServerProject(), EmbUtils.createCommand("undeploywar", cp, warLocation));
+                        dm.getSpecifics().execCommand(dm, SuiteUtil.createCommand("undeploywar", cp, warLocation));
 
                     }
                 });

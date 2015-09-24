@@ -53,7 +53,7 @@ public class BaseHotDeployedContextAction extends AbstractHotDeployedContextActi
         String state = null;
         if (manager != null && manager.pingServer()) {
             if (manager != null && !manager.isStopped()) {//&& manager.pingServer()) {
-                state = manager.getSpecifics().execCommand(project, createCommand("getstatebycontextpath", props));
+                state = manager.getSpecifics().execCommand(manager, createCommand("getstatebycontextpath", props));
                 //state = manager.getSpecifics().execCommand(project, createCommand("getstate", props));                
             }
         }
@@ -173,7 +173,7 @@ public class BaseHotDeployedContextAction extends AbstractHotDeployedContextActi
             return;
         }
 
-        manager.getSpecifics().execCommand(project, createCommand(command, props));
+        manager.getSpecifics().execCommand(manager, createCommand(command, props));
     }
 
     /**

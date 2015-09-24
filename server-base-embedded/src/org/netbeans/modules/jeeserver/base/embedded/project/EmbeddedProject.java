@@ -1,33 +1,16 @@
 package org.netbeans.modules.jeeserver.base.embedded.project;
 
-import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
-import org.netbeans.api.project.libraries.Library;
-import org.netbeans.api.project.libraries.LibraryManager;
-import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.ide.BaseStartServer;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.deployment.utils.LibrariesFileLocator;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
-//import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyStartServerPropertiesProvider;
-//import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
-//import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.DeleteOperationImplementation;
 import org.netbeans.spi.project.ProjectState;
@@ -35,8 +18,6 @@ import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.netbeans.spi.project.ui.support.DefaultProjectOperations;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.Lookups;
 
@@ -56,31 +37,17 @@ public abstract class EmbeddedProject implements Project {
     public EmbeddedProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
         this.state = state;
-    }
-
-/*    public static void enableJSFLibrary(FileObject projDir) {
-
-        Library[] libs = LibraryManager.getDefault().getLibraries();
-        //
-        // add JSF library to ${jetty.base}/lib/jsf-netbeans folder
-        //
-        Library jsfLib = LibraryManager.getDefault().getLibrary("jsf20");
-        if (jsfLib == null) {
-            return;
-        }
-        List<File> files = LibrariesFileLocator.findFiles(jsfLib);
-        final FileObject jsfFolder = FileUtil.toFileObject(Paths.get(projDir.getPath(), JettyConstants.JETTYBASE_FOLDER, "lib/jsf-netbeans").toFile());
         
-        files.forEach(file -> {
-            FileObject fo = FileUtil.toFileObject(file);
-            try {
-                FileUtil.copyFile(fo, jsfFolder, fo.getName(), fo.getExt());
-            } catch (IOException ex) {
-                LOG.log(Level.INFO, ex.getMessage());
+/*        Project[] ps = OpenProjects.getDefault().getOpenProjects();
+        for ( Project p : ps) {
+            if ( p.getProjectDirectory().getName().contains("OOO")) {
+                OpenProjects.getDefault().addPropertyChangeListener(new OpenProjectListeners.PropertiesListener());
             }
-        });
+            
+        }
+*/        
     }
-*/
+
     @Override
     public FileObject getProjectDirectory() {
         return projectDir;

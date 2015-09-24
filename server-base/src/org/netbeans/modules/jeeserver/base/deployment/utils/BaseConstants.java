@@ -56,8 +56,13 @@ public class BaseConstants {
     
     public static final String URL_PROP = InstanceProperties.URL_ATTR;
     public static final String SERVER_LOCATION_PROP = "serverLocation"; 
+//    public static final String SERVER_INSTANCE_DIR_PROP = "server-instance-dir";     
+    
+//    public static final String SERVER_INSTANCIES_DIR_PROP = "server-instances-dir"; 
+    
     public static final String HOME_DIR_PROP = "home_dir";     
     public static final String SERVER_VERSION_PROP = "server_version";         
+    
     
     public static final String HOST_PROP = "host"; 
     public static final String DEBUG_PORT_PROP = "debug_port"; 

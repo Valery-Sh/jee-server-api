@@ -35,7 +35,7 @@ import org.netbeans.api.project.Sources;
 import org.netbeans.api.project.libraries.Library;
 import org.netbeans.api.project.libraries.LibraryManager;
 import org.netbeans.api.templates.TemplateRegistration;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.netbeans.spi.project.ui.templates.support.Templates;
@@ -59,7 +59,7 @@ import org.xml.sax.SAXException;
 
 /**
  *
- * @author Valery
+ * @author V. Shyshkin
  */
 @TemplateRegistration(folder = "Project/EmbeddedServer",
         displayName = "#EmbEmbeddedServer_displayName",
@@ -135,8 +135,8 @@ public class EmbServerWizardIterator implements WizardDescriptor./*Progress*/Ins
         }
         setServerProperties(dir);
         Project p = FileOwnerQuery.getOwner(dir);
-        String serverId = (String) wiz.getProperty(EmbConstants.SERVER_ID_PROP);
-        String actualServerId = (String) wiz.getProperty(EmbConstants.SERVER_ACTUAL_ID_PROP);
+        String serverId = (String) wiz.getProperty(SuiteConstants.SERVER_ID_PROP);
+        String actualServerId = (String) wiz.getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);
 
         if (p != null) {
             //setServerClassPath(p, serverId,actualServerId);
@@ -149,7 +149,7 @@ public class EmbServerWizardIterator implements WizardDescriptor./*Progress*/Ins
 
     private void setServerProperties(final FileObject projectDir) {
         try {
-            FileObject fo = projectDir.getFileObject(EmbConstants.INSTANCE_PROPERTIES_PATH);
+            FileObject fo = projectDir.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_PATH);
             EditableProperties props = new EditableProperties(false);
             try {
                 FileInputStream fos = new FileInputStream(fo.getPath());
@@ -157,24 +157,24 @@ public class EmbServerWizardIterator implements WizardDescriptor./*Progress*/Ins
             } catch (IOException ex) {
                 LOG.log(Level.INFO, ex.getMessage());
             }
-            String serverId = (String) wiz.getProperty(EmbConstants.SERVER_ID_PROP);
-            String actualServerId = (String) wiz.getProperty(EmbConstants.SERVER_ACTUAL_ID_PROP);
+            String serverId = (String) wiz.getProperty(SuiteConstants.SERVER_ID_PROP);
+            String actualServerId = (String) wiz.getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);
             
-            String url = serverId + ":" + EmbConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath();
+            String url = serverId + ":" + SuiteConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath();
 
             FileLock lock = fo.lock();
             FileOutputStream fos = new FileOutputStream(fo.getPath());
 
             try {
-                props.put(EmbConstants.SERVER_ID_PROP, serverId);
-                props.put(EmbConstants.HOST_PROP, (String) wiz.getProperty(EmbConstants.HOST_PROP));
-                props.put(EmbConstants.HTTP_PORT_PROP, (String) wiz.getProperty(EmbConstants.HTTP_PORT_PROP));
-                props.put(EmbConstants.DEBUG_PORT_PROP, (String) wiz.getProperty(EmbConstants.DEBUG_PORT_PROP));
-                props.put(EmbConstants.SHUTDOWN_PORT_PROP, (String) wiz.getProperty(EmbConstants.SHUTDOWN_PORT_PROP));
-                props.put(EmbConstants.INCREMENTAL_DEPLOYMENT, (String) wiz.getProperty(EmbConstants.INCREMENTAL_DEPLOYMENT));
+                props.put(SuiteConstants.SERVER_ID_PROP, serverId);
+                props.put(SuiteConstants.HOST_PROP, (String) wiz.getProperty(SuiteConstants.HOST_PROP));
+                props.put(SuiteConstants.HTTP_PORT_PROP, (String) wiz.getProperty(SuiteConstants.HTTP_PORT_PROP));
+                props.put(SuiteConstants.DEBUG_PORT_PROP, (String) wiz.getProperty(SuiteConstants.DEBUG_PORT_PROP));
+                props.put(SuiteConstants.SHUTDOWN_PORT_PROP, (String) wiz.getProperty(SuiteConstants.SHUTDOWN_PORT_PROP));
+                props.put(SuiteConstants.INCREMENTAL_DEPLOYMENT, (String) wiz.getProperty(SuiteConstants.INCREMENTAL_DEPLOYMENT));
 
-                props.put(EmbConstants.URL_PROP, url);
-                props.put(EmbConstants.SERVER_ACTUAL_ID_PROP, actualServerId);
+                props.put(SuiteConstants.URL_PROP, url);
+                props.put(SuiteConstants.SERVER_ACTUAL_ID_PROP, actualServerId);
 
                 props.store(fos);
                 fos.close();
@@ -372,10 +372,10 @@ public class EmbServerWizardIterator implements WizardDescriptor./*Progress*/Ins
         List<Library> libList = new ArrayList<>();
 
         for (Library lib : libs) {
-            if (lib.getName().toLowerCase().equals(serverId + "-" + EmbConstants.SERVER_HELPER_LIBRARY_POSTFIX)
-                    || lib.getName().toLowerCase().equals(serverId + "-" + EmbConstants.SERVER_ALL_LIBRARY_POSTFIX )
-                    || lib.getName().toLowerCase().equals(actualServerId + "-" + EmbConstants.SERVER_HELPER_LIBRARY_POSTFIX )
-                    || lib.getName().toLowerCase().equals(actualServerId + "-" + EmbConstants.SERVER_ALL_LIBRARY_POSTFIX)) 
+            if (lib.getName().toLowerCase().equals(serverId + "-" + SuiteConstants.SERVER_HELPER_LIBRARY_POSTFIX)
+                    || lib.getName().toLowerCase().equals(serverId + "-" + SuiteConstants.SERVER_ALL_LIBRARY_POSTFIX )
+                    || lib.getName().toLowerCase().equals(actualServerId + "-" + SuiteConstants.SERVER_HELPER_LIBRARY_POSTFIX )
+                    || lib.getName().toLowerCase().equals(actualServerId + "-" + SuiteConstants.SERVER_ALL_LIBRARY_POSTFIX)) 
             {
                 libList.add(lib);
             }

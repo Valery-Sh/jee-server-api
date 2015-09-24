@@ -1,7 +1,7 @@
 package org.embedded.server;
 
 import org.eclipse.jetty.server.Server;
-import org.embedded.ide.jetty.CommandManager;
+import org.netbeans.plugin.support.jetty.embedded.NbDeployHandler;
 
 /**
  *
@@ -13,7 +13,8 @@ public class JettyEmbeddedServer {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
-        Server server = CommandManager.createServer();
+        Server server = new Server(${port});
+        server.addLifeCycleListener(new NbDeployHandler());
         //------------------------------------------------------------
         // Of course, you can use a line of code, as shown below:
         //

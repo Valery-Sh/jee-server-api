@@ -9,7 +9,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
 import org.netbeans.api.j2ee.core.Profile;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.filesystems.FileUtil;
@@ -184,7 +184,7 @@ public class EmbWebAppTemplatePanelVisual extends JPanel implements DocumentList
         String name = projectNameTextField.getText().trim();
 
         wiz.putProperty("name", name);
-        wiz.putProperty(EmbConstants.CONTEXTPATH_PROP, contextPathTextField.getText());
+        wiz.putProperty(SuiteConstants.CONTEXTPATH_PROP, contextPathTextField.getText());
         wiz.putProperty("jeeProfile", javaEEVersionComboBox.getSelectedItem());
 
     }
@@ -213,7 +213,7 @@ public class EmbWebAppTemplatePanelVisual extends JPanel implements DocumentList
         }
         this.javaEEVersionComboBox.setSelectedItem(str);
 
-        str = (String) wiz.getProperty(EmbConstants.CONTEXTPATH_PROP);
+        str = (String) wiz.getProperty(SuiteConstants.CONTEXTPATH_PROP);
         if (str == null) {
             str = "/" + projectName;
         }

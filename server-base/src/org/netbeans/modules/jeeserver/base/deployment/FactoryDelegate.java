@@ -18,7 +18,6 @@ package org.netbeans.modules.jeeserver.base.deployment;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +40,7 @@ import org.openide.filesystems.FileUtil;
  * for example
  *
  * @author V.Shyshkin
- * @see BaseDeploymentManager
+ * @see ProjectDeploymentManager
  */
 public class FactoryDelegate {
 
@@ -59,15 +58,15 @@ public class FactoryDelegate {
         toDelete = new ArrayList<>();
         registerUnusedInstances();
     }
-    
+
     public void deleteUnusedInstances() {
 
-        if ( toDelete.isEmpty() ) {
+        if (toDelete.isEmpty()) {
             return;
         }
         String[] ar = new String[toDelete.size()];
         ar = toDelete.toArray(ar);
-        
+
         for (String uri : ar) {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
             if (ip != null) {
@@ -76,17 +75,17 @@ public class FactoryDelegate {
             }
             InstanceProperties.getInstanceProperties(uri);
         }
-        
+
     }
+
     /**
      * Determine whether a server exists under the specified location.
      *
-     * @param serverLocation an absolute path of the server project
-     * directory
-     * @return {@literal true } if the server project exists.
-     * {@literal false} otherwise
+     * @param serverLocation an absolute path of the server project directory
+     * @return {@literal true } if the server project exists. {@literal false}
+     * otherwise
      */
-    protected boolean existsServer(String serverLocation) {
+/*    protected boolean existsServer(String serverLocation, String serverInstanceDir) {
 
         if (serverLocation == null) {
             return false;
@@ -98,13 +97,81 @@ public class FactoryDelegate {
         }
 
         FileObject fo = FileUtil.toFileObject(f);
-        
+
         Project p = FileOwnerQuery.getOwner(fo);
-        if ( p == null ) {
+        if (p == null) {
             return false;
         }
-        
-        return p.getLookup().lookup(ServerInstanceProperties.class) != null;
+
+//        return BaseUtils.isServerProject(p);
+        if (p.getLookup().lookup(ServerInstanceProperties.class) != null) {
+            return true;
+        }
+
+        if (serverInstanceDir == null) {
+            return false;
+        }
+
+        fo = FileUtil.toFileObject(new File(serverInstanceDir));
+        if (fo == null) {
+            return false;
+        }
+
+        if (fo.getFileObject("instance.properties") == null) {
+            return false;
+        }
+
+        return true;
+    }
+*/
+    /**
+     * Determine whether a server exists under the specified location.
+     *
+     * @param instanceFO an absolute path of the server project directory
+     * @return {@literal true } if the server project exists. {@literal false}
+     * otherwise
+     */
+    protected boolean existsServer(FileObject instanceFO) {
+
+
+        String serverLocation = (String) instanceFO.getAttribute(BaseConstants.SERVER_LOCATION_PROP);
+//        String serverInstanceDir = (String) instanceFO.getAttribute(BaseConstants.SERVER_INSTANCE_DIR_PROP);
+
+        if (serverLocation == null) {
+            return false;
+        }
+
+        File f = new File(serverLocation);
+        if (!f.exists()) {
+            return false;
+        }
+
+        FileObject fo = FileUtil.toFileObject(f);
+
+        Project p = FileOwnerQuery.getOwner(fo);
+        if (p == null) {
+            return false;
+        }
+
+//        return BaseUtils.isServerProject(p);
+        if (p.getLookup().lookup(ServerInstanceProperties.class) == null) {
+            return false;
+        }
+
+/*        if (serverInstanceDir == null) {
+            return false;
+        }
+
+        fo = FileUtil.toFileObject(new File(serverInstanceDir));
+        if (fo == null) {
+            return false;
+        }
+
+        if (fo.getFileObject("instance.properties") == null) {
+            return false;
+        }
+*/
+        return true;
     }
 
     public final synchronized void registerUnusedInstances() {
@@ -116,8 +183,13 @@ public class FactoryDelegate {
             if (!url.startsWith(uriPrefix)) {
                 continue;
             }
-            String serverDir = (String) instanceFO.getAttribute(BaseConstants.SERVER_LOCATION_PROP);
-            if (existsServer(serverDir)) {
+            /*            String serverDir = (String) instanceFO.getAttribute(BaseConstants.SERVER_LOCATION_PROP);
+             String serverInstanceDir = (String) instanceFO.getAttribute(BaseConstants.SERVER_INSTANCE_DIR_PROP);            
+             if (existsServer(serverDir, serverInstanceDir)) {
+             continue;
+             }
+             */
+            if (existsServer(instanceFO)) {
                 continue;
             }
             toDelete.add(url);
@@ -137,10 +209,11 @@ public class FactoryDelegate {
         }
         return uri.startsWith(uriPrefix);
     }
-    
+
     public synchronized void removeManager(String uri) {
         managers.remove(uri);
     }
+
     /**
      * Gets a connected deployment manager for the given uri, username and
      * password
@@ -154,7 +227,7 @@ public class FactoryDelegate {
     public synchronized BaseDeploymentManager getDeploymentManager(String uri, String username, String password) throws DeploymentManagerCreationException {
 
         deleteUnusedInstances();
-        
+
         if (InstanceProperties.getInstanceProperties(uri) == null) {
             throw new DeploymentManagerCreationException("Invalid URI:" + uri);
         }
@@ -166,6 +239,7 @@ public class FactoryDelegate {
         if (null == manager) {
             manager = new BaseDeploymentManager(uri);
             manager.setSpecifics(specifics);
+
             // put into cache
             managers.put(uri, manager);
         }
@@ -190,8 +264,7 @@ public class FactoryDelegate {
     }
 
     /**
-     * @return a display name. The displayName is a concatenation of
-     * the {@link #serverId ) and " Server" string constant. 
+     * @return a display name. The displayName is a concatenation of the {@link #serverId ) and " Server" string constant.
      * {@literal Server}
      */
     public String getDisplayName() {

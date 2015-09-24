@@ -67,30 +67,20 @@ public final class StartServerProfileAction extends AbstractAction implements Co
 
     private static final class ContextAction extends AbstractAction {
 
-        private final Project project;
-        //private RequestProcessor.Task task;
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
-            project = context.lookup(Project.class);
-            boolean isServer = BaseUtils.isServerProject(project);
-            if ( isServer ) { 
-                loadManager();
-            }
+            manager = BaseUtils.managerOf(context);
             
-            setEnabled(isServer && manager != null && manager.isStopped());
+            setEnabled(manager != null && manager.isStopped());
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, ! isServer);
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager==null);
             
             // TODO state for which projects action should be enabled
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
             //putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);
             // TODO menu item label with optional mnemonics
             putValue(NAME, "&Start in Profile Mode");
-        }
-
-        private void loadManager() {
-           manager = BaseUtils.managerOf(project);
         }
 
         public @Override

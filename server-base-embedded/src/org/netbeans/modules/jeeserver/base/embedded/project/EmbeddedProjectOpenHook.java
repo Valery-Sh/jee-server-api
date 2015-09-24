@@ -19,13 +19,11 @@ package org.netbeans.modules.jeeserver.base.embedded.project;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
-import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationException;
@@ -33,15 +31,10 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.project.EmbeddedProjectLogicalView.ProjectNode;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-//import org.netbeans.modules.jeeserver.jetty.project.actions.PropertiesAction;
-//import org.netbeans.modules.jeeserver.jetty.util.Utils;
+
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.nodes.Node;
-import org.openide.util.Exceptions;
 
 /**
  * Allows to hook open and close project actions.
@@ -81,14 +74,14 @@ public class EmbeddedProjectOpenHook extends ProjectOpenedHook {
         } catch (InstanceCreationException ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
-        FileObject fo = projectDir.getFileObject(EmbConstants.SERVER_PROJECT_FOLDER);
+        FileObject fo = projectDir.getFileObject(SuiteConstants.SERVER_PROJECT_FOLDER);
         //Project mvn = null;
         BaseUtils.out("^^^^^^^^^^^^^^^^ 1) ");
-        final Project mvn;
-        final OpenProjects op = OpenProjects.getDefault();
+        //final Project mvn;
+        //final OpenProjects op = OpenProjects.getDefault();
         
-        if (fo != null && (mvn = FileOwnerQuery.getOwner(fo)) != null) {
-/*            final Future f = op.openProjects();
+/*        if (fo != null && (mvn = FileOwnerQuery.getOwner(fo)) != null) {
+           final Future f = op.openProjects();
             new Runnable() {
 
                 @Override
@@ -105,14 +98,14 @@ public class EmbeddedProjectOpenHook extends ProjectOpenedHook {
                     
                 }
             };
-*/        
+        
             
             java.awt.EventQueue.invokeLater(() -> {
                 //OpenProjects.getDefault().close(new Project[]{mvn});
             });
-        
-        }
 
+        }
+*/
     }
 
     private Map<String, String> getDefaultPropertyMap(FileObject projectDir) {

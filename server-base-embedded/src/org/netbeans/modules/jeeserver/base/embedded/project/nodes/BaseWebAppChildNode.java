@@ -2,7 +2,7 @@ package org.netbeans.modules.jeeserver.base.embedded.project.nodes;
 
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.project.WebApplicationsNode;
 import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
@@ -84,7 +84,7 @@ public class BaseWebAppChildNode extends FilterNode {
     }
 
     static String getPath(Object webAppKey) {
-        return EmbConstants.REG_WEB_APPS_FOLDER + "/" + webAppKey;
+        return SuiteConstants.REG_WEB_APPS_FOLDER + "/" + webAppKey;
     }
     /**
      * Returns ab object that represents a key of the node.

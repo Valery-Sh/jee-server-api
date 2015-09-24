@@ -14,8 +14,8 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.DialogDisplayer;
@@ -60,12 +60,19 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
     private static final class ContextAction extends AbstractAction {
 
         private final RequestProcessor.Task task;
-        private final Project serverProject;
-
+        //private final Project serverProject;
+        private final Lookup context;
+        
         public ContextAction(Lookup context, boolean enabled) {
-            serverProject = context.lookup(Project.class);
-
-            boolean isEmbedded = EmbUtils.isEmbedded(serverProject);
+            //!!!!!!!!!
+            
+            this.context = context;
+            
+            BaseUtils.out("=============== manager=" + BaseUtils.managerOf(context));
+            //serverProject = BaseUtils.managerOf(context).getServerProject();
+            
+            //boolean isEmbedded = SuiteUtil.isEmbedded(serverProject);
+            boolean isEmbedded = false;
             setEnabled(isEmbedded);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
@@ -82,14 +89,14 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
                     if (choosed == JFileChooser.APPROVE_OPTION) {
                         File selectedFile = fc.getSelectedFile();
                         FileObject webappFo = FileUtil.toFileObject(selectedFile);
-                        String msg = ProjectFilter.accept(serverProject, webappFo);
+                        String msg = ProjectFilter.accept(BaseUtils.managerOf(context).getServerProject(), webappFo);
                         if (msg != null) {
                             NotifyDescriptor nd = new NotifyDescriptor.Message(msg);
                             nd.setTitle(webappFo.getNameExt());
                             DialogDisplayer.getDefault().notify(nd);
                             return;
                         }
-                        assignHtml5ExternalServer(serverProject, selectedFile);
+                        assignHtml5ExternalServer(BaseUtils.managerOf(context).getServerProject(), selectedFile);
                     } else {
                         System.out.println("File access cancelled by user.");
                     }
@@ -100,22 +107,22 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
 
         public boolean assignHtml5ExternalServer(Project serverProject, File html5AppFile) {
 
-            String html5RefName = html5AppFile.getName() + "." + EmbConstants.HTML_REF;
+            String html5RefName = html5AppFile.getName() + "." + SuiteConstants.HTML_REF;
             FileObject html5AppFo = FileUtil.toFileObject(html5AppFile);
 
             Properties props = new Properties();
 
             String html5AppFoPath = FileUtil.normalizePath(html5AppFo.getPath());
-            props.setProperty(EmbConstants.WEB_APP_LOCATION_PROP, html5AppFoPath);
+            props.setProperty(SuiteConstants.WEB_APP_LOCATION_PROP, html5AppFoPath);
 
-            FileObject targetFolder = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+            FileObject targetFolder = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
 
             String fileName = html5RefName;
 
             if (targetFolder.getFileObject(html5RefName) != null) {
                 // Allready registered  ( but we checked it earlier)
-                fileName = FileUtil.findFreeFileName(targetFolder, html5AppFile.getName(), EmbConstants.HTML_REF);
-                fileName += "." + EmbConstants.HTML_REF;
+                fileName = FileUtil.findFreeFileName(targetFolder, html5AppFile.getName(), SuiteConstants.HTML_REF);
+                fileName += "." + SuiteConstants.HTML_REF;
             }
 
             //
@@ -145,7 +152,7 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
                 contextPath = "/" + appName;
             }
 
-            String url = BaseUtils.managerOf(serverProject)
+            String url = BaseUtils.managerOf(context)
                     .buildUrl() + contextPath;
 
             String oldServerUrl = null;
@@ -186,7 +193,7 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
 
             if (publicFo != null) {
                 EditableProperties publicProps = BaseUtils.loadEditableProperties(publicFo);
-                publicProps.setProperty(EmbConstants.HTML5_SERVER_URI_PROP, BaseUtils.getServerInstanceId(serverProject));
+                publicProps.setProperty(SuiteConstants.HTML5_SERVER_URI_PROP, BaseUtils.getServerInstanceId(serverProject.getLookup()));
                 BaseUtils.storeEditableProperties(publicProps, publicFo);
                 publicFo.refresh();
             }
@@ -201,12 +208,12 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
         }
 
         private void deleteHtmlRef(FileObject html5AppFo) {
-            EditableProperties html5Props = EmbUtils.loadEditableProperties(html5AppFo.getFileObject("nbproject/project.properties"));
-            String uri = html5Props.getProperty(EmbConstants.HTML5_SERVER_URI_PROP);
+            EditableProperties html5Props = SuiteUtil.loadEditableProperties(html5AppFo.getFileObject("nbproject/project.properties"));
+            String uri = html5Props.getProperty(SuiteConstants.HTML5_SERVER_URI_PROP);
             if (uri != null) {
                 InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
                 if (ip != null) {
-                    String location = ip.getProperty(EmbConstants.SERVER_LOCATION_PROP);
+                    String location = ip.getProperty(SuiteConstants.SERVER_LOCATION_PROP);
                     File file = new File(location);
                     if (location != null && new File(location).exists()) {
                         FileObject projDir = FileUtil.toFileObject(new File(location));
@@ -218,11 +225,11 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
         }
 
         private void deleteHtmlRef(FileObject projFo, FileObject htmlappFo) {
-            FileObject fo = projFo.getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+            FileObject fo = projFo.getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
             // the FileObject fo maybe null when another server is not an embedded server
             if (fo != null) {
                 for (FileObject f : fo.getChildren()) {
-                    if (!f.isFolder() && f.getNameExt().equals(htmlappFo.getName() + "." + EmbConstants.HTML_REF)) {
+                    if (!f.isFolder() && f.getNameExt().equals(htmlappFo.getName() + "." + SuiteConstants.HTML_REF)) {
                         try {
                             f.delete();
                         } catch (IOException ex) {
@@ -259,14 +266,14 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
                 result = "The selected file '" + webappFo.getNameExt() + "' is not a Project file";
             } else if (webappFo.getFileObject("nbproject/project.xml") != null) {
                 String type = BaseUtils.projectTypeByProjectXml(webappFo.getFileObject("nbproject/project.xml"));
-                if (!EmbConstants.HTML5_PROJECTTYPE.equals(type)) {
+                if (!SuiteConstants.HTML5_PROJECTTYPE.equals(type)) {
                     result = "The selected project '" + webappFo.getNameExt() + "' is not an Html5 Project ";
                 }
             }
 
             if (result == null) {
-                FileObject targetFolder = serverProject.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
-                String selectedFileName = webappFo.getName() + "." + EmbConstants.HTML_REF;
+                FileObject targetFolder = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
+                String selectedFileName = webappFo.getName() + "." + SuiteConstants.HTML_REF;
                 String selectedPath = FileUtil.normalizePath(webappFo.getPath());
                 if (targetFolder.getFileObject(selectedFileName) != null) {
 

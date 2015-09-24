@@ -8,7 +8,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 
 /**
@@ -32,7 +32,7 @@ class RegUtils {
      * @return 
      */
 /*    public static boolean isEmbeddedServer(Project project) {
-        FileObject fo = project.getProjectDirectory().getFileObject(EmbConstants.SERVER_INSTANCE_PROPERTIES_PATH);
+        FileObject fo = project.getProjectDirectory().getFileObject(SuiteConstants.SERVER_INSTANCE_PROPERTIES_PATH);
         return fo != null;
     }    
 */    
@@ -45,7 +45,7 @@ class RegUtils {
      * doesn't contain a configuration file the returns an empty {@literal Map}.
      */
     public static Map<String, String> getPropertyMap(Project serverProject) {
-        FileObject fo = serverProject.getProjectDirectory().getFileObject(EmbConstants.INSTANCE_PROPERTIES_PATH);
+        FileObject fo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.INSTANCE_PROPERTIES_PATH);
         if ( fo == null ) {
             return new HashMap<>();
         }
@@ -60,7 +60,7 @@ class RegUtils {
         for (Map.Entry e : props.entrySet()) {
             map.put((String) e.getKey(), (String) e.getValue());
         }
-        map.put(EmbConstants.SERVER_LOCATION_PROP, serverProject.getProjectDirectory().getPath());
+        map.put(SuiteConstants.SERVER_LOCATION_PROP, serverProject.getProjectDirectory().getPath());
         return map;
     }
     

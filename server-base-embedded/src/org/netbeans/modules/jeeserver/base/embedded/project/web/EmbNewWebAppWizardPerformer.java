@@ -28,13 +28,14 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.ui.OpenProjects;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.DialogDisplayer;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.util.Lookup;
 
 import org.openide.xml.XMLUtil;
 import org.w3c.dom.DOMException;
@@ -56,15 +57,15 @@ public final class EmbNewWebAppWizardPerformer {
     private static final Logger LOG = Logger.getLogger(EmbNewWebAppWizardPerformer.class.getName());
     private WizardDescriptor wiz;
 
-    private Project server;
+    private Lookup context;
 
     /**
      * Create a new instance of the class for the given server project.
      *
      * @param server embedded server project instance
      */
-    public EmbNewWebAppWizardPerformer(Project server) {
-        this.server = server;
+    public EmbNewWebAppWizardPerformer(Lookup context) {
+        this.context = context;
 
     }
 
@@ -86,15 +87,16 @@ public final class EmbNewWebAppWizardPerformer {
             }
         }
         wiz = new WizardDescriptor(new WizardDescriptor.ArrayIterator<WizardDescriptor>(panels));
-        FileObject rootDir = server.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+        FileObject rootDir = null;
+//                .getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
         wiz.putProperty("rootPath", rootDir.getPath());
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle("...dialog title...");
         wiz.putProperty("name", buildProjectName());
 
-        Set<Profile> jeeProfiles;
-        jeeProfiles = EmbUtils.getJavaEEProfiles(server);
+        Set<Profile> jeeProfiles = null;
+//        jeeProfiles = SuiteUtil.getJavaEEProfiles(context);
 
         wiz.putProperty("jeeProfiles", jeeProfiles);
 
@@ -156,7 +158,8 @@ public final class EmbNewWebAppWizardPerformer {
     public Set<FileObject> instantiate(/*ProgressHandle handle*/) throws IOException {
 
         final Set<FileObject> resultSet = new LinkedHashSet<>();
-        FileObject rootDir = server.getProjectDirectory().getFileObject(EmbConstants.REG_WEB_APPS_FOLDER);
+        FileObject rootDir = null; // !!!!!!!!!!!!!!!!!!
+// !!!!!!!!!!!!!!!!!!    server.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
         File f = new File(rootDir.getPath() + "/" + (String) wiz.getProperty("name"));
         final File dirF = FileUtil.normalizeFile(f);
 
@@ -217,7 +220,7 @@ public final class EmbNewWebAppWizardPerformer {
         try {
             ZipInputStream str = new ZipInputStream(source);
             ZipEntry entry;
-            String uri = BaseUtils.getServerInstanceId(server);
+            String uri = BaseUtils.managerOf(context).getUri();
             while ((entry = str.getNextEntry()) != null) {
                 if (entry.isDirectory()) {
                     FileUtil.createFolder(projectRoot, entry.getName());

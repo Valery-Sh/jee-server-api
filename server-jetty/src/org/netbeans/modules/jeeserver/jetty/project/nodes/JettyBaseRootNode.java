@@ -281,12 +281,12 @@ public class JettyBaseRootNode extends FilterNode {
             JettyProperties jvs = JettyProperties.getInstance(project);
             String portProp = jvs.getHttpPortPropertyName();
 
-            String port = BaseUtils.getServerProperties(project).getHttpPort();
+            String port = BaseUtils.getServerProperties(project.getLookup()).getHttpPort();
             Properties props = BaseUtils.loadProperties(ev.getFile());
             if (port.equals(props.getProperty(portProp))) {
                 return;
             }
-            String uri = BaseUtils.getServerProperties(project).getUri();
+            String uri = BaseUtils.getServerProperties(project.getLookup()).getUri();
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
             ip.setProperty(BaseConstants.HTTP_PORT_PROP, props.getProperty(portProp));
         }

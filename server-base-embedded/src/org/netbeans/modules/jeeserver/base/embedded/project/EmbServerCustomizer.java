@@ -10,9 +10,9 @@ import java.util.logging.Logger;
 import javax.swing.JComponent;
 import org.netbeans.api.project.Project;
 
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer;
 import org.netbeans.spi.project.ui.support.ProjectCustomizer.Category;
@@ -34,32 +34,12 @@ public class EmbServerCustomizer
 
     private final String name;
     protected EmbServerCustomizerPanelVisual jPanel;
-    protected Project project;
+    //protected Project project;
 
     private EmbServerCustomizer(String name) {
         this.name = name;
     }
 
-    /**
-     * Creates a new instance of the {@code Category} for the specified lookup.
-     * @param lookup
-     * @return new instance of type {
-     * @Category} if the specified lookup contains a project which represents an
-     * embedded server. {@code null} if the project doesn't represent an
-     * embedded server.
-     */
-/*    @Override
-    public Category createCategory(Lookup lookup) {
-        project = lookup.lookup(Project.class);
-        if (BaseUtils.isServerProject(project)) {
-            ProjectCustomizer.Category category = ProjectCustomizer.Category.create(name, name, null);
-            category.setStoreListener(new StoreHandler(this, category));
-            return category;
-        } else {
-            return null;
-        }
-    }
-*/
     /**
      * Creates a swing panel to customize embedded server.
      *
@@ -68,7 +48,7 @@ public class EmbServerCustomizer
      * @return a component of type {{@link EmbServerCustomizerPanelVisual}
      */
     public JComponent createComponent(Category category, Lookup lkp) {
-        jPanel = new EmbServerCustomizerPanelVisual(lkp.lookup(Project.class), category);
+        jPanel = new EmbServerCustomizerPanelVisual(lkp, category);
         return jPanel;
     }
 
@@ -84,16 +64,16 @@ public class EmbServerCustomizer
      * The implementation of the {@code ActionListener} interface. 
      * Used when {@code Ok} button is pressed.
      */
-    protected static class StoreHandler implements ActionListener {
+/*    protected static class StoreHandler implements ActionListener {
 
         private final EmbServerCustomizer customizer;
-        private final Project project;
+        //private final Project project;
         private EmbServerCustomizerPanelVisual panel;
         private final Category category;
 
         public StoreHandler(EmbServerCustomizer customizer, Category category) {
             this.customizer = customizer;
-            project = customizer.project;
+            //project = customizer.project;
             this.category = category;
 
         }
@@ -108,10 +88,10 @@ public class EmbServerCustomizer
             setServerProperties(panel.getSettings());
             InstanceProperties ip = ((BaseDeploymentManager) manager).getInstanceProperties();
 
-            ip.setProperty(EmbConstants.HTTP_PORT_PROP, p.getProperty(EmbConstants.HTTP_PORT_PROP));
-            ip.setProperty(EmbConstants.DEBUG_PORT_PROP, p.getProperty(EmbConstants.DEBUG_PORT_PROP));
-            ip.setProperty(EmbConstants.SHUTDOWN_PORT_PROP, p.getProperty(EmbConstants.SHUTDOWN_PORT_PROP));
-            ip.setProperty(EmbConstants.INCREMENTAL_DEPLOYMENT, p.getProperty(EmbConstants.INCREMENTAL_DEPLOYMENT));
+            ip.setProperty(SuiteConstants.HTTP_PORT_PROP, p.getProperty(SuiteConstants.HTTP_PORT_PROP));
+            ip.setProperty(SuiteConstants.DEBUG_PORT_PROP, p.getProperty(SuiteConstants.DEBUG_PORT_PROP));
+            ip.setProperty(SuiteConstants.SHUTDOWN_PORT_PROP, p.getProperty(SuiteConstants.SHUTDOWN_PORT_PROP));
+            ip.setProperty(SuiteConstants.INCREMENTAL_DEPLOYMENT, p.getProperty(SuiteConstants.INCREMENTAL_DEPLOYMENT));
 
             ip.refreshServerInstance();
         }
@@ -122,7 +102,7 @@ public class EmbServerCustomizer
                 FileUtil.runAtomicAction(new FileSystem.AtomicAction() {
                     @Override
                     public void run() throws IOException {
-                        FileObject fo = projectDir.getFileObject(EmbConstants.INSTANCE_PROPERTIES_PATH);
+                        FileObject fo = projectDir.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_PATH);
                         FileLock lock = fo.lock();
                         FileOutputStream fos = new FileOutputStream(fo.getPath());
 
@@ -143,4 +123,5 @@ public class EmbServerCustomizer
 
         }
     }
+*/    
 }

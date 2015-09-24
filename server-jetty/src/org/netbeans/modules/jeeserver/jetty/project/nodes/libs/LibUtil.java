@@ -58,7 +58,7 @@ public class LibUtil {
     private static final String LIBRARY_IMAGE = "org/netbeans/modules/jeeserver/jetty/resources/library.png";
 
     public static void updateLibraries(Project server) {
-        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
+        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server.getLookup());
         LibrariesFileNode ln = (LibrariesFileNode) manager.getServerProject().getLookup()
                 .lookup(JettyProjectLogicalView.class)
                 .getLibrariesRootNode();
@@ -66,7 +66,7 @@ public class LibUtil {
     }
 
     public static void updateLibraries(Project server, LibrariesFileNode nodeToNotify) {
-        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
+        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server.getLookup());
         final JettyServerPlatformImpl platform = JettyServerPlatformImpl.getInstance(manager);
 
         RP.post(() -> {
@@ -164,7 +164,7 @@ public class LibUtil {
 
     public static String getHtmlDisplayName(Project server, Object key) {
 
-        final String jh = BaseUtils.managerOf(server).getInstanceProperties()
+        final String jh = BaseUtils.managerOf(server.getLookup()).getInstanceProperties()
                 .getProperty(BaseConstants.HOME_DIR_PROP);
         final String jb = server.getProjectDirectory()
                 .getFileObject(JettyConstants.JETTYBASE_FOLDER).getPath();
@@ -225,7 +225,7 @@ public class LibUtil {
     }
 
     public static List addRootNotify(Project server) {
-        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
+        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server.getLookup());
         final String jh = manager.getInstanceProperties()
                 .getProperty(BaseConstants.HOME_DIR_PROP);
         final String jb = server.getProjectDirectory()
@@ -235,7 +235,6 @@ public class LibUtil {
         final Path jettyBase = Paths.get(jb);
 
         final Path extLib = Paths.get(jb, "lib/ext");
-
         JettyServerPlatformImpl platform = JettyServerPlatformImpl.getInstance(manager);
         LibraryImplementation[] libs = platform.getLibraries();
         final List jars = new ArrayList<>();
@@ -296,7 +295,7 @@ public class LibUtil {
     }
 
     public static List addFolderNotify(Project server, FileObject baseKey, NodeOptions options) {
-        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server);
+        BaseDeploymentManager manager = (BaseDeploymentManager) BaseUtils.managerOf(server.getLookup());
         final String jb = server.getProjectDirectory()
                 .getFileObject(JettyConstants.JETTYBASE_FOLDER).getPath();
 

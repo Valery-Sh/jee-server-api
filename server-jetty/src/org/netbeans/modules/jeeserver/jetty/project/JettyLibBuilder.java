@@ -65,10 +65,10 @@ public class JettyLibBuilder {
     }
 
     private void init() {
-        BaseUtils.out("HOME = " + System.getProperty("netbeans.HOME"));
-        BaseUtils.out("netbeans.home = " + System.getProperty("netbeans.home"));
-
-        jettyHome = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP).replace("\\", "/");
+        jettyHome = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP);
+        if ( jettyHome != null ) {
+            jettyHome = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP).replace("\\", "/");
+        }
         jettyBase = Paths.get(manager.getServerProject().getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER)
                 .toString().replace("\\", "/");
 
