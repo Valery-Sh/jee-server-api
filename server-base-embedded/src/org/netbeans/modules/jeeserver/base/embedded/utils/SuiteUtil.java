@@ -13,7 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.j2ee.core.Profile;
-import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
@@ -25,11 +24,9 @@ import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteProjectFactory;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.InstanceContexts;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
@@ -42,67 +39,7 @@ public class SuiteUtil extends BaseUtils {
 
     private static final Logger LOG = Logger.getLogger(SuiteUtil.class.getName());
 
-    public static Project getServerSuite(BaseDeploymentManager dm) {
-        String suiteLocation = dm.getInstanceProperties().getProperty(SuiteConstants.SUITE_PROJECT_LOCATION);
-        return FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(suiteLocation)));
 
-    }
-
-    /**
-     * The method checks if a given project is a server project.
-     *
-     * @param p a Project instance
-     * @return null if a DeploymentManager is not found.
-     */
-    public static BaseDeploymentManager managerOf(Project p) {
-        if (p == null) {
-            return null;
-        }
-        BaseDeploymentManager dm = null;
-
-        Deployment d = Deployment.getDefault();
-
-        if (d == null || d.getServerInstanceIDs() == null) {
-            return null;
-        }
-
-        for (String uri : d.getServerInstanceIDs()) {
-            InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
-            if (ip == null) {
-                continue;
-            }
-            String instanceLocation = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
-            if (instanceLocation == null) {
-                continue;
-            }
-            Project instanceProject = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(instanceLocation)));
-            if (instanceProject == null) {
-                continue;
-            }
-
-            String suiteLocation = ip.getProperty(SuiteConstants.SUITE_PROJECT_LOCATION);
-            if (suiteLocation == null) {
-                continue;
-            }
-            Project suiteProject = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(suiteLocation)));
-            if (suiteProject == null) {
-                continue;
-            }
-
-            if (Paths.get(instanceLocation).equals(FileUtil.toFile(p.getProjectDirectory()).toPath())) {
-
-                InstanceContexts c = suiteProject.getLookup().lookup(InstanceContexts.class);
-                if (c == null) {
-                    continue;
-                }
-                dm = BaseUtils.managerOf(uri);
-                break;
-            }
-        }
-        return dm;
-
-        //return getServerProperties(p) != null;
-    }
 
     public static boolean isEmbeddedServer(Project proj) {
         return new ServerSuiteProjectFactory().isProject(proj.getProjectDirectory());

@@ -31,6 +31,7 @@ import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.config.ContextRootConfiguration;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.config.ModuleConfiguration;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.loaders.DataObject;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
@@ -225,9 +226,12 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
         }
         Project srv = getServerProject(instanceId);
         if (srv != null) {
-            
+BaseUtils.out("AbstractModuleConfigurations instanceId=" + instanceId);
             final AvailableWebModules<AbstractModuleConfiguration> avm = srv.getLookup().lookup(AvailableWebModules.class);
-            
+BaseUtils.out("AbstractModuleConfigurations avm=" + avm);
+            if ( avm == null ) {
+                return;
+            }
             RP.post(new Runnable() {
 
                 @Override

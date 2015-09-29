@@ -17,20 +17,20 @@
 package org.netbeans.modules.jeeserver.base.embedded.server.project.nodes;
 
 import java.awt.Image;
+import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.InstanceContexts;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
 import static org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.Bundle.ServerInstanciesRootNode_shortDescription;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions.ServerInstanciesActions;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.actions.PropertiesAction;
-import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.FilterNode;
@@ -38,6 +38,7 @@ import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
 import org.openide.util.NbBundle.Messages;
 import org.openide.util.lookup.AbstractLookup;
+import org.openide.util.lookup.InstanceContent;
 
 /**
  * Represents the root node of the logical view of the serverProject's folder
@@ -51,12 +52,15 @@ import org.openide.util.lookup.AbstractLookup;
     "ServerInstanciesRootNode.shortDescription=Server Instances for this Server",
     "ServerInstanciesRootNode.availableWebApps=Available Web Applications"
 })
-public class ServerInstancesRootNode extends FilterNode  implements ChildrenAccessor{
+public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysModel {
 
     private static final Logger LOG = Logger.getLogger(ServerInstancesRootNode.class.getName());
     
+    private final InstanceContent lookupContents;
+
     private RootChildrenKeys childKeys;
 //    private ModulesChangeListener modulesChangeListener;
+
     /**
      * Creates a new instance of the class for a specified serverProject.
      *
@@ -67,18 +71,20 @@ public class ServerInstancesRootNode extends FilterNode  implements ChildrenAcce
     public ServerInstancesRootNode(Project serverProj) throws DataObjectNotFoundException {
         this(DataObject.find(serverProj.getProjectDirectory().
                 getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER)).getNodeDelegate(),
-                new RootChildrenKeys(serverProj));        
+                new RootChildrenKeys(serverProj), new InstanceContent());
     }
 
-    public ServerInstancesRootNode(Node node, RootChildrenKeys childKeys) throws DataObjectNotFoundException {
-        super(node,childKeys);
+    public ServerInstancesRootNode(Node node, RootChildrenKeys childKeys, InstanceContent instanceContent) throws DataObjectNotFoundException {
+        super(node, childKeys, new AbstractLookup(instanceContent));
         this.childKeys = childKeys;
+        this.lookupContents = instanceContent;
+        lookupContents.add(new NodeModel(this));
     }
-    
-    @Override
+
     public RootChildrenKeys getChildKeys() {
         return this.childKeys;
     }
+
     /**
      * Creates an instance of class {@link FileChangeHandler} and adds it as a
      * listener of the {@literal FileEvent } to the {@literal FileObject}
@@ -87,13 +93,20 @@ public class ServerInstancesRootNode extends FilterNode  implements ChildrenAcce
      * @param serverSuite
      */
     protected final void init(Project serverSuite) {
-        serverSuite.getLookup().lookup(InstanceContexts.class)
-                .setServerInstancesContext(getLookup());
-//        modulesChangeListener = new ModulesChangeHandler(suiteProj, this);
-//        suiteProj.getLookup().lookup(ServerInstanceAvailableModules.class)
-//                .addModulesChangeListener(modulesChangeListener);
-        
+        serverSuite.getLookup().lookup(NodeModel.class).init(this);
+
         setShortDescription(ServerInstanciesRootNode_shortDescription());
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        BaseUtils.out("ServerInstanceRootNode: propertyChange new = " + evt.getNewValue());
+        if (childKeys != null && "server-running".equals(evt.getPropertyName()) )  {
+            if (childKeys != null) {
+                childKeys.propertyChange(evt);
+            }
+        }
+
     }
 
     /**
@@ -132,6 +145,7 @@ public class ServerInstancesRootNode extends FilterNode  implements ChildrenAcce
         List<Action> actions = new ArrayList<>(2);
 
         Action newAntProject = ServerInstanciesActions.NewAntProjectAction.getContextAwareInstance(getLookup());
+        Action addExistingProject = ServerInstanciesActions.AddExistingProjectAction.getContextAwareInstance(getLookup());
         Action propAction = null;
 
         for (Action a : super.getActions(ctx)) {
@@ -142,8 +156,10 @@ public class ServerInstancesRootNode extends FilterNode  implements ChildrenAcce
         }
 
         actions.add(newAntProject);
+        actions.add(addExistingProject);
+        actions.add(null);
 
-        Project server = ((RootChildrenKeys) getChildren()).getServerProj();
+//        Project server = ((RootChildrenKeys) getChildren()).getServerProj();
         if (propAction != null) {
             actions.add(propAction);
         }
@@ -176,17 +192,38 @@ public class ServerInstancesRootNode extends FilterNode  implements ChildrenAcce
     }
 
     @Override
-    public void addNotify() {
-        childKeys.addNotify();
+    public void modelChanged() {
+        if ( childKeys != null ) {
+            childKeys.addNotify();
+        }
     }
 
+/*    @Override
+    public List<InstanceNode> getInstanceNodes() {
+        if (childKeys == null) {
+            return null;
+        }
+        List<InstanceNode> list = null;
+        Node[] nodes = childKeys.getNodes();
+        if (nodes == null) {
+            return null;
+        }
+        list = new ArrayList<>();
+        for (Node node : nodes) {
+            if (node instanceof InstanceNode) {
+                list.add((InstanceNode) node);
+            }
+        }
+        return list;
+    }
+*/
     /**
      * The implementation of the Children.Key of the {@literal Server Libraries}
      * node.
      *
      * @param <T>
      */
-    public static class RootChildrenKeys extends FilterNode.Children.Keys<String>{
+    public static class RootChildrenKeys extends FilterNode.Children.Keys<String> {
 
         private final Project suiteProj;
 
@@ -225,10 +262,9 @@ public class ServerInstancesRootNode extends FilterNode  implements ChildrenAcce
          */
         @Override
         public void addNotify() {
-            java.util.Map<String,AbstractLookup> map = 
-                    suiteProj.getLookup().lookup(InstanceContexts.class).getURIs();
-            List keyArray = new ArrayList(map.keySet());
-            this.setKeys(keyArray);
+
+            List<String> uris = ServerSuiteManager.getServerInstanceIds(suiteProj);
+            this.setKeys(uris);
         }
 
         /**
@@ -248,13 +284,32 @@ public class ServerInstancesRootNode extends FilterNode  implements ChildrenAcce
             }
         }
 
+        public void propertyChange(PropertyChangeEvent evt) {
+            Node[] nodes = this.getNodes();
+            if (nodes == null || nodes.length == 0) {
+                return;
+            }
+            int i = 0;
+            for (Node node : nodes) {
+                if (node instanceof InstanceNode) {
+                    String key = ((InstanceNode) node).getKey();
+                    Object o = evt.getSource();
+                    if (o != null && o instanceof BaseDeploymentManager) {
+                        String uri = ((BaseDeploymentManager) o).getUri();
+                        if (uri.equals(key)) {
+                            ((InstanceNode) node).propertyChange(evt);
+                        }
+                    }
+                }
+            }
+        }
+
         /**
          * @return the serverProject
          */
         public Project getServerProj() {
             return suiteProj;
         }
-
 
     }//class
 

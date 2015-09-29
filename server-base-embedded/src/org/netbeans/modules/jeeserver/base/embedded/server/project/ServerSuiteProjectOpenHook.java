@@ -26,12 +26,9 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
 import org.openide.filesystems.FileObject;
@@ -53,7 +50,7 @@ public class ServerSuiteProjectOpenHook extends ProjectOpenedHook {
 
     @Override
     protected void projectOpened() {
-        Project p = getProject();
+/*        Project p = getProject();
         String suiteLocation = p.getProjectDirectory().getPath();
         //BaseDeploymentManager dm = SuiteUtil.managerOf(p);
         InstanceContexts contexts = p.getLookup().lookup(InstanceContexts.class);
@@ -67,7 +64,7 @@ public class ServerSuiteProjectOpenHook extends ProjectOpenedHook {
         for (String uri : d.getServerInstanceIDs()) {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
             String instanceLocation = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
-            
+
             if (instanceLocation == null) {
                 continue;
             }
@@ -76,25 +73,25 @@ public class ServerSuiteProjectOpenHook extends ProjectOpenedHook {
                 continue;
             }
             String ipSuiteLocation = ip.getProperty(SuiteConstants.SUITE_PROJECT_LOCATION);
-            if ( ipSuiteLocation == null ) {
+            if (ipSuiteLocation == null) {
                 continue;
             }
             if (Paths.get(suiteLocation).equals(Paths.get(ipSuiteLocation))) {
-BaseUtils.out("projectOpened: " + ip.getProperty(BaseConstants.URL_PROP));
-                contexts.put(ip.getProperty(BaseConstants.URL_PROP));
+                BaseUtils.out("projectOpened: " + ip.getProperty(BaseConstants.URL_PROP));
+                //contexts.put(ip.getProperty(BaseConstants.URL_PROP));
             }
         }
-        
-/*        FileObject[] instances = projectDir.getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER).getChildren();
-        Project p = getProject();
-        InstanceContexts contexts = p.getLookup().lookup(InstanceContexts.class);
-        for ( FileObject fo : instances) {
-            if ( ! fo.isFolder() ) {
-                continue;
-            }
-            contexts.put(fo);
-        }
-*/        
+*/
+        /*        FileObject[] instances = projectDir.getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER).getChildren();
+         Project p = getProject();
+         InstanceContexts contexts = p.getLookup().lookup(InstanceContexts.class);
+         for ( FileObject fo : instances) {
+         if ( ! fo.isFolder() ) {
+         continue;
+         }
+         contexts.put(fo);
+         }
+         */
     }
 
     @Override

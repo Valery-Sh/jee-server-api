@@ -16,6 +16,7 @@
  */
 package org.netbeans.modules.jeeserver.base.deployment;
 
+import java.beans.PropertyChangeEvent;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseServerIconAnnotator;
 import java.io.File;
 import java.io.InputStream;
@@ -78,6 +79,9 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      */
     protected final String uri;
     protected final BaseTarget defaultTarget;
+
+    private FileObject serverProjectDirectory;
+
     /**
      * ExecutorTask instance of the started server
      */
@@ -98,11 +102,22 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      *
      * @param uri the value that uniquely identifies the instance to be created
      */
-    public BaseDeploymentManager(String uri) {
+    public BaseDeploymentManager(String uri, ServerSpecifics specifics) {
         LOG.log(Level.FINE, "Creating  DeploymentManager uri={0}", uri); //NOI18N
         this.uri = uri;
         currentDeploymentMode = null; //Default
         defaultTarget = createDefaultTarget(uri);
+        this.specifics = specifics;
+        init();
+    }
+
+    private void init() {
+        serverProjectDirectory = getServerProject().getProjectDirectory();
+        specifics.register(this);
+    }
+
+    public FileObject getServerProjectDirectory() {
+        return serverProjectDirectory;
     }
 
     public synchronized J2eePlatformImpl getPlatform() {
@@ -151,12 +166,14 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     public Project getServerProject() {
         String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
         FileObject fo = FileUtil.toFileObject(new File(s));
-        
+
         return FileOwnerQuery.getOwner(fo);
     }
-    public Lookup getServerContext() {
-        return getSpecifics().getServerContext(this);
+
+    public Lookup getServerLookup() {
+        return getSpecifics().getServerLookup(this);
     }
+
     /**
      * Returns the object that represents the specific server functionality. For
      * example, Jetty module provides it's own implementation of
@@ -175,10 +192,10 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      *
      * @param specifics object to be set
      */
-    public void setSpecifics(ServerSpecifics specifics) {
-        this.specifics = specifics;
-    }
-
+    /*    public void setSpecifics(ServerSpecifics specifics) {
+     this.specifics = specifics;
+     }
+     */
     /**
      * Returns an object of type BaseTarget, which is used to invoke various
      * methods requiring parameter of type
@@ -191,8 +208,8 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     /**
-     * Returns the deployment mode in which the server is started. A
-     * server can be started in one of the following deployment modes:
+     * Returns the deployment mode in which the server is started. A server can
+     * be started in one of the following deployment modes:
      * <ul>
      * <li>Deployment.Mode.RUN</li>
      * <li>Deployment.Mode.DEBUG</li>
@@ -211,8 +228,8 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     /**
-     * Set the deployment mode in which the server is started. A
-     * server can be started in one of the following deployment modes:
+     * Set the deployment mode in which the server is started. A server can be
+     * started in one of the following deployment modes:
      * <ul>
      * <li>Deployment.Mode.RUN</li>
      * <li>Deployment.Mode.DEBUG</li>
@@ -228,14 +245,20 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     public void setCurrentDeploymentMode(Deployment.Mode currentDeploymentMode) {
         Deployment.Mode old = this.currentDeploymentMode;
         this.currentDeploymentMode = currentDeploymentMode;
+        if ( currentDeploymentMode == null ) {
+            running = false;
+        } else {
+            running = true;
+        }
         if (old == null && currentDeploymentMode != null
                 || old != null && currentDeploymentMode == null) {
-            
-            ServerInstanceProperties sp = getServerContext().lookup(ServerInstanceProperties.class);
-            sp.setCurrentDeploymentMode(currentDeploymentMode);
-            updateServerIconAnnotator();
+            //getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old != null, currentDeploymentMode != null));        
+            //ServerInstanceProperties sp = getServerLookup().lookup(ServerInstanceProperties.class);
+            //sp.setCurrentDeploymentMode(currentDeploymentMode);
+            //updateServerIconAnnotator();
         }
-        //updateServerIconAnnotator();
+        updateServerIconAnnotator();
+        getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old != null, currentDeploymentMode != null));
     }
 
     /**
@@ -244,7 +267,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * server running state. The method is invoked when the {@link #currentDeploymentMode) changes.
      * @see #setCurrentDeploymentMode(org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment.Mode)
      */
-    protected void updateServerIconAnnotator() {
+    public void updateServerIconAnnotator() {
         BaseServerIconAnnotator sia = Lookup.getDefault().lookup(BaseServerIconAnnotator.class);
         if (sia != null) {
             sia.serverStateChanged();
@@ -282,8 +305,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     /**
-     * Starts the server. Used by
-     * {@link BaseStartServer}.
+     * Starts the server. Used by {@link BaseStartServer}.
      *
      * @return ProgressObject object used to monitor start server progress.
      */
@@ -298,13 +320,12 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     /**
-     * Starts the server in debug mode. Used by
-     * {@link BaseStartServer}.
+     * Starts the server in debug mode. Used by {@link BaseStartServer}.
      *
      * @return ProgressObject object used to monitor start server progress.
      */
     public ProgressObject startServerDebug() {
-        getSpecifics().serverStarting(this);        
+        getSpecifics().serverStarting(this);
         LOG.log(Level.INFO, "DEPLOYMENT MANAGER START SERVER (debug)");
         initialDeployedModulesOld.clear();
         BaseRunProgressObject starter = new BaseRunProgressObject(this);
@@ -313,13 +334,12 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     /**
-     * Starts the server in profile mode. Used by
-     * {@link BaseStartServer}.
+     * Starts the server in profile mode. Used by {@link BaseStartServer}.
      *
      * @return ProgressObject object used to monitor start server progress.
      */
     public ProgressObject startServerProfile() {
-        getSpecifics().serverStarting(this);        
+        getSpecifics().serverStarting(this);
         LOG.log(Level.INFO, "DEPLOYMENT MANAGER START SERVER (profile)");
         initialDeployedModulesOld.clear();
         currentDeploymentMode = null;
@@ -328,8 +348,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     /**
-     * Stops the server in profile mode. Used by
-     * {@link BaseStartServer}.
+     * Stops the server in profile mode. Used by {@link BaseStartServer}.
      *
      * @return ProgressObject object used to monitor start server progress.
      */
@@ -341,8 +360,8 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     /**
-     * Returns identifier of ProjectDeploymentManager. The value is the same as in
-     * {@literal URL} property of the {@literal InstanceProperties}.
+     * Returns identifier of ProjectDeploymentManager. The value is the same as
+     * in {@literal URL} property of the {@literal InstanceProperties}.
      *
      * @return identifier including project directory
      */
@@ -359,19 +378,58 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * @return Returns http url as a string
      */
     public String buildUrl() {
+        if (getInstanceProperties() == null) {
+            return null;
+        }
         String host = getInstanceProperties().getProperty(BaseConstants.HOST_PROP);
         String port = getInstanceProperties().getProperty(BaseConstants.HTTP_PORT_PROP);
         return "http://" + host + ":" + port;
     }
 
+    private boolean running;
+
+    public boolean isActuallyRunning() {
+        return running;
+    }
+
+    public void setActuallyRunning(boolean running) {
+        boolean old = this.running;
+        this.running = running;
+        /*        if ( running && currentDeploymentMode == null ) {
+         setCurrentDeploymentMode(Deployment.Mode.RUN);
+         return;
+         } else if ( (! running) && currentDeploymentMode != null ) {
+         setCurrentDeploymentMode(null);
+         return;
+
+         }
+         */
+        if (!old && running
+                || old && !running) {
+            getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old, running));
+            //ServerInstanceProperties sp = getServerLookup().lookup(ServerInstanceProperties.class);
+            //sp.setCurrentDeploymentMode(currentDeploymentMode);
+            updateServerIconAnnotator();
+        }
+
+        //updateServerIconAnnotator();
+    }
+
     /**
      * Determines whether the server is running. Delegates the execution of this
-     * method to the null null null     {@link ServerSpecifics#pingServer(org.netbeans.api.project.Project) 
+     * method to the null null null null     {@link ServerSpecifics#pingServer(org.netbeans.api.project.Project) 
      *
      * @return {@literal true} if the server is running. {@literal false} otherwise.
      */
     public boolean isServerRunning() {
-        return getSpecifics().pingServer(this);
+
+        setActuallyRunning(getSpecifics().pingServer(this));
+        return running;
+        //return getSpecifics().pingServer(this);
+    }
+
+    public boolean isServerStarted() {
+        return currentDeploymentMode != null;
     }
 
     public boolean pingServer() {
@@ -538,7 +596,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * @param mt
      * @param in
      * @param in1
-     * @return 
+     * @return
      */
     @Override
     public ProgressObject distribute(Target[] targets, ModuleType mt, InputStream in, InputStream in1) throws IllegalStateException {
@@ -761,7 +819,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
         INFO.log("----------------------------------------------");
         INFO.log("-               DISTRIBUTE NEW !!!           -");
         INFO.log("----------------------------------------------");
-        
+
         FileObject war = FileUtil.toFileObject(context.getModuleFile());
 
         BaseTargetModuleID module = getModule(war);

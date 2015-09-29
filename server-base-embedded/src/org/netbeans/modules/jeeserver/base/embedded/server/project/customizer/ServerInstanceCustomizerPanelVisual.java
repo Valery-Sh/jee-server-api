@@ -1,7 +1,3 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.netbeans.modules.jeeserver.base.embedded.server.project.customizer;
 
 import java.awt.event.ActionEvent;
@@ -20,7 +16,6 @@ import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.spi.project.ui.support.ProjectCustomizer.Category;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
@@ -36,7 +31,7 @@ public class ServerInstanceCustomizerPanelVisual extends JPanel implements Actio
         initComponents();
         this.manager = manager;
         //this.project = BaseUtils.managerOf(context).getServerProject();
-        context = manager.getServerContext();
+        context = manager.getServerLookup();
         this.settings = context.lookup(ServerInstanceProperties.class).getProperties();
         read();
         checkServerRunning();

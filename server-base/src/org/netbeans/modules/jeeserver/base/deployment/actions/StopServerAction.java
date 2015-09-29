@@ -73,7 +73,20 @@ public final class StopServerAction extends AbstractAction implements ContextAwa
         public ContextAction(Lookup context) {
             manager = BaseUtils.managerOf(context);
             
-            setEnabled(manager != null && ! manager.isStopped());
+            boolean show = false;
+            if (manager != null) {
+                manager.updateServerIconAnnotator();                
+                show = ! isStopped();
+                boolean isStopped = isStopped();
+                boolean running = manager.isActuallyRunning();
+                //manager.
+                if (running && isStopped || (!running) && !isStopped) {
+                    show = manager.isServerRunning();
+                }
+                //show = manager.isServerRunning();
+            }
+            
+            setEnabled(show);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
             putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager==null);
             putValue(NAME, "&Stop Server");

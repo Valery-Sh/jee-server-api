@@ -10,6 +10,7 @@ public class ServerInstanceConnectorWizardPanel extends InstanceWizardPanel impl
     /**
      * The visual component that displays this panel. If you need to access the
      * component from this class, just use getComponent().
+     * @return 
      */
     //private ServerInstanceConnectorVisualPanel component;
 

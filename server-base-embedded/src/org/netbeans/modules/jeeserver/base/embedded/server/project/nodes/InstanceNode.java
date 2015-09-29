@@ -12,20 +12,19 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Properties;
 import javax.swing.Action;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants.*;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions.ServerInstanciesActions.RemoveInstanceAction;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
-import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
@@ -38,44 +37,48 @@ import org.openide.util.lookup.InstanceContent;
  *
  * @author Valery
  */
-public class InstanceNode extends FilterNode implements PropertyChangeListener{
+public class InstanceNode extends FilterNode implements ChildrenKeysModel {
 
     private final InstanceContent lookupContents;
-
+    private InstanceNodeChildrenKeys childKeys;
     private final String key;
-    private final Project serverSuite;
+    private final NodeModel nodeModel;
     private String displayName;
     //private Properties instanceProps;
 
-    public InstanceNode(Node original, String key, Project serverSuite) {
-        this(original, key, serverSuite, new InstanceContent());
+    public InstanceNode(Node original, String key, NodeModel nodeModel) {
 
-//        this.key = key;
-//        this.serverSuite = serverSuite;
-//        instanceProps = BaseUtils.loadProperties(key.getFileObject("instance.properties"));
+        this(original, key, nodeModel, new InstanceContent(), new InstanceNodeChildrenKeys(key));
     }
 
-    public InstanceNode(Node original, String key, Project serverSuite, InstanceContent content) {
+    public InstanceNode(Node original, String key, NodeModel nodeModel, InstanceContent content, InstanceNodeChildrenKeys childKeys) {
         super(original, new InstanceNodeChildrenKeys(key), new AbstractLookup(content));
         this.key = key;
-        this.serverSuite = serverSuite;
+        this.nodeModel = nodeModel;
         //instanceProps = BaseUtils.loadProperties(key.getFileObject("instance.properties"));
         lookupContents = content;
+        this.childKeys = childKeys;
         init();
     }
+
     private void init() {
-        Lookup lk = BaseUtils.managerOf(key).getServerContext();
-        
+        Lookup lk = ServerSuiteManager.getManager(key).getServerLookup();
+
         ServerInstanceProperties sip = lk.lookup(ServerInstanceProperties.class);
-        
-        sip.addPropertyChangeListener(this);
-        
+
         lookupContents.add(sip);
         lookupContents.add(this);
-        
+        NodeModel model = new NodeModel(this);
+        lookupContents.add(model);
+
         InstanceProperties props = InstanceProperties.getInstanceProperties(key);
-        this.displayName = props.getProperty(SuiteConstants.SERVER_INSTANCE_NAME_PROP);
+        this.displayName = props.getProperty(DISPLAY_NAME_PROP);
     }
+
+    public String getKey() {
+        return key;
+    }
+
     /**
      * Returns the logical name of the node.
      *
@@ -110,15 +113,15 @@ public class InstanceNode extends FilterNode implements PropertyChangeListener{
     public Action[] getActions(boolean ctx) {
         //ServerInstanceProperties sip = getLookup().lookup(ServerInstanceProperties.class);
 
-        Action[] actions = 
-            new Action[]{
-                new StartServerAction().createContextAwareInstance(getLookup()),
-                new StopServerAction().createContextAwareInstance(getLookup()),
-                null, //new PropertiesAction().createContextAwareInstance(project.getLookup())
-                RemoveInstanceAction
-                        .getContextAwareInstance(getLookup())
-        };
-        
+        Action[] actions
+                = new Action[]{
+                    new StartServerAction().createContextAwareInstance(getLookup()),
+                    new StopServerAction().createContextAwareInstance(getLookup()),
+                    null, //new PropertiesAction().createContextAwareInstance(project.getLookup())
+                    RemoveInstanceAction
+                    .getContextAwareInstance(getLookup())
+                };
+
         return actions;
         /*        List<Action> actions = new ArrayList<>(2);
 
@@ -148,25 +151,24 @@ public class InstanceNode extends FilterNode implements PropertyChangeListener{
     //Next, we add icons, for the default state, which is
     //closed, and the opened state; we will make them the same. 
     //
-    //Icons in serverSuite logical views are
+    //Icons in nodeModel logical views are
     //based on combinations--you can combine the node's own icon
     //with a distinguishing badge that is merged with it. Here we
     //first obtain the icon from a data folder, then we add our
     //badge to it by merging it via a NetBeans API utility method:
     @StaticResource
-    private static final String RUNNING_IMAGE = "org/netbeans/modules/jeeserver/base/embedded/resources/running.png";    
-    
+    private static final String RUNNING_IMAGE = "org/netbeans/modules/jeeserver/base/embedded/resources/running.png";
 
     @Override
     public Image getIcon(int type) {
-        
-        ServerInstanceProperties sp = getLookup().lookup(ServerInstanceProperties.class);        
+
+        ServerInstanceProperties sp = getLookup().lookup(ServerInstanceProperties.class);
         Image image = sp
                 .getManager()
                 .getSpecifics()
                 .getProjectImage(null);
-    
-        if (sp.isServerRunning()) {
+
+        if (isServerRunning()) {
             image = ImageUtilities.mergeImages(image, ImageUtilities.loadImage(RUNNING_IMAGE), 16, 8);
         }
         return image;
@@ -177,18 +179,33 @@ public class InstanceNode extends FilterNode implements PropertyChangeListener{
         return getIcon(type);
     }
 
+    boolean serverRunning;
+
+    protected boolean isServerRunning() {
+        return serverRunning;
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        if ( "serverRunning".equals(evt.getPropertyName())) {
+        if ("server-running".equals(evt.getPropertyName())) {
+            BaseUtils.out("!!!!!!!!!!!!! fireIconChande");
+            serverRunning = (Boolean) evt.getNewValue();
             fireIconChange();
         }
+        if (childKeys != null  )  {
+            childKeys.propertyChange(evt);
+        }
+    }
+
+    @Override
+    public void modelChanged() {
+        childKeys.addNotify();
     }
 
     /**
      * The implementation of the Children.Key of the {@literal Server Libraries}
      * node.
      *
-     * @param <T>
      */
     public static class InstanceNodeChildrenKeys extends FilterNode.Children.Keys<String> {
         //private InstanceNode instNode;
@@ -199,7 +216,7 @@ public class InstanceNode extends FilterNode implements PropertyChangeListener{
          * Created a new instance of the class for the specified server
          * instance.
          *
-         * @param instNode
+         * @param uri
          */
         public InstanceNodeChildrenKeys(String uri) {
             this.uri = uri;
@@ -217,10 +234,9 @@ public class InstanceNode extends FilterNode implements PropertyChangeListener{
         protected Node[] createNodes(String key) {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(key);
 
-            String projDir = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
+            String projDir = ip.getProperty(SERVER_LOCATION_PROP);
             Project instProj = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(projDir)));
             Node instProjView = InstanceChildNode.InstanceProjectLogicalView.create(instProj);
-
             return new Node[]{instProjView};
 
             //return new Node[]{};
@@ -234,7 +250,7 @@ public class InstanceNode extends FilterNode implements PropertyChangeListener{
          * }.
          */
         @Override
-        protected void addNotify() {
+        public void addNotify() {
             Node n = getNode();
             List keyArray = new ArrayList<>();
 
@@ -254,10 +270,11 @@ public class InstanceNode extends FilterNode implements PropertyChangeListener{
 
         @Override
         protected void destroyNodes(Node[] destroyed) {
-            for (Node node : destroyed) {
-                BaseUtils.out("destroyNodes  node.name = node.getName=" + node.getName());
-            }
         }
+
+        public void propertyChange(PropertyChangeEvent evt) {
+        }
+
     }//class
 
 }

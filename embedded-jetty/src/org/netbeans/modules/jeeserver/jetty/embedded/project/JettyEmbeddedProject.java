@@ -11,8 +11,6 @@ import javax.swing.ImageIcon;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
-import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.embedded.project.EmbeddedProject;
 import org.netbeans.modules.jeeserver.base.embedded.project.EmbeddedProjectLogicalView;
 import org.netbeans.spi.project.*;

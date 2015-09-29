@@ -72,15 +72,17 @@ public class Utils {
     public static final String WEB_APPS_PACK = "web-apps-pack";
 
     public static final String INSTANCE_PROPERTIES_FILE = "server-instance.properties";
+
     public static final String ANTI_LOCK_PROP_NAME = "antiResourceLocking";
 
-    public static final String SERVER_CONFIG_FOLDER = "server-config";
+    public static final String SERVER_CONFIG_FOLDER = "nbdeployment";
     public static final String SERVER_PROJECT_FOLDER = "server-project";
     public static final String INSTANCE_PROPERTIES_PATH = "src/main/resources/" + INSTANCE_PROPERTIES_FILE;
-    
+
     public static boolean isWindows() {
         return System.getProperty("os.name").startsWith("Windows ");
     }
+
     public static String getJavaVersion() {
         String java_version = System.getProperty("java.version");
         if (java_version != null) {
@@ -106,19 +108,21 @@ public class Utils {
         }
         return v;
     }
-    
+
     public static String getUserDir() {
         return System.getProperty("user.dir");
     }
+
     public static String getServerConfigDir() {
         Path p = Paths.get(System.getProperty("user.dir")).getParent();
-        return Paths.get(p.toString(), SERVER_CONFIG_FOLDER ).toString();
+        return Paths.get(p.toString(), SERVER_CONFIG_FOLDER).toString();
     }
+
     public static String getServerProjectDir() {
         Path p = Paths.get(System.getProperty("user.dir")).getParent();
-        return Paths.get(p.toString(), SERVER_PROJECT_FOLDER ).toString();
+        return Paths.get(p.toString(), SERVER_PROJECT_FOLDER).toString();
     }
-    
+
     private static String getValue(String v, Properties p) {
         while (!resolved(v)) {
             String s = v;
@@ -253,6 +257,7 @@ public class Utils {
         return result;
 
     }
+
     public static String getHtml5BuildDir(String webDir) {
         String path = new File(webDir).getAbsolutePath();
 
@@ -371,7 +376,7 @@ public class Utils {
 
     public static Properties getContextProperties(File xmlFile) {
         Properties result = new Properties();
-        if ( ! xmlFile.exists() ) {
+        if (!xmlFile.exists()) {
             return result;
         }
         try {
@@ -472,6 +477,27 @@ public class Utils {
         return props;
 
     }
+    /**
+     * Only for development mode
+     * @return 
+     */
+    public static Properties loadInstanceProperties() {
+        File f = new File("./" + SERVER_CONFIG_FOLDER + "/" + INSTANCE_PROPERTIES_FILE);
+        if ( ! f.exists()) {
+            return null;
+        }
+        Properties props = new Properties();
+
+        try (FileInputStream fis = new FileInputStream(f)) {
+            props.load(fis);
+            fis.close();
+        } catch (IOException ioe) {
+            LOG.log(Level.INFO, "loadInstanceProperties()", ioe);
+            return null;
+
+        }
+        return props;
+    }
 
     public static Properties loadServerProperties(boolean developmentMode) {
         File f = new File("./" + INSTANCE_PROPERTIES_PATH);
@@ -529,10 +555,10 @@ public class Utils {
 
         };
         File webappFolder = new File("./" + REG_WEB_APPS_FOLDER);
-        if ( ! webappFolder.exists() ) {
+        if (!webappFolder.exists()) {
             return map;
         }
-        
+
         for (File f : new File("./" + REG_WEB_APPS_FOLDER).listFiles(filter)) {
             String projName = f.getName();
             if (projName.endsWith(WAR_REF) || projName.endsWith(WEB_REF) || projName.endsWith(HTM_REF)) {

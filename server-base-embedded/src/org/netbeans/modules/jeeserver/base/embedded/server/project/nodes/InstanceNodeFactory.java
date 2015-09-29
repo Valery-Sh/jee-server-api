@@ -44,14 +44,9 @@ public class InstanceNodeFactory implements NodeFactory {
     public static Node getNode(String key, Project suiteProj) {
         Node node = null;
         try {
-//DataObject.find( suiteProj.getProjectDirectory().
-//                getFileObject(EmbConstants.SERVER_INSTANCIES_FOLDER)).getNodeDelegate(),
-//                new ServerInstancesRootNode.RootChildrenKeys(suiteProj));            
-            //node = DataObject.find(key).getNodeDelegate();
             FileObject fo = suiteProj.getProjectDirectory().getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER);
-                    
-            node = new InstanceNode(DataObject.find(fo).getNodeDelegate(), key, suiteProj);
-         //);            
+            node = new InstanceNode(DataObject.find(fo).getNodeDelegate(), key
+                    ,suiteProj.getLookup().lookup(NodeModel.class));
         } catch (Exception ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }

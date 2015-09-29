@@ -7,8 +7,6 @@ import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 public class ServerInstanceProjectWizardPanel  extends InstanceWizardPanel {
 
     
-    protected static final String VISITED_PROP = "visited_con_prop";
-    
     
     protected final boolean ismavenbased;
     
@@ -60,7 +58,6 @@ public class ServerInstanceProjectWizardPanel  extends InstanceWizardPanel {
     
     @Override
     public boolean isFinishPanel() {
-BaseUtils.out("isFinishPanel " + ServerInstanceWizardAction.panelVisited[1]);
         return ServerInstanceWizardAction.panelVisited[1] ;
     }
 }

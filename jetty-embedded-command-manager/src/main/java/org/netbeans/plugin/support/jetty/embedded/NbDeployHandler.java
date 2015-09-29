@@ -22,9 +22,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.AbstractHandlerContainer;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
@@ -41,6 +43,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
  */
 public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listener {
 
+    public static final String HTTP_PORT_PROP = "httpportnumber";
+
     private static final Logger LOG = Logger.getLogger(Utils.class.getName());
 
     private static final String WELD_INIT_PARAMETER = "org.jboss.weld.environment.container.class";
@@ -53,14 +57,12 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
 //    private Server userDefinedServer;
 //    private Server managerServer;
-
     private final String shutdownKey = "netbeans";
 
     protected Map<String, WebAppContext> explicitApps = new HashMap<>();
     protected Map<String, WebAppContext> explicitDynApps = new HashMap<>();
 
 //    private static NbDeployHandler nbDeployHandler = null;
-
     /**
      * When {@literal true} the the server supports annotations.
      */
@@ -89,62 +91,64 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
     public NbDeployHandler() {
         super();
+
         annotationsSupported = false;
     }
-/*    private Properties serverInstanceProperties;
 
-    public Properties getServerInstanceProperties() {
-        return serverInstanceProperties;
-    }
+    /*    private Properties serverInstanceProperties;
 
-    public static NbDeployHandler getInstance() {
-        return NbDeployHandlerHolder.INSTANCE;
-    }
+     public Properties getServerInstanceProperties() {
+     return serverInstanceProperties;
+     }
 
-    public static NbDeployHandler getInstance(Server server) {
-        NbDeployHandler h = getInstance();
-        h.config();
-        server.addLifeCycleListener(h);
-        return h;
-    }
+     public static NbDeployHandler getInstance() {
+     return NbDeployHandlerHolder.INSTANCE;
+     }
 
-    protected void config() {
-        serverInstanceProperties = loadServerProperties();
-        serverConfig = new ServerConfig(serverInstanceProperties);
-        if (userDefinedServer == null && serverConfig.isEnabled("deploy")) {
-            HotDeployer hd = HotDeployer.create();
-            this.managerServer = hd.getServer();
-        } else if (userDefinedServer == null) {
-            managerServer = new Server(serverConfig.getHttpPort());
-        } else {
-            managerServer = userDefinedServer;
-        }
-        configModules();
-    }
+     public static NbDeployHandler getInstance(Server server) {
+     NbDeployHandler h = getInstance();
+     h.config();
+     server.addLifeCycleListener(h);
+     return h;
+     }
 
-    protected void configModules() {
-        if (serverConfig.isEnabled("annotations")) {
-            new ModuleActivator.Annotations().configServer(managerServer);
-        }
-        if (serverConfig.isEnabled("jsf")) {
-            new ModuleActivator.JSF().configServer(managerServer);
-        }
-        if (userDefinedServer == null && serverConfig.isEnabled("cdi")) {
-            new ModuleActivator.WeldCDI().configServer(managerServer);
-        }
-    }
+     protected void config() {
+     serverInstanceProperties = loadServerProperties();
+     serverConfig = new ServerConfig(serverInstanceProperties);
+     if (userDefinedServer == null && serverConfig.isEnabled("deploy")) {
+     HotDeployer hd = HotDeployer.create();
+     this.managerServer = hd.getServer();
+     } else if (userDefinedServer == null) {
+     managerServer = new Server(serverConfig.getHttpPort());
+     } else {
+     managerServer = userDefinedServer;
+     }
+     configModules();
+     }
 
-    public static Server createServer() {
-        if (nbDeployHandler != null) {
-            return nbDeployHandler.userDefinedServer;
-        }
-        nbDeployHandler = new NbDeployHandler();
-        nbDeployHandler.config();
-        //initHandlers(server);
-        nbDeployHandler.managerServer.addLifeCycleListener(nbDeployHandler);
-        return nbDeployHandler.managerServer;
-    }
-*/
+     protected void configModules() {
+     if (serverConfig.isEnabled("annotations")) {
+     new ModuleActivator.Annotations().configServer(managerServer);
+     }
+     if (serverConfig.isEnabled("jsf")) {
+     new ModuleActivator.JSF().configServer(managerServer);
+     }
+     if (userDefinedServer == null && serverConfig.isEnabled("cdi")) {
+     new ModuleActivator.WeldCDI().configServer(managerServer);
+     }
+     }
+
+     public static Server createServer() {
+     if (nbDeployHandler != null) {
+     return nbDeployHandler.userDefinedServer;
+     }
+     nbDeployHandler = new NbDeployHandler();
+     nbDeployHandler.config();
+     //initHandlers(server);
+     nbDeployHandler.managerServer.addLifeCycleListener(nbDeployHandler);
+     return nbDeployHandler.managerServer;
+     }
+     */
     public static boolean isDevelopmentMode() {
         boolean b = false;
         Path p = Paths.get(System.getProperty("user.dir"), "nbproject", "project.xml");
@@ -161,114 +165,114 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
         return b;
     }
 
-/*    protected static Properties loadServerProperties() {
-        boolean developmentMode = isDevelopmentMode();
-        System.out.println("======== user.dir=" + System.getProperty("user.dir"));
-        File f = Paths.get(Utils.getServerProjectDir(), INSTANCE_PROPERTIES_PATH).toFile();
+    /*    protected static Properties loadServerProperties() {
+     boolean developmentMode = isDevelopmentMode();
+     System.out.println("======== user.dir=" + System.getProperty("user.dir"));
+     File f = Paths.get(Utils.getServerProjectDir(), INSTANCE_PROPERTIES_PATH).toFile();
 
-        Properties props = new Properties();
-        if (developmentMode) {
+     Properties props = new Properties();
+     if (developmentMode) {
 
-            try (FileInputStream fis = new FileInputStream(f)) {
-                props.load(fis);
-                fis.close();
-            } catch (IOException ioe) {
-                LOG.log(Level.INFO, "loadServerProperties()", ioe);
-                return null;
+     try (FileInputStream fis = new FileInputStream(f)) {
+     props.load(fis);
+     fis.close();
+     } catch (IOException ioe) {
+     LOG.log(Level.INFO, "loadServerProperties()", ioe);
+     return null;
 
-            }
-        } else {
-            InputStream is = Utils.class
-                    .getClassLoader().getResourceAsStream(Utils.INSTANCE_PROPERTIES_FILE);
+     }
+     } else {
+     InputStream is = Utils.class
+     .getClassLoader().getResourceAsStream(Utils.INSTANCE_PROPERTIES_FILE);
 
-            try {
-                props.load(is);
-                is.close();
-            } catch (IOException ex) {
-                Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        return props;
-    }
+     try {
+     props.load(is);
+     is.close();
+     } catch (IOException ex) {
+     Logger.getLogger(CommandManager.class.getName()).log(Level.SEVERE, null, ex);
+     }
+     }
+     return props;
+     }
 
-    public boolean isVerbose() {
-        return verbose;
-    }
+     public boolean isVerbose() {
+     return verbose;
+     }
 
-    public void out(String msg, boolean... always) {
-        if (always.length > 0) {
-            System.out.println(msg);
-            return;
-        }
-        if (isVerbose()) {
-            System.out.println(msg);
-        }
-    }
+     public void out(String msg, boolean... always) {
+     if (always.length > 0) {
+     System.out.println(msg);
+     return;
+     }
+     if (isVerbose()) {
+     System.out.println(msg);
+     }
+     }
 
-    public ServerConfig getServerConfig() {
-        return serverConfig;
-    }
+     public ServerConfig getServerConfig() {
+     return serverConfig;
+     }
 
-    public static boolean isJSFEnabled() {
+     public static boolean isJSFEnabled() {
 
-        return getInstance().getServerConfig().isJSFEnabled();
-    }
+     return getInstance().getServerConfig().isJSFEnabled();
+     }
 
-    public static boolean isCDIEnabled(ContextHandler ctx) {
-        //getInstance().out(" CommandManager.isCDIEnabled) cp=" + ctx.getContextPath() + "; init=param=" + ctx.getInitParameter(WELD_INIT_PARAMETER));
-        //    return ctx.getInitParameter(WELD_INIT_PARAMETER) != null;
+     public static boolean isCDIEnabled(ContextHandler ctx) {
+     //getInstance().out(" CommandManager.isCDIEnabled) cp=" + ctx.getContextPath() + "; init=param=" + ctx.getInitParameter(WELD_INIT_PARAMETER));
+     //    return ctx.getInitParameter(WELD_INIT_PARAMETER) != null;
 
-        Resource baseResource = ctx.getBaseResource();
+     Resource baseResource = ctx.getBaseResource();
 
-        boolean foundBeansXml = false;
+     boolean foundBeansXml = false;
 
-        // Verify that beans.xml is present, otherwise weld will fail silently.
-        for (String beansXmlPath : REQUIRED_BEANS_XML_PATHS) {
-            try {
-                Resource res = baseResource.addPath(beansXmlPath);
-                if (res == null) {
-                    continue;
-                }
+     // Verify that beans.xml is present, otherwise weld will fail silently.
+     for (String beansXmlPath : REQUIRED_BEANS_XML_PATHS) {
+     try {
+     Resource res = baseResource.addPath(beansXmlPath);
+     if (res == null) {
+     continue;
+     }
 
-                if (res.exists() && !res.isDirectory()) {
-                    foundBeansXml = true;
-                    break;
-                }
+     if (res.exists() && !res.isDirectory()) {
+     foundBeansXml = true;
+     break;
+     }
 
-            } catch (IOException ex) {
-                getInstance().out("NB-DEPLOYER: CommandManager.isCDIEnabled(ContentHandler) continue process");
-            }
+     } catch (IOException ex) {
+     getInstance().out("NB-DEPLOYER: CommandManager.isCDIEnabled(ContentHandler) continue process");
+     }
 
-        }
+     }
 
-        return foundBeansXml;
-    }
+     return foundBeansXml;
+     }
 
-    public static boolean isCDIEnabled() {
+     public static boolean isCDIEnabled() {
 
-        boolean result = false;
+     boolean result = false;
 
-        Collection<DeploymentManager> dms = nbDeployHandler.getServer().getBeans(DeploymentManager.class);
-        DeploymentManager dm = null;
-        int i = 0;
-        if (dms != null && !dms.isEmpty()) {
-            for (DeploymentManager m : dms) {
-                dm = m;
-                i++;
-            }
-        }
-        if (dm != null) {
-            for (AppLifeCycle.Binding b : dm.getLifeCycleBindings()) {
-                if ("org.eclipse.jetty.cdi.servlet.WeldDeploymentBinding".equals(b.getClass().getName())) {
-                    result = true;
-                    break;
-                }
-            }
-        }
+     Collection<DeploymentManager> dms = nbDeployHandler.getServer().getBeans(DeploymentManager.class);
+     DeploymentManager dm = null;
+     int i = 0;
+     if (dms != null && !dms.isEmpty()) {
+     for (DeploymentManager m : dms) {
+     dm = m;
+     i++;
+     }
+     }
+     if (dm != null) {
+     for (AppLifeCycle.Binding b : dm.getLifeCycleBindings()) {
+     if ("org.eclipse.jetty.cdi.servlet.WeldDeploymentBinding".equals(b.getClass().getName())) {
+     result = true;
+     break;
+     }
+     }
+     }
 
-        return result;
-    }
-*/
+     return result;
+     }
+     */
     /**
      *
      * @return null if the method {@link createHotDeploymentServer}
@@ -281,21 +285,21 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
      return server;
      }
      */
-/*    public static int getHttpPort() {
-        Properties props = Utils.loadServerProperties(isDevelopmentMode());
-        return Integer.parseInt(props.getProperty(Utils.HTTP_PORT_PROP));
-    }
+    /*    public static int getHttpPort() {
+     Properties props = Utils.loadServerProperties(isDevelopmentMode());
+     return Integer.parseInt(props.getProperty(Utils.HTTP_PORT_PROP));
+     }
 
-    protected void tryLoadFacesServlet() {
-        jsfSupported = true;
-        try {
-            getClass().getClassLoader().loadClass("javax.faces.webapp.FacesServlet");
-            getClass().getClassLoader().loadClass("com.sun.faces.config.ConfigureListener");
-        } catch (ClassNotFoundException ex) {
-            jsfSupported = false;
-        }
-    }
-*/    
+     protected void tryLoadFacesServlet() {
+     jsfSupported = true;
+     try {
+     getClass().getClassLoader().loadClass("javax.faces.webapp.FacesServlet");
+     getClass().getClassLoader().loadClass("com.sun.faces.config.ConfigureListener");
+     } catch (ClassNotFoundException ex) {
+     jsfSupported = false;
+     }
+     }
+     */
     /*
      protected void tryLoadWeldListener() {
      weldSupported = true;
@@ -371,7 +375,7 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
      }
      */
     private void init(Server server) {
-        System.out.println("init(server)");
+
         if (server.getHandler() == null) {
             HandlerCollection hc = new HandlerCollection();
 
@@ -443,26 +447,26 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
         }
     }
 
-/*    protected boolean isRuntimeDeploymentSupported() {
-        return runtimeDeploymentSupported;
-    }
+    /*    protected boolean isRuntimeDeploymentSupported() {
+     return runtimeDeploymentSupported;
+     }
 
-    protected void setRuntimeDeploymentSupported(boolean runtimeDeploymentSupported) {
-        this.runtimeDeploymentSupported = runtimeDeploymentSupported;
-    }
+     protected void setRuntimeDeploymentSupported(boolean runtimeDeploymentSupported) {
+     this.runtimeDeploymentSupported = runtimeDeploymentSupported;
+     }
 
-    public String getRuntimeShutdownToken() {
-        return runtimeShutdownToken;
-    }
+     public String getRuntimeShutdownToken() {
+     return runtimeShutdownToken;
+     }
 
-    public void setRuntimeShutdownToken(String runtimeShutdownToken) {
-        this.runtimeShutdownToken = runtimeShutdownToken;
-    }
-*/
+     public void setRuntimeShutdownToken(String runtimeShutdownToken) {
+     this.runtimeShutdownToken = runtimeShutdownToken;
+     }
+     */
     protected void addShutdownHandler(Server server, HandlerCollection to) {
 
 //        if (!isDevelopmentMode() && getRuntimeShutdownToken() == null) {
-        if (!isDevelopmentMode()) {        
+        if (!isDevelopmentMode()) {
             return;
         }
         String token = shutdownKey;
@@ -544,7 +548,7 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
     protected void redeploy(HttpServletRequest request) {
 //        if (!isDevelopmentMode() && !isRuntimeDeploymentSupported()) {
-        if (!isDevelopmentMode()) {        
+        if (!isDevelopmentMode()) {
             return;
         }
 
@@ -727,7 +731,7 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
     protected void start(HttpServletRequest request) {
 //        if (!isDevelopmentMode() && !isRuntimeDeploymentSupported()) {
-        if (!isDevelopmentMode()) {        
+        if (!isDevelopmentMode()) {
             return;
         }
 
@@ -765,7 +769,7 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
     protected void stop(HttpServletRequest request) {
 //        if (!isDevelopmentMode() && !isRuntimeDeploymentSupported()) {
-        if (!isDevelopmentMode()) {        
+        if (!isDevelopmentMode()) {
             return;
         }
 
@@ -869,41 +873,41 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
         IO.copyDir(from, to);
     }
 
-/*    protected void printInfoBefore(String command) {
-        Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
+    /*    protected void printInfoBefore(String command) {
+     Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
 
-        if (map.isEmpty()) {
-            System.out.println(command + ": no handler found");
-            return;
-        }
+     if (map.isEmpty()) {
+     System.out.println(command + ": no handler found");
+     return;
+     }
 
-        System.out.println("==========  Existing Handlers ==========");
-        int i = 0;
-        for (WebAppContext webapp : map.keySet()) {
-            System.out.println((++i) + ". cp=" + webapp.getContextPath() + "; webDir=" + webapp.getWar());
-        }
-        System.out.println("===================================");
-    }
+     System.out.println("==========  Existing Handlers ==========");
+     int i = 0;
+     for (WebAppContext webapp : map.keySet()) {
+     System.out.println((++i) + ". cp=" + webapp.getContextPath() + "; webDir=" + webapp.getWar());
+     }
+     System.out.println("===================================");
+     }
 
-    protected void printInfoAfter(String command) {
-        Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
+     protected void printInfoAfter(String command) {
+     Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
 
-        if (map.isEmpty()) {
-            System.out.println("==========  Command " + command + " Result  ==========");
-            System.out.println(command + ": no handler found");
-            return;
-        }
+     if (map.isEmpty()) {
+     System.out.println("==========  Command " + command + " Result  ==========");
+     System.out.println(command + ": no handler found");
+     return;
+     }
 
-        int i = 0;
-        for (WebAppContext webapp : map.keySet()) {
-            System.out.println((++i) + ". cp=" + webapp.getContextPath() + "; webDir=" + webapp.getWar());
-        }
-        System.out.println("===================================");
-    }
-*/
+     int i = 0;
+     for (WebAppContext webapp : map.keySet()) {
+     System.out.println((++i) + ". cp=" + webapp.getContextPath() + "; webDir=" + webapp.getWar());
+     }
+     System.out.println("===================================");
+     }
+     */
     protected String deployWar(String contextPath, String webDir) {
 //        if (!isDevelopmentMode() && !isRuntimeDeploymentSupported()) {
-        if (!isDevelopmentMode()) {        
+        if (!isDevelopmentMode()) {
             return null;
         }
 
@@ -933,7 +937,7 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
     protected String deployWar(HttpServletRequest request) {
 //        if (!isDevelopmentMode() && !isRuntimeDeploymentSupported()) {
-        if (!isDevelopmentMode()) {        
+        if (!isDevelopmentMode()) {
             return null;
         }
 
@@ -990,7 +994,7 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
     protected void deploy(HttpServletRequest request) {
 
 //        if (!isDevelopmentMode() && !isRuntimeDeploymentSupported()) {
-        if (!isDevelopmentMode()) {        
+        if (!isDevelopmentMode()) {
             return;
         }
 
@@ -1082,7 +1086,6 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
         }
 
 //        applyJsfSupport(webapp);
-
         ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
 
         System.out.println("deploy: success");
@@ -1153,7 +1156,6 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
         }
 
 //        applyJsfSupport(webapp);
-
         ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
         try {
             webapp.start();
@@ -1164,45 +1166,45 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
     }
 
-/*    public static void addWebApp(WebAppContext wc) {
-        CommandManager cm = CommandManager.getInstance(); // Now  handlers are created
-        if (wc == null || wc.getContextPath() == null) {
-            return;
-        }
-        Handler[] contextHandlers = cm.getServer().getChildHandlersByClass(ContextHandlerCollection.class);
-        if (contextHandlers == null || contextHandlers.length == 0) {
-            System.out.println("addWebApp: no handler found. addWebApp finished");
-            return;// null;
-        }
-        WebAppContext webapp = cm.findWebAppContext(wc.getContextPath());
-        if (webapp != null) {
-            System.out.println("addWebApp: there is a handler with the same contextPath=" + webapp.getContextPath() + " (webDir=" + webapp.getWar());
-            return;// null;
-        }
+    /*    public static void addWebApp(WebAppContext wc) {
+     CommandManager cm = CommandManager.getInstance(); // Now  handlers are created
+     if (wc == null || wc.getContextPath() == null) {
+     return;
+     }
+     Handler[] contextHandlers = cm.getServer().getChildHandlersByClass(ContextHandlerCollection.class);
+     if (contextHandlers == null || contextHandlers.length == 0) {
+     System.out.println("addWebApp: no handler found. addWebApp finished");
+     return;// null;
+     }
+     WebAppContext webapp = cm.findWebAppContext(wc.getContextPath());
+     if (webapp != null) {
+     System.out.println("addWebApp: there is a handler with the same contextPath=" + webapp.getContextPath() + " (webDir=" + webapp.getWar());
+     return;// null;
+     }
 
-        ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
+     ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
 
-    }
+     }
 
-    public static void addWebApp(String warDir, String contextPath) {
-        CommandManager cm = CommandManager.getInstance(); // Now  handlers are created
-        if (warDir == null || contextPath == null) {
-            return;
-        }
-        Handler[] contextHandlers = cm.getServer().getChildHandlersByClass(ContextHandlerCollection.class);
-        if (contextHandlers == null || contextHandlers.length == 0) {
-            System.out.println("addWebApp: no handler found. addWebApp finished");
-            return;// null;
-        }
-        WebAppContext webapp = cm.findWebAppContext(contextPath);
-        if (webapp != null) {
-            System.out.println("addWebApp: there is a handler with the same contextPath=" + webapp.getContextPath() + " (webDir=" + webapp.getWar());
-            return;// null;
-        }
-        webapp = new WebAppContext(warDir, contextPath);
-        ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
-    }
-*/
+     public static void addWebApp(String warDir, String contextPath) {
+     CommandManager cm = CommandManager.getInstance(); // Now  handlers are created
+     if (warDir == null || contextPath == null) {
+     return;
+     }
+     Handler[] contextHandlers = cm.getServer().getChildHandlersByClass(ContextHandlerCollection.class);
+     if (contextHandlers == null || contextHandlers.length == 0) {
+     System.out.println("addWebApp: no handler found. addWebApp finished");
+     return;// null;
+     }
+     WebAppContext webapp = cm.findWebAppContext(contextPath);
+     if (webapp != null) {
+     System.out.println("addWebApp: there is a handler with the same contextPath=" + webapp.getContextPath() + " (webDir=" + webapp.getWar());
+     return;// null;
+     }
+     webapp = new WebAppContext(warDir, contextPath);
+     ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
+     }
+     */
     /**
      * {@literal Not deployment mode} only.
      *
@@ -1210,43 +1212,43 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
      * @param webDir
      * @return
      */
-/*    protected Handler runtimeDeploy(String contextPath, String webDir) {
-        System.out.println("runtime deploy started for cp=" + contextPath + "; webDir=" + webDir);
+    /*    protected Handler runtimeDeploy(String contextPath, String webDir) {
+     System.out.println("runtime deploy started for cp=" + contextPath + "; webDir=" + webDir);
 
-        Handler[] contextHandlers = getServer().getChildHandlersByClass(ContextHandlerCollection.class);
-        if (contextHandlers == null || contextHandlers.length == 0) {
-            return null;
-        }
-        WebAppContext webapp = findWebAppContext(contextPath);
-        if (webapp != null) {
-            System.out.println("runtime deploy: there is a handler with the same contextPath=" + webapp.getContextPath() + " (webDir=" + webapp.getWar());
-            return null;
-        }
+     Handler[] contextHandlers = getServer().getChildHandlersByClass(ContextHandlerCollection.class);
+     if (contextHandlers == null || contextHandlers.length == 0) {
+     return null;
+     }
+     WebAppContext webapp = findWebAppContext(contextPath);
+     if (webapp != null) {
+     System.out.println("runtime deploy: there is a handler with the same contextPath=" + webapp.getContextPath() + " (webDir=" + webapp.getWar());
+     return null;
+     }
 
-        String path = webDir; // to deploy
+     String path = webDir; // to deploy
 
-        WebAppContext c = findWebApps(path);
-        if (c != null) {
-            System.out.println("deploy: there is a handler with the same webDir=" + webDir + ". Execute undeploy");
-            undeploy(contextPath, webDir);
-        }
+     WebAppContext c = findWebApps(path);
+     if (c != null) {
+     System.out.println("deploy: there is a handler with the same webDir=" + webDir + ". Execute undeploy");
+     undeploy(contextPath, webDir);
+     }
 
-        webapp = explicitApps.get(contextPath);
-        if (webapp == null) {
-            webapp = new WebAppContext();
-        }
-        webapp.setContextPath(contextPath);
-        webapp.setWar(path);
+     webapp = explicitApps.get(contextPath);
+     if (webapp == null) {
+     webapp = new WebAppContext();
+     }
+     webapp.setContextPath(contextPath);
+     webapp.setWar(path);
 
-        webapp.getInitParams().put("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
+     webapp.getInitParams().put("org.eclipse.jetty.servlet.Default.useFileMappedBuffer", "false");
 
-        ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
+     ((ContextHandlerCollection) contextHandlers[0]).addHandler(webapp);
 
-        System.out.println("runtime deploy: success");
+     System.out.println("runtime deploy: success");
 
-        return webapp;
-    }
-*/
+     return webapp;
+     }
+     */
     protected Handler deployHtml5(String contextPath, String webDir) {
         System.out.println("deploy html5 started for cp=" + contextPath + "; projectType=" + Utils.DEPLOY_HTML5_PROJECTTYPE + "; webDir=" + webDir);
 
@@ -1300,7 +1302,6 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
         return path;
     }
 
-
     /**
      *
      * @param lc actual type is {@literal Server}.
@@ -1310,13 +1311,35 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
         System.out.println("========== LIFECYCLE STARTING ========");
         init((Server) lc);
-
+        if (isDevelopmentMode()) {
+            Connector[] cs = ((Server) lc).getConnectors();
+            for (Connector c : cs) {
+                if (c instanceof ServerConnector) {
+                    int programPort = ((ServerConnector) c).getPort();
+                    
+                    Properties props = Utils.loadInstanceProperties();
+                    if ( props == null ) {
+                        break;
+                    }
+                    String port = props.getProperty(HTTP_PORT_PROP);
+                    if ( port == null ) {
+                        break;
+                    }
+                    int realPort = Integer.parseInt(port);
+                    
+                    if ( realPort != programPort ) {
+                        ((ServerConnector) c).setPort(realPort);
+                        notifyInvalidPortNumber(programPort, realPort);
+                    }
+                    break;
+                }
+            }
+        }
         Map<WebAppContext, ContextHandlerCollection> map = findWebApps();
         //
         // Scan all explicitly (hard coded) defined WebAppContexts 
         //
         for (WebAppContext webapp : map.keySet()) {
-            System.out.println("LIFE: WAR=" + webapp.getWar());
             // 20.09String newPath = pr.pathFor(webapp.getWar(), isDevelopmentMode());
             String newPath;
             String newContextPath = webapp.getContextPath();
@@ -1368,7 +1391,7 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
         }
 
         for (Map.Entry<String, WebAppContext> e : explicitDynApps.entrySet()) {
-            findContextHandlerCollection((Server)lc).addHandler(e.getValue());
+            findContextHandlerCollection((Server) lc).addHandler(e.getValue());
         }
 
         //
@@ -1385,7 +1408,16 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
             }
         }
     }
-
+    
+    protected void notifyInvalidPortNumber(int programPort, int realPort) {
+        System.err.println("===================================");        
+        System.err.println("   Programm defined port:    " + programPort);
+        System.err.println("   NetBeans registered port: " + realPort);
+        System.err.println("   ---------------------------");
+        System.err.println("   Server starts on    port: " + realPort);
+        System.err.println("===================================");        
+        
+    }
     protected void deployRegisteredWebapps() {
         System.out.println("============== Deploy Registered Web Applicatiobs ================");
 
@@ -1599,33 +1631,34 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
             webapp.getServletContext().addListener(className);
         }
     }
-/*
-    protected void applyJsfSupport(final WebAppContext webapp) {
-        if (jsfSupported || weldSupported) {
-            webapp.addLifeCycleListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
-                @Override
-                public void lifeCycleStarting(LifeCycle ev) {
+    /*
+     protected void applyJsfSupport(final WebAppContext webapp) {
+     if (jsfSupported || weldSupported) {
+     webapp.addLifeCycleListener(new AbstractLifeCycle.AbstractLifeCycleListener() {
+     @Override
+     public void lifeCycleStarting(LifeCycle ev) {
 
-                    if (jsfSupported) {
-                        EnumSet<DispatcherType> es = EnumSet.of(DispatcherType.REQUEST);
-                        webapp.addFilter(JsfFilter.class, "/", es);
-                        //webapp.getServletContext().
-                        addServletContextListener(webapp, "com.sun.faces.config.ConfigureListener");
-                    }
-                    if (weldSupported) {
-                        addServletContextListener(webapp, "org.jboss.weld.environment.servlet.BeanManagerResourceBindingListener");
-                        addServletContextListener(webapp, "org.jboss.weld.environment.servlet.Listener");
-                    }
-                }
+     if (jsfSupported) {
+     EnumSet<DispatcherType> es = EnumSet.of(DispatcherType.REQUEST);
+     webapp.addFilter(JsfFilter.class, "/", es);
+     //webapp.getServletContext().
+     addServletContextListener(webapp, "com.sun.faces.config.ConfigureListener");
+     }
+     if (weldSupported) {
+     addServletContextListener(webapp, "org.jboss.weld.environment.servlet.BeanManagerResourceBindingListener");
+     addServletContextListener(webapp, "org.jboss.weld.environment.servlet.Listener");
+     }
+     }
 
-                @Override
-                public void lifeCycleStarted(LifeCycle ev) {
-                    webapp.removeLifeCycleListener(this);
-                }
-            });
-        }
-    }
-*/
+     @Override
+     public void lifeCycleStarted(LifeCycle ev) {
+     webapp.removeLifeCycleListener(this);
+     }
+     });
+     }
+     }
+     */
+
     /**
      * Only in {@code development mode}
      *
@@ -1659,20 +1692,19 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
     @Override
     public void lifeCycleStarted(LifeCycle lc) {
-/*        String dir = System.getProperty("user.dir");
-        Path p = Paths.get(dir,"nb-server-instance-started");
-        if ( Files.exists(p) ) {
-            return;
-        }
-        try {
-            Files.createFile(p);
-        } catch (IOException ex) {
-            Logger.getLogger(NbDeployHandler.class.getName()).log(Level.SEVERE, null, ex);
-        }
-*/        
+        /*        String dir = System.getProperty("user.dir");
+         Path p = Paths.get(dir,"nb-server-instance-started");
+         if ( Files.exists(p) ) {
+         return;
+         }
+         try {
+         Files.createFile(p);
+         } catch (IOException ex) {
+         Logger.getLogger(NbDeployHandler.class.getName()).log(Level.SEVERE, null, ex);
+         }
+         */
         lc.removeLifeCycleListener(this);
 //        System.out.println("==============  LIFECYCLE STARTED ================");
-        
 
     }
 
@@ -1687,18 +1719,17 @@ public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listen
 
     @Override
     public void lifeCycleStopped(LifeCycle lc) {
-/*        String dir = System.getProperty("user.dir");
-        Path p = Paths.get(dir,"nb-server-instance-started");
-        if ( ! Files.exists(p) ) {
-            return;
-        }
-        try {
-            Files.delete(p);
-        } catch (IOException ex) {
-            Logger.getLogger(NbDeployHandler.class.getName()).log(Level.SEVERE, null, ex);
-        }
-*/        
+        /*        String dir = System.getProperty("user.dir");
+         Path p = Paths.get(dir,"nb-server-instance-started");
+         if ( ! Files.exists(p) ) {
+         return;
+         }
+         try {
+         Files.delete(p);
+         } catch (IOException ex) {
+         Logger.getLogger(NbDeployHandler.class.getName()).log(Level.SEVERE, null, ex);
+         }
+         */
     }
-
 
 }//class

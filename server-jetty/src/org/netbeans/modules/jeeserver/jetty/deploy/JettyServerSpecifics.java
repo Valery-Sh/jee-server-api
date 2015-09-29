@@ -18,7 +18,6 @@ package org.netbeans.modules.jeeserver.jetty.deploy;
 
 import java.awt.Image;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -33,8 +32,6 @@ import javax.enterprise.deploy.spi.DeploymentManager;
 import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.WizardDescriptorPanel;
-import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
@@ -46,8 +43,6 @@ import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataObject;
-import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.windows.InputOutput;
@@ -68,7 +63,9 @@ public class JettyServerSpecifics implements ServerSpecifics {
 
         //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject.getLookup());
         String urlString = dm.buildUrl();
-
+        if ( urlString == null ) {
+            return false;
+        }
         try {
             URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -158,11 +155,16 @@ public class JettyServerSpecifics implements ServerSpecifics {
 
     @Override
     public String execCommand(BaseDeploymentManager dm, String cmd) {
+        String builtUrl = dm.buildUrl();
+        if ( builtUrl == null ) {
+            return null;
+        }
+        
         HttpURLConnection connection = null;
         String result = null;
         try {
             String urlstr = "/jeeserver/manager?" + cmd;
-            URL url = new URL(dm.buildUrl() + urlstr);
+            URL url = new URL(builtUrl + urlstr);
 
             connection = (HttpURLConnection) url.openConnection();
 
@@ -225,10 +227,10 @@ public class JettyServerSpecifics implements ServerSpecifics {
         return sb.toString();
     }
 
-    private String buildUrl(Project p) {
+/*    private String buildUrl(Project p) {
         return BaseUtils.managerOf(p.getLookup()).buildUrl();
     }
-
+*/
     @Override
     public FindJSPServlet getFindJSPServlet(DeploymentManager dm) {
         return new JettyServerFindJspServlet((BaseDeploymentManager) dm);
@@ -298,7 +300,7 @@ public class JettyServerSpecifics implements ServerSpecifics {
     }    
     
     @Override
-    public Lookup getServerContext(BaseDeploymentManager dm) {
+    public Lookup getServerLookup(BaseDeploymentManager dm) {
         return dm.getServerProject().getLookup();
     }    
 }

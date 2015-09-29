@@ -32,10 +32,9 @@ import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 
 /**
- * The class provides implementations of the  context aware action 
- * to be performed to start the server from the server project's 
- * pop up menu.
- * 
+ * The class provides implementations of the context aware action to be
+ * performed to start the server from the server project's pop up menu.
+ *
  * @author V. Shyshkin
  */
 @ActionID(
@@ -43,30 +42,35 @@ import org.openide.util.NbBundle;
         id = "org.netbeans.modules.jee.server.deployment.actions.StartServerAction")
 @ActionRegistration(
         displayName = "#CTL_StartServerAction",
-        lazy=false)
+        lazy = false)
 @ActionReference(path = "Projects/Actions", position = 0)
 @NbBundle.Messages("CTL_StartServerAction=Start Server")
 public final class StartServerAction extends AbstractAction implements ContextAwareAction {
-    
+
     public StartServerAction() {
     }
+
     /**
      * Never called.
-     * @param e 
+     *
+     * @param e
      */
     @Override
     public void actionPerformed(ActionEvent e) {
         assert false;
     }
+
     public static ProgressObject perform(Lookup context) {
         StartServerAction ssa = new StartServerAction();
         StartServerAction.ContextAction action = (StartServerAction.ContextAction) ssa.createContextAwareInstance(context);
         return action.perform();
     }
+
     /**
      * Creates an action for the given context.
+     *
      * @param context a lookup that contains the server project instance of type
-     *  {@literal Project}.
+     * {@literal Project}.
      * @return a new instance of type {@link #ContextAction}
      */
     @Override
@@ -76,24 +80,38 @@ public final class StartServerAction extends AbstractAction implements ContextAw
 
     private static final class ContextAction extends AbstractAction {
 
-
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
             manager = BaseUtils.managerOf(context);
             BaseUtils.out("StartServerAction manager: " + manager);
-            setEnabled(manager != null && manager.isStopped());
+            
+            boolean show = false;
+            if (manager != null) {
+                manager.updateServerIconAnnotator();
+                show = manager.isStopped();
+                boolean isStopped = manager.isStopped();
+                boolean running = manager.isActuallyRunning();
+
+                if (running && isStopped || (!running) && !isStopped) {
+                    show = ! manager.isServerRunning();
+                }
+                //show = ! manager.isServerRunning();
+            }
+            //setEnabled(manager != null && manager.isStopped());
+            setEnabled(show);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager==null);
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
 
             putValue(NAME, "&Start Server");
-        
+
         }
 
         public @Override
         void actionPerformed(ActionEvent e) {
             manager.startServer();
         }
+
         public ProgressObject perform() {
             return manager.startServer();
         }

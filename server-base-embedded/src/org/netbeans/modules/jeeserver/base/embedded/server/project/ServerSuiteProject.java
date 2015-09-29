@@ -1,5 +1,6 @@
 package org.netbeans.modules.jeeserver.base.embedded.server.project;
 
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.NodeModel;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -37,14 +38,14 @@ public class ServerSuiteProject implements Project {
     public static final String TYPE= "org-netbeans-modules-jeeserver-base-embedded-project";
     private final FileObject projectDir;
     private final ProjectState state;
-    private final InstanceContexts instanceContexts;
+    //private final NodeModel instanceContexts;
             
     private Lookup lookup;
 
     public ServerSuiteProject(FileObject projectDir, ProjectState state) {
         this.projectDir = projectDir;
         this.state = state;
-        instanceContexts = new InstanceContexts();
+        //instanceContexts = new NodeModel();
     }
 
     @Override
@@ -79,7 +80,7 @@ public class ServerSuiteProject implements Project {
                 getProjectActionProvider(),
                 new ProjectOperations(this),
                 openHook,
-                new InstanceContexts()
+                new NodeModel()
                 //serverProperties,
                 //getStartServerPropertiesProvider(),
 //                new ServerInstanceAvailableModules<>(this)

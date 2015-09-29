@@ -67,9 +67,10 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     @Override
     public boolean pingServer(BaseDeploymentManager dm) {
 
-        //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
         String urlString = dm.buildUrl();
-
+        if ( urlString == null ) {
+            return false;
+        }
         try {
             URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -100,7 +101,10 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
     @Override
     public boolean shutdownCommand(BaseDeploymentManager dm) {
-
+        String urlString = dm.buildUrl();
+        if ( urlString == null ) {
+            return false;
+        }
         boolean result = false;
 
         //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
@@ -153,6 +157,10 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
     @Override
     public String execCommand(BaseDeploymentManager dm, String cmd) {
+        String urlString = dm.buildUrl();
+        if ( urlString == null ) {
+            return null;
+        }        
         HttpURLConnection connection = null;
         String result = null;
         try {
@@ -170,9 +178,9 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
             }
 
         } catch (SocketException e) {
-            System.out.println("Exception " + e.getMessage());
+            System.out.println("Exception command=" + cmd + ". Msg=" + e.getMessage());
         } catch (IOException e) {
-            System.out.println("Exception " + e.getMessage());
+            System.out.println("Exception command=" + cmd + ". Msg="  + e.getMessage());
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -373,14 +381,14 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     }            
     
     @Override
-    public InstanceBuilder getInstanceBuilder(Properties props) {
+    public InstanceBuilder getInstanceBuilder(Properties props, InstanceBuilder.Options options) {
         InstanceBuilder ib = null;
-        
+
         if ( "ant".equals(props.getProperty("project.based.type")) ) {
-            ib = new JettyInstanceBuilder(props);
+            ib = new JettyInstanceBuilder(props, options);
             ((JettyInstanceBuilder)ib).setMavenbased(false);
         } else if ( "maven".equals(props.getProperty("project.based.type")) ) {
-            ib = new JettyInstanceBuilder(props);
+            ib = new JettyInstanceBuilder(props,options);
             ((JettyInstanceBuilder)ib).setMavenbased(true);
         }
         

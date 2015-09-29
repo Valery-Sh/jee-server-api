@@ -53,7 +53,9 @@ public class Html5RefActions {
         if (contextPath == null) {
             contextPath = "/" + appName;
         }
-
+        if ( dm.buildUrl() == null ) {
+            return false;
+        }
         String url = dm.buildUrl() + contextPath;
 
         boolean accept = true;

@@ -8,7 +8,6 @@ import javax.swing.JLabel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
-import static org.netbeans.modules.jeeserver.base.embedded.project.EmbServerPanelVisual.PROP_PROJECT_NAME;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileUtil;
@@ -20,6 +19,9 @@ import org.openide.filesystems.FileUtil;
 public class ServerInstanceAntProjectVisualPanel extends InstancePanelVisual implements DocumentListener {
     
     private static final Logger LOG = Logger.getLogger(ServerInstanceAntProjectVisualPanel.class.getName());
+    
+    public static final String PROP_PROJECT_NAME = "projectName";
+
     
     private WizardDescriptor wiz;
     private final InstanceWizardPanel panel;

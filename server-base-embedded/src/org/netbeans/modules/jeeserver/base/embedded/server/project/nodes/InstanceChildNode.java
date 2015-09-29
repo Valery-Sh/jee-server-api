@@ -4,7 +4,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
 import org.netbeans.spi.project.ui.LogicalViewProvider;
-import org.openide.filesystems.FileObject;
 import org.openide.nodes.Node;
 
 /**
@@ -22,6 +21,7 @@ public class InstanceChildNode {
             try {
                 LogicalViewProvider lvp = instanceProject.getLookup().lookup(LogicalViewProvider.class);
                 node = lvp.createLogicalView();
+                
             } catch (Exception ex) {
                 LOG.log(Level.INFO, ex.getMessage());
             }

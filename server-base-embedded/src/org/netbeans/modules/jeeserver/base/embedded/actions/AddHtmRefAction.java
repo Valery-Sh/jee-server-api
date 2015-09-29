@@ -62,15 +62,15 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
         private final RequestProcessor.Task task;
         //private final Project serverProject;
         private final Lookup context;
-        
+
         public ContextAction(Lookup context, boolean enabled) {
             //!!!!!!!!!
-            
+
             this.context = context;
-            
+
             BaseUtils.out("=============== manager=" + BaseUtils.managerOf(context));
             //serverProject = BaseUtils.managerOf(context).getServerProject();
-            
+
             //boolean isEmbedded = SuiteUtil.isEmbedded(serverProject);
             boolean isEmbedded = false;
             setEnabled(isEmbedded);
@@ -151,7 +151,10 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
             if (contextPath == null) {
                 contextPath = "/" + appName;
             }
-
+            String urlString = BaseUtils.managerOf(context).buildUrl();
+            if (urlString == null) {
+                return false;
+            }
             String url = BaseUtils.managerOf(context)
                     .buildUrl() + contextPath;
 
@@ -184,7 +187,7 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
             if (!accept) {
                 return false;
             }
-            
+
             if ("EXTERNAL".equals(ep.getProperty("server"))) {
                 deleteHtmlRef(html5AppFo);
             }

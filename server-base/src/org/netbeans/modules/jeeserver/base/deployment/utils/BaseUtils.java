@@ -40,6 +40,7 @@ import javax.enterprise.deploy.spi.factories.DeploymentFactory;
 import org.netbeans.api.extexecution.startup.StartupExtender;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.server.ServerInstance;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
@@ -76,6 +77,7 @@ import org.xml.sax.SAXException;
 public class BaseUtils {
 
     private static final Logger LOG = Logger.getLogger(BaseUtils.class.getName());
+
     public static String stringOf(InputStream is) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
@@ -86,13 +88,13 @@ public class BaseUtils {
                 sb.append(line).append("\n");
             }
         } catch (IOException ex) {
-            LOG.log(Level.FINE, ex.getMessage()); //NOI18N
+            LOG.log(Level.INFO, ex.getMessage()); //NOI18N
 
         } finally {
             try {
                 is.close();
             } catch (IOException ex) {
-                LOG.log(Level.FINE, ex.getMessage()); //NOI18N
+                LOG.log(Level.INFO, ex.getMessage()); //NOI18N
             }
         }
 
@@ -434,50 +436,57 @@ public class BaseUtils {
         return null;
     }
 
-    public static BaseDeploymentManager managerOf(String uri) {
-        BaseDeploymentManager dm = null;
-        try {
-            dm = (BaseDeploymentManager) DeploymentFactoryManager.getInstance().getDisconnectedDeploymentManager(uri);
-        } catch (DeploymentManagerCreationException ex) {
-            LOG.log(Level.INFO, ex.getMessage());
-        }
-        return dm;
-        
-    }    
     public static BaseDeploymentManager managerOf(Project p) {
-        
-        BaseDeploymentManager dm = null;
-        
-        Deployment d = Deployment.getDefault();
 
-        if (d == null || d.getServerInstanceIDs() == null) {
+        BaseDeploymentManager dm = null;
+
+        if (p == null || p.getProjectDirectory() == null) {
             return null;
         }
 
-        for (String uri : d.getServerInstanceIDs()) {
+        if (!ProjectManager.getDefault().isProject(p.getProjectDirectory())) {
+            return null;
+        }
+
+        Path sourceProjectPath = Paths.get(p.getProjectDirectory().getPath());
+
+        Deployment deployment = Deployment.getDefault();
+
+        if (deployment == null || deployment.getServerInstanceIDs() == null) {
+            return null;
+        }
+
+        for (String uri : deployment.getServerInstanceIDs()) {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
 
-            String serverLocation = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
-            if (serverLocation == null) {
+            String foundServerLocation = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
+            if (foundServerLocation == null || !new File(foundServerLocation).exists()) {
                 // May be not a native plugin server
                 continue;
             }
-            Project serverProj = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(serverLocation)));
             
+            FileObject foundServerFo = FileUtil.toFileObject(new File(foundServerLocation));
+            
+            
+            if (!ProjectManager.getDefault().isProject(foundServerFo)) {
+                return null;
+            }
+            
+            Project serverProj = FileOwnerQuery.getOwner(foundServerFo);
+
             if (serverProj == null) {
                 continue;
             }
-//BaseUtils.out("ANNOTATOR: serverLocation = " + serverLocation);
-//BaseUtils.out("ANNOTATOR: p = " + p);
-//BaseUtils.out("ANNOTATOR: p.getDir = " + p.getProjectDirectory());
-
-            if (Paths.get(serverLocation).equals(FileUtil.toFile(p.getProjectDirectory()).toPath())) {
+            
+            Path foundServerPath = Paths.get(foundServerLocation);
+                    
+            if (sourceProjectPath.equals(foundServerPath) ) {
                 try {
                     dm = (BaseDeploymentManager) DeploymentFactoryManager.getInstance().getDisconnectedDeploymentManager(uri);
                 } catch (DeploymentManagerCreationException ex) {
                     LOG.log(Level.INFO, ex.getMessage()); //NOI18N
                 }
-                
+
                 break;
             }
         }
@@ -525,10 +534,9 @@ public class BaseUtils {
                 }
             }
         }
-BaseUtils.out("getServerImage = " + image);
+        BaseUtils.out("getServerImage = " + image);
         return image;
     }
-
 
     public static boolean isMavenProject(String projDir) {
         Project proj = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(projDir)));
@@ -546,6 +554,21 @@ BaseUtils.out("getServerImage = " + image);
         //return proj.getProjectDirectory().getFileObject("pom.xml") != null;  
     }
 
+    public static boolean isMavenWebProject(Project proj) {
+        boolean b = false;
+        for (Object o : proj.getLookup().lookupAll(Object.class)) {
+            if (!"org.netbeans.modules.maven.api.NbMavenProject".equals(o.getClass().getName())) {
+                continue;
+            }
+            if (proj.getProjectDirectory().getFileObject("src/main/webapp") != null) {
+                b = true;
+                break;
+            }
+        }
+        return b;
+        //return proj.getProjectDirectory().getFileObject("pom.xml") != null;  
+    }
+
     public static boolean isAntProject(Project proj) {
         return proj.getLookup().lookup(org.netbeans.api.project.ant.AntBuildExtender.class) != null;
         //return proj.getProjectDirectory().getFileObject("pom.xml") != null;  
@@ -558,14 +581,13 @@ BaseUtils.out("getServerImage = " + image);
      * @return an object of type {@link ProjectDeploymentManager} if exists.
      * {@literal null} otherwise
      */
-    
     public static BaseDeploymentManager managerOf(Lookup context) {
         ServerInstanceProperties sp = context.lookup(ServerInstanceProperties.class);
         BaseUtils.out("BaseUtils managerOf 1");
         if (sp == null) {
             return null;
         }
-        BaseUtils.out("BaseUtils managerOf 2");        
+        BaseUtils.out("BaseUtils managerOf 2");
         String uri = sp.getUri();
         //InstanceProperties.
         return sp.getManager();
@@ -578,10 +600,10 @@ BaseUtils.out("getServerImage = " + image);
      * @param serverProject a server project
      * @return
      */
-/*    public static ServerInstanceProperties getServerProperties(Project serverProject) {
-        return serverProject.getLookup().lookup(ServerInstanceProperties.class);
-    }
-*/    
+    /*    public static ServerInstanceProperties getServerProperties(Project serverProject) {
+     return serverProject.getLookup().lookup(ServerInstanceProperties.class);
+     }
+     */
     /**
      * Returns an instance of {@literal ServerInstanceProperties} for a given
      * server project.
@@ -724,6 +746,7 @@ BaseUtils.out("getServerImage = " + image);
         }
         return projectTypeByProjectXml(fo);
     }
+
     public static int comparePath(Path p1, Path p2) {
         if (p1.equals(p2)) {
             return 0;
@@ -757,7 +780,7 @@ BaseUtils.out("getServerImage = " + image);
         }
         return result;
     }
-    
+
 
     /*    public static String getAntBasedProjectType(Project proj) {
      FileObject fo = proj.getProjectDirectory().getFileObject("nbproject/project.xml");

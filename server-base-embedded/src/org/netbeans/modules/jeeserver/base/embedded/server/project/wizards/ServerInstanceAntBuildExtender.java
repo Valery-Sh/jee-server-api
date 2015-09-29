@@ -1,15 +1,31 @@
 package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.ant.AntBuildExtender;
+import org.netbeans.api.project.ui.OpenProjects;
+import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.spi.project.support.ant.GeneratedFilesHelper;
 import org.openide.filesystems.FileObject;
+import org.openide.util.Exceptions;
+import org.openide.xml.XMLUtil;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * Extends the embedded server project's build script with new targets. A server
@@ -55,7 +71,9 @@ public class ServerInstanceAntBuildExtender {
      */
     private static final String PRE_PRE_TARGET_NAME = "-pre-pre-compile"; // NOI18N
     private static final String EMBEDDED_ID = "embedded-server"; // NOI18N
-    private static final String EMBEDDED_BUILDXML = "nbproject/server-build.xml"; // NOI18N
+    private static final String EMBEDDED_BUILDXML_PATH = "nbproject/server-build.xml"; // NOI18N
+    private static final String SERVER_BUILDXML_NAME = "server-build.xml"; // NOI18N    
+    private static final String BUILD_IMPL_XML = "nbproject/build-impl.xml"; // NOI18N
 
     /**
      * <code>value = "org/netbeans/modules/embedded/extender/es-build.xsl"</code>
@@ -77,29 +95,102 @@ public class ServerInstanceAntBuildExtender {
      * Creates or updates the build script extension.
      */
     public void enableExtender() {
+        boolean m = ProjectManager.getDefault().isModified(project);
         addBuildScript();
+        try {
+            ProjectManager.getDefault().saveProject(project);
+        } catch (IOException ex) {
+           LOG.log(Level.INFO, ex.getMessage());
+
+        }
+        if ( ! isValid()) {
+            rebuild();
+        }
+        
+        FileObject projFo = project.getProjectDirectory();
+        try {
+            FileObject toDir = projFo.createFolder(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
+            Properties props = new Properties();
+            InstanceProperties ip = ServerSuiteManager.getManager(project).getInstanceProperties();
+            props.setProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
+            BaseUtils.storeProperties(props, toDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
+        } catch (IOException ex) {
+            LOG.log(Level.INFO, ex.getMessage());
+        }
+        
     }
 
+    protected void rebuild() {
+        try {
+            project.getProjectDirectory().getFileObject(BUILD_IMPL_XML).delete();
+            OpenProjects.getDefault().close(new Project[] {project});
+            OpenProjects.getDefault().open(new Project[] {project},true);
+        } catch(IOException ex) {
+           LOG.log(Level.INFO, ex.getMessage());
+        }
+        addBuildScript();        
+    }
+    
+    protected boolean isValid() {
+        
+        boolean valid = false;
+        
+        FileObject buildimplFo = project.getProjectDirectory().getFileObject(BUILD_IMPL_XML);
+        
+        try (InputStream is = buildimplFo.getInputStream();) {
+            //---------------------------------------------------------------------
+            // Pay attension tht third parameter. It's true to correctly 
+            // work with namespaces. If false then all namespaces will be lost
+            // For example:
+            // <j2seproject3:javac gensrcdir="${build.generated.sources.dir}"/>
+            // will be modified as follows:
+            // <javac gensrcdir="${build.generated.sources.dir}"/>
+            //---------------------------------------------------------------------
+            Document doc = XMLUtil.parse(new InputSource(is), false, true, null, null);
+            NodeList nl = doc.getDocumentElement().getElementsByTagName("import");
+            if (nl != null) {
+                for (int i = 0; i < nl.getLength(); i++) {
+                    Element el = (Element) nl.item(i);
+                    String fileAttr = el.getAttribute("file");
+                    if (fileAttr == null ) {
+                        continue;
+                    }
+                    if ( SERVER_BUILDXML_NAME.equals(el.getAttributeNode("file").getValue()) ) {
+                        valid = true;
+                        break;
+                    }
+                }
+            }
+            
+        } catch (IOException | DOMException | SAXException ex) {
+            LOG.log(Level.INFO, ex.getMessage());
+        }
+        return valid;
+    }
     /**
      * Removes build script extension.
      */
     public void disableExtender() {
         removeBuildScript();
+        try {
+            FileObject projFo = project.getProjectDirectory();
+            FileObject toDelete = projFo.getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
+            toDelete.delete();
+            ProjectManager.getDefault().saveProject(project);            
+        } catch (IOException ex) {
+            LOG.log(Level.INFO, ex.getMessage());
+        }
+        
     }
-    /*    public void refreshBuildScript(boolean checkProjectXml) {
-     refreshScript(checkProjectXml, BUILD_XSL, EMBEDDED_BUILDXML);
-     }
-     */
-
     /**
      * Creates or updates an extension build script. The name of the build file
-     * is specified by the constant {@link #EMBEDDED_BUILDXML}. To create or
+     * is specified by the constant {@link #EMBEDDED_BUILDXML_PATH}. To create or
      * update the build file the method applies {@code .xls} file with a name
      * specified by the constant {@link #BUILD_XSL }.
      */
     protected void refreshScript() {
         String xslPath = BUILD_XSL;
-        String xmlPath = EMBEDDED_BUILDXML;
+        String xmlPath = EMBEDDED_BUILDXML_PATH;
         if (isEmbeddedServerEnabled()) {
             GeneratedFilesHelper helper = new GeneratedFilesHelper(project.getProjectDirectory());
             URL stylesheet = this.getClass().getClassLoader().getResource(xslPath);
@@ -109,6 +200,7 @@ public class ServerInstanceAntBuildExtender {
                 if ((GeneratedFilesHelper.FLAG_MODIFIED & flags) != 0
                         && (GeneratedFilesHelper.FLAG_OLD_PROJECT_XML & flags) != 0
                         && (GeneratedFilesHelper.FLAG_OLD_STYLESHEET & flags) != 0) {
+            
                     FileObject buildScript = project.getProjectDirectory().getFileObject(xmlPath);
                     if (buildScript != null) {
                         buildScript.delete();
@@ -168,7 +260,7 @@ public class ServerInstanceAntBuildExtender {
                 try {
                     GeneratedFilesHelper helper = new GeneratedFilesHelper(project.getProjectDirectory());
                     URL stylesheet = this.getClass().getClassLoader().getResource(BUILD_XSL);
-                    helper.generateBuildScriptFromStylesheet(EMBEDDED_BUILDXML, stylesheet);
+                    helper.generateBuildScriptFromStylesheet(EMBEDDED_BUILDXML_PATH, stylesheet);
                     FileObject destFileFO = destDirFO.getFileObject("server-build", "xml"); // NOI18N
                     extension = extender.addExtension(EMBEDDED_ID, destFileFO);
                     extension.addDependency(PRE_PRE_TARGET_NAME, "-server-embedded-macrodef-debug"); // NOI18N
@@ -224,6 +316,7 @@ public class ServerInstanceAntBuildExtender {
      */
     public boolean isEmbeddedServerEnabled() {
         AntBuildExtender extender = project.getLookup().lookup(AntBuildExtender.class);
+        //return extender != null;        
         return extender != null && extender.getExtension(EMBEDDED_ID) != null;
     }
 }

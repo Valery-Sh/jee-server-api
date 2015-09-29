@@ -5,13 +5,10 @@
  */
 package org.netbeans.modules.jeeserver.base.embedded.server.project.nodes;
 
-import org.openide.nodes.FilterNode;
-
 /**
  *
  * @author Valery
  */
-public interface ChildrenAccessor {
-    FilterNode.Children.Keys getChildKeys();
-    void addNotify();
+public class InstanceNodeModel {
+    
 }

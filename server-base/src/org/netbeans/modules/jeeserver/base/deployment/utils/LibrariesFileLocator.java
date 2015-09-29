@@ -1,7 +1,6 @@
 package org.netbeans.modules.jeeserver.base.deployment.utils;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,21 +9,17 @@ import java.util.logging.Logger;
 import org.netbeans.api.project.libraries.Library;
 import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 
-import org.openide.ErrorManager;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.filesystems.URLMapper;
 import org.openide.modules.InstalledFileLocator;
 import org.openide.util.Exceptions;
 
 /**
  * URLMapper for the nbinst URL protocol. The mapper handles only the
- translation from URL into FileObjects. The opposite conversion is not needed,
- it is handled by the default URLMapper. The format of the nbinst URL is
- nbinst://host/relativepath. The host part is optional, if presents it specifies the
- name of the supplying module. The relativepath is mandatory and specifies the
- relative relativepath from the ${netbeans.home}, ${netbeans.user} or
- ${netbeans.dirs}.
+ * translation from URL into FileObjects. The opposite conversion is not needed,
+ * it is handled by the default URLMapper. The format of the nbinst URL is
+ * nbinst://host/relativepath. The host part is optional, if presents it
+ * specifies the name of the supplying module. The relativepath is mandatory and
+ * specifies the relative relativepath from the ${netbeans.home},
+ * ${netbeans.user} or ${netbeans.dirs}.
  *
  * @author Tomas Zezula
  */
@@ -48,7 +43,7 @@ public class LibrariesFileLocator {
      * Returns File for given URL
      *
      * @param url the URL for which the File should be find.
-     * @return File returns null in case of unknown protocol or if the file 
+     * @return File returns null in case of unknown protocol or if the file
      * cannot be located.
      */
     public static File findFile(URL url) {
@@ -73,6 +68,36 @@ public class LibrariesFileLocator {
             file = locateFile(newurl);
         } catch (MalformedURLException ex) {
             LOG.log(Level.INFO, ex.getMessage());
+        }
+        return file;
+    }
+
+    public static File getFile(URL url) {
+        File file = null;
+        String protocol = url.getProtocol();
+        if (protocol == null) {
+            return null;
+        }
+        String path = normalizePath(url);
+
+        try {
+
+            switch (protocol) {
+                case FILE_PROTOCOL:
+                    file = new File(new URL(path).getPath());
+                    break;
+                case JAR_PROTOCOL:
+                    URL jarUrl = new URL(path);
+                    if (FILE_PROTOCOL.equals(jarUrl.getProtocol())) {
+                        
+                        file = new File(jarUrl.getPath());
+                    } else {
+                        file = new File(path);
+                    }   break;
+            }//switch
+        } catch (MalformedURLException ex) {
+            LOG.log(Level.INFO, ex.getMessage());
+            return null;
         }
         return file;
     }
@@ -113,9 +138,7 @@ public class LibrariesFileLocator {
         try {
             URI uri = new URI(url.toExternalForm());
             String codebase = uri.getHost();
-            BaseUtils.out("----------------- uri.getHost() = " + codebase);
             String relativepath = uri.getPath();
-            BaseUtils.out("----------------- uri.getPath() = " + relativepath);
             relativepath = relativepath.substring(1);
             if (relativepath.length() > 0) {
                 file = InstalledFileLocator.getDefault()

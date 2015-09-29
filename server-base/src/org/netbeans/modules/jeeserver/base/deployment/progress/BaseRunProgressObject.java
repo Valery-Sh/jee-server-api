@@ -115,13 +115,12 @@ public class BaseRunProgressObject extends AbstractProgressObject {
         Project project = getManager().getServerProject();
 
         StartServerPropertiesProvider pp = project.getLookup().lookup(StartServerPropertiesProvider.class);
-
         FileObject buildXml = FileUtil.toFileObject(f).getFileObject("build.xml");
 
         Properties props = new Properties();
         String[] targets = new String[]{"run"};
         
-        Deployment.Mode currentMode = getManager().getCurrentDeploymentMode();
+//        Deployment.Mode currentMode = getManager().getCurrentDeploymentMode();
         
         if (pp != null) {
             buildXml = pp.getBuildXml(project);

@@ -18,10 +18,11 @@ public class SuiteConstants extends BaseConstants {
     public static final String SERVER_INSTANCE_NAME_PROP = "server-instance-display-name";     
     public static final String SERVER_INSTANCES_DIR_PROP = "server-instances-dir"; 
     public static final String SUITE_PROJECT_LOCATION = "embedded-suite-project-location"; 
- 
+    public static final String SUITE_URL_ID = ":server:suite:project:";; 
+    public static final String INSTANCE_NBDEPLOYMENT_FOLDER = "nbdeployment"; 
+    
     public static final String SERVER_INSTANCES_FOLDER = "server-instances";
     public static final String SERVER_NBCONFIG_FOLDER = "nbconfig";
-    public static final String INSTANCE_PROPERTIES = "instance.properties";
     
     @StaticResource
     public static final String SERVER_INSTANCES_ICON = "org/netbeans/modules/jeeserver/base/embedded/resources/nbservers-16x16.png";

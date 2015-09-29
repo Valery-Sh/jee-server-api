@@ -23,12 +23,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
 import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
-import javax.swing.event.ChangeListener;
 
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.openide.util.ChangeSupport;
 
 /**
  * Each Server project contains a instance of this class in its Lookup.
@@ -40,7 +37,7 @@ import org.openide.util.ChangeSupport;
 public class ServerInstanceProperties {
     
     private static final Logger LOG = Logger.getLogger(ServerInstanceProperties.class.getName());
-    private Deployment.Mode currentDeploymentMode;
+    //private Deployment.Mode currentDeploymentMode;
     private String uri;
     private String serverId;
     //private String actualServerId;
@@ -70,9 +67,9 @@ public class ServerInstanceProperties {
      * 
      * @return an object of type {@literal Deployment.Mode}
      */
-    public Deployment.Mode getCurrentDeploymentMode() {
-        return currentDeploymentMode;
-    }
+    //public Deployment.Mode getCurrentDeploymentMode() {
+    //    return currentDeploymentMode;
+    //}
     
     /**
      * Set the current deployment mode. 
@@ -82,12 +79,13 @@ public class ServerInstanceProperties {
      * @param currentDeploymentMode  an object of type {@literal Deployment.Mode}
      *  that represents the current deployment mode. 
      */
-    public void setCurrentDeploymentMode(Deployment.Mode currentDeploymentMode) {
-        boolean old = isServerRunning();
-        this.currentDeploymentMode = currentDeploymentMode;
+    //public void setCurrentDeploymentMode(Deployment.Mode currentDeploymentMode) {
+        //getManager().getSpecifics().propertyChange(new PropertyChangeEvent(getManager(), "currentDeploymentMode", this.currentDeploymentMode, currentDeploymentMode));        
+        //boolean old = isServerRunning();
+        //this.currentDeploymentMode = currentDeploymentMode;
         
-        propertyChangeSupport.firePropertyChange("serverRunning", old, isServerRunning());
-    }
+        //propertyChangeSupport.firePropertyChange("serverRunning", old, isServerRunning());
+    //}
     
     /**
      * Returns the server identifier.
@@ -153,10 +151,10 @@ public class ServerInstanceProperties {
      * @return {@literal true} if the property {@link #currentDeploymentMode}
      *  is not {code null} and {@literal false} otherwise.
      */
-    public boolean isServerRunning() {
+/*    public boolean isServerRunning() {
         return currentDeploymentMode != null;
     }
-
+*/
     /**
      * Returns a string representation of the server's {@literal http port number}.
      * @return an {@literal http port}

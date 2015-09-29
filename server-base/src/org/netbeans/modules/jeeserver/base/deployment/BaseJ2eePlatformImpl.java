@@ -42,7 +42,6 @@ import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.spi.project.libraries.LibraryImplementation;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -79,11 +78,9 @@ public class BaseJ2eePlatformImpl extends J2eePlatformImpl implements PropertyCh
         loadLibraries();
         FileObject f = getSourceRoot();
         rootClassPath = ClassPath.getClassPath(f, ClassPath.COMPILE);
-BaseUtils.out("BaseJ2eePlatformImpl init() 1 " + rootClassPath);
         if (rootClassPath == null) {
             return;
         }
-BaseUtils.out("BaseJ2eePlatformImpl init() 2 " + rootClassPath);
         rootClassPath.addPropertyChangeListener(this);        
 /*        rootClassPath.addPropertyChangeListener((PropertyChangeEvent evt) -> {
             if (ClassPath.PROP_ROOTS.equals(evt.getPropertyName())) {
@@ -312,14 +309,14 @@ BaseUtils.out("BaseJ2eePlatformImpl rootClassPath listener " + rootClassPath);
                 FileObject fos = sourceGroup.getRootFolder();
                 
                 ClassPath classPath = ClassPath.getClassPath(fos, ClassPath.COMPILE);
-BaseUtils.out("PLATFORM oldClasspath=" + classPath);                
+
   /*              classPath.addPropertyChangeListener((PropertyChangeEvent evt) -> {
                     if (ClassPath.PROP_ROOTS.equals(evt.getPropertyName())) {
                         notifyLibrariesChanged();// Update your stuff, because classpath roots have changed.
                     }
                 });
 */
-                BaseUtils.out("PLATFORM newClasspath=" + classPath);
+//                BaseUtils.out("PLATFORM newClasspath=" + classPath);
                 List<ClassPath.Entry> l = classPath.entries();
                 int i = 0;
                 for (ClassPath.Entry e : l) {
@@ -353,7 +350,7 @@ BaseUtils.out("PLATFORM oldClasspath=" + classPath);
     }
 
     protected FileObject getSourceRoot() {
-BaseUtils.out("getSourceRoot manager.getServerProject() = " + manager.getServerProject());
+//BaseUtils.out("getSourceRoot manager.getServerProject() = " + manager.getServerProject());
         Sources sources = ProjectUtils.getSources(manager.getServerProject());
         SourceGroup[] sourceGroups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
         FileObject result = null;
@@ -372,8 +369,7 @@ BaseUtils.out("getSourceRoot manager.getServerProject() = " + manager.getServerP
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
             if (ClassPath.PROP_ROOTS.equals(evt.getPropertyName())) {
-                BaseUtils.out("BaseJ2eePlatformImpl rootClassPath listener " + rootClassPath);
-                
+//                BaseUtils.out("BaseJ2eePlatformImpl rootClassPath listener " + rootClassPath);
                 notifyLibrariesChanged();// Update your stuff, because classpath roots have changed.
             }
 

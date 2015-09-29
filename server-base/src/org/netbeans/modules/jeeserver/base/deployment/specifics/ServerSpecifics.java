@@ -17,7 +17,7 @@
 package org.netbeans.modules.jeeserver.base.deployment.specifics;
 
 import java.awt.Image;
-import java.io.InputStream;
+import java.beans.PropertyChangeEvent;
 import java.util.Map;
 import java.util.Properties;
 import javax.enterprise.deploy.spi.DeploymentManager;
@@ -33,7 +33,13 @@ import org.openide.util.Lookup;
  */
 public interface ServerSpecifics extends LicensesAcceptor {
 
-    Lookup getServerContext(BaseDeploymentManager dm);
+    Lookup getServerLookup(BaseDeploymentManager dm);
+    default void register(BaseDeploymentManager dm) {
+        
+    }
+    default void propertyChange(PropertyChangeEvent evt) {
+        
+    }    
     
     boolean pingServer(BaseDeploymentManager dm);
     boolean shutdownCommand(BaseDeploymentManager dm);
@@ -76,7 +82,7 @@ public interface ServerSpecifics extends LicensesAcceptor {
     default ProjectWizardBuilder getWizardBuilder() {
         return null;
     }
-    default InstanceBuilder getInstanceBuilder(Properties config) {
+    default InstanceBuilder getInstanceBuilder(Properties config, InstanceBuilder.Options options) {
         return null;
     }
     

@@ -17,12 +17,12 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants.*;
+
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-//import org.netbeans.modules.jeeserver.base.embedded.project.EmbServerCustomizerPanelVisual;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
-import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.WizardDescriptor;
 import org.openide.util.NbBundle;
 
@@ -48,6 +48,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
     private void addListeners() {
         serverId_ComboBox.addActionListener(this);
         incremental_Deployment_CheckBox.addActionListener(this);
+        projectDisplayNameTextField.getDocument().addDocumentListener(this);
 
     }
     PortHandler portHandler;
@@ -160,20 +161,22 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         
         ServerInstanceWizardAction.panelVisited[1] = true;
         
-        d.putProperty(SuiteConstants.HTTP_PORT_PROP, getPort());
-        d.putProperty(SuiteConstants.DEBUG_PORT_PROP, getDebugPort());
-        d.putProperty(SuiteConstants.HOST_PROP, getHost());
+        d.putProperty(HTTP_PORT_PROP, getPort());
+        d.putProperty(DEBUG_PORT_PROP, getDebugPort());
+        d.putProperty(HOST_PROP, getHost());
+        d.putProperty(DISPLAY_NAME_PROP, getDisplayName());
+        
 //        String p = getShutdownPort();
-        d.putProperty(SuiteConstants.SHUTDOWN_PORT_PROP, getShutdownPort());
+        d.putProperty(SHUTDOWN_PORT_PROP, getShutdownPort());
         DefaultComboBoxModel<String> dcm = (DefaultComboBoxModel<String>) serverId_ComboBox.getModel();
 
         String actualServerId = (String) dcm.getSelectedItem();
         String serverId = BaseUtils.getServerIdByAcualId(actualServerId);
-        d.putProperty(SuiteConstants.SERVER_ID_PROP, serverId);
+        d.putProperty(SERVER_ID_PROP, serverId);
         
-        d.putProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP, actualServerId);
+        d.putProperty(SERVER_ACTUAL_ID_PROP, actualServerId);
         
-        d.putProperty(SuiteConstants.INCREMENTAL_DEPLOYMENT, isIncrementalDeployment());
+        d.putProperty(INCREMENTAL_DEPLOYMENT, isIncrementalDeployment());
     }
     
     String isIncrementalDeployment() {
@@ -182,8 +185,11 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
     }
     String getActualServerId() {
         DefaultComboBoxModel<String> dcm = (DefaultComboBoxModel<String>) serverId_ComboBox.getModel();
-BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem());                                
+//BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem());                                
         return (String) dcm.getSelectedItem();
+    }
+    String getDisplayName() {
+        return this.projectDisplayNameTextField.getText();
     }
 
     String getPort() {
@@ -243,19 +249,28 @@ BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem()
     @Override
     public void read(WizardDescriptor wiz) {
         this.wiz = wiz;
-        File projectLocation = (File) wiz.getProperty("projdir");
-        this.projectLocationTextField.setText(projectLocation.getAbsolutePath());
-
-        String projectName = (String) wiz.getProperty("name");
-        this.projectNameTextField.setText(projectName);
-        
         //-----  Server ID ---------
         DefaultComboBoxModel<String> dcm = buildComboModel();
         serverId_ComboBox.setModel(dcm);
-        String actualServerId = (String) wiz.getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);
+        String actualServerId = (String) wiz.getProperty(SERVER_ACTUAL_ID_PROP);
         if (actualServerId != null && dcm.getIndexOf(actualServerId) >= 0) {
             dcm.setSelectedItem(actualServerId);
         }
+        
+        
+        File projectLocation = (File) wiz.getProperty("projdir");
+        this.projectLocationTextField.setText(projectLocation.getAbsolutePath());
+        String projectName = (String) wiz.getProperty("name");
+        this.projectNameTextField.setText(projectName);
+        String displayName = (String) wiz.getProperty(DISPLAY_NAME_PROP);
+        if ( displayName == null ) {
+            displayName = "";
+            if ( projectName != null ) {
+                displayName = projectName;
+            }
+        }
+        this.projectDisplayNameTextField.setText(displayName);
+        
 
         String incrDepl = (String) wiz.getProperty("incrementalDeployment");
         if ( incrDepl == null ) {
@@ -274,19 +289,19 @@ BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem()
 
     void readDefaultPortSettings(WizardDescriptor settings) {
         
-        String port = (String) settings.getProperty(SuiteConstants.HTTP_PORT_PROP);
+        String port = (String) settings.getProperty(HTTP_PORT_PROP);
         if (port == null) {
             port = String.valueOf(getSpecifics().getDefaultPort());
         }
         serverPort_Spinner.setValue(Integer.parseInt(port));
 
-        port = (String) settings.getProperty(SuiteConstants.DEBUG_PORT_PROP);
+        port = (String) settings.getProperty(DEBUG_PORT_PROP);
         if (port == null) {
             port = String.valueOf(getSpecifics().getDefaultDebugPort());
         }
         serverDebugPort_Spinner.setValue(Integer.parseInt(port));
 
-        port = (String) settings.getProperty(SuiteConstants.SHUTDOWN_PORT_PROP);
+        port = (String) settings.getProperty(SHUTDOWN_PORT_PROP);
 
         if (port == null) {
             port = String.valueOf(getSpecifics().getDefaultShutdownPort());
@@ -308,17 +323,29 @@ BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem()
         // nothing to validate
     }
 
-    // Implementation of DocumentListener --------------------------------------
+    
     @Override
     public void changedUpdate(DocumentEvent e) {
+        panel.fireChangeEvent(); // Notify that the panel changed
+        if (e.getDocument() == this.projectDisplayNameTextField.getDocument()) {
+            firePropertyChange(DISPLAY_NAME_PROP, null, this.projectDisplayNameTextField.getText());
+        }
     }
 
     @Override
     public void insertUpdate(DocumentEvent e) {
+        panel.fireChangeEvent();
+        if (this.projectDisplayNameTextField.getDocument() == e.getDocument()) {
+            firePropertyChange(DISPLAY_NAME_PROP, null, this.projectDisplayNameTextField.getText());
+        }
     }
 
     @Override
     public void removeUpdate(DocumentEvent e) {
+        panel.fireChangeEvent();
+        if (this.projectNameTextField.getDocument() == e.getDocument()) {
+            firePropertyChange(DISPLAY_NAME_PROP, null, this.projectDisplayNameTextField.getText());
+        }
     }
 
     @Override
@@ -414,6 +441,9 @@ BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem()
         projectNameLabel = new javax.swing.JLabel();
         projectLocationLabel = new javax.swing.JLabel();
         projectLocationTextField = new javax.swing.JTextField();
+        projectDisplayNameLabel = new javax.swing.JLabel();
+        projectDisplayNameTextField = new javax.swing.JTextField();
+        horSeparator = new javax.swing.JSeparator();
 
         org.openide.awt.Mnemonics.setLocalizedText(hostLabel, org.openide.util.NbBundle.getMessage(ServerInstanceConnectorVisualPanel.class, "ServerInstanceConnectorVisualPanel.hostLabel.text")); // NOI18N
 
@@ -497,6 +527,12 @@ BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem()
 
         projectLocationTextField.setEditable(false);
 
+        org.openide.awt.Mnemonics.setLocalizedText(projectDisplayNameLabel, "Display Name"); // NOI18N
+
+        projectDisplayNameTextField.setText(org.openide.util.NbBundle.getMessage(ServerInstanceConnectorVisualPanel.class, "ServerInstanceConnectorVisualPanel.projectDisplayNameTextField.text")); // NOI18N
+
+        horSeparator.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -505,21 +541,28 @@ BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(messageLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1)
                         .addGap(18, 18, 18)
                         .addComponent(serverId_ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(messageLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(projectNameLabel)
-                            .addComponent(projectLocationLabel))
+                            .addComponent(projectLocationLabel)
+                            .addComponent(projectDisplayNameLabel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(projectDisplayNameTextField)
                             .addComponent(projectNameTextField, javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(projectLocationTextField, javax.swing.GroupLayout.Alignment.TRAILING))))
                 .addContainerGap())
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(horSeparator)
+                    .addContainerGap()))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -532,20 +575,30 @@ BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(projectLocationLabel)
                     .addComponent(projectLocationTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(projectDisplayNameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(projectDisplayNameLabel))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 50, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(serverId_ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(27, 27, 27)
+                .addGap(26, 26, 26)
                 .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(messageLabel)
-                .addGap(25, 25, 25))
+                .addGap(9, 9, 9))
+            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createSequentialGroup()
+                    .addGap(134, 134, 134)
+                    .addComponent(horSeparator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(411, Short.MAX_VALUE)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JSeparator horSeparator;
     private javax.swing.JLabel hostLabel;
     private javax.swing.JTextField hostTextField;
     private javax.swing.JCheckBox incremental_Deployment_CheckBox;
@@ -553,6 +606,8 @@ BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem()
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel messageLabel;
+    private javax.swing.JLabel projectDisplayNameLabel;
+    private javax.swing.JTextField projectDisplayNameTextField;
     private javax.swing.JLabel projectLocationLabel;
     private javax.swing.JTextField projectLocationTextField;
     private javax.swing.JLabel projectNameLabel;

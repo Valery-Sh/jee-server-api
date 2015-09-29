@@ -25,9 +25,12 @@ import javax.enterprise.deploy.spi.DeploymentManager;
 import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectManager;
+import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
@@ -59,6 +62,10 @@ public class FactoryDelegate {
         registerUnusedInstances();
     }
 
+    public ServerSpecifics getSpecifics() {
+        return specifics;
+    }
+
     public void deleteUnusedInstances() {
 
         if (toDelete.isEmpty()) {
@@ -71,6 +78,8 @@ public class FactoryDelegate {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
             if (ip != null) {
                 InstanceProperties.removeInstance(uri);
+//        BaseUtils.out("FactoryDelegate deleteUnusedInstances uri=" + uri);
+
                 toDelete.remove(uri);
             }
             InstanceProperties.getInstanceProperties(uri);
@@ -85,45 +94,45 @@ public class FactoryDelegate {
      * @return {@literal true } if the server project exists. {@literal false}
      * otherwise
      */
-/*    protected boolean existsServer(String serverLocation, String serverInstanceDir) {
+    /*    protected boolean existsServer(String serverLocation, String serverInstanceDir) {
 
-        if (serverLocation == null) {
-            return false;
-        }
+     if (serverLocation == null) {
+     return false;
+     }
 
-        File f = new File(serverLocation);
-        if (!f.exists()) {
-            return false;
-        }
+     File f = new File(serverLocation);
+     if (!f.exists()) {
+     return false;
+     }
 
-        FileObject fo = FileUtil.toFileObject(f);
+     FileObject fo = FileUtil.toFileObject(f);
 
-        Project p = FileOwnerQuery.getOwner(fo);
-        if (p == null) {
-            return false;
-        }
+     Project p = FileOwnerQuery.getOwner(fo);
+     if (p == null) {
+     return false;
+     }
 
-//        return BaseUtils.isServerProject(p);
-        if (p.getLookup().lookup(ServerInstanceProperties.class) != null) {
-            return true;
-        }
+     //        return BaseUtils.isServerProject(p);
+     if (p.getLookup().lookup(ServerInstanceProperties.class) != null) {
+     return true;
+     }
 
-        if (serverInstanceDir == null) {
-            return false;
-        }
+     if (serverInstanceDir == null) {
+     return false;
+     }
 
-        fo = FileUtil.toFileObject(new File(serverInstanceDir));
-        if (fo == null) {
-            return false;
-        }
+     fo = FileUtil.toFileObject(new File(serverInstanceDir));
+     if (fo == null) {
+     return false;
+     }
 
-        if (fo.getFileObject("instance.properties") == null) {
-            return false;
-        }
+     if (fo.getFileObject("instance.properties") == null) {
+     return false;
+     }
 
-        return true;
-    }
-*/
+     return true;
+     }
+     */
     /**
      * Determine whether a server exists under the specified location.
      *
@@ -132,7 +141,6 @@ public class FactoryDelegate {
      * otherwise
      */
     protected boolean existsServer(FileObject instanceFO) {
-
 
         String serverLocation = (String) instanceFO.getAttribute(BaseConstants.SERVER_LOCATION_PROP);
 //        String serverInstanceDir = (String) instanceFO.getAttribute(BaseConstants.SERVER_INSTANCE_DIR_PROP);
@@ -158,19 +166,19 @@ public class FactoryDelegate {
             return false;
         }
 
-/*        if (serverInstanceDir == null) {
-            return false;
-        }
+        /*        if (serverInstanceDir == null) {
+         return false;
+         }
 
-        fo = FileUtil.toFileObject(new File(serverInstanceDir));
-        if (fo == null) {
-            return false;
-        }
+         fo = FileUtil.toFileObject(new File(serverInstanceDir));
+         if (fo == null) {
+         return false;
+         }
 
-        if (fo.getFileObject("instance.properties") == null) {
-            return false;
-        }
-*/
+         if (fo.getFileObject("instance.properties") == null) {
+         return false;
+         }
+         */
         return true;
     }
 
@@ -183,12 +191,6 @@ public class FactoryDelegate {
             if (!url.startsWith(uriPrefix)) {
                 continue;
             }
-            /*            String serverDir = (String) instanceFO.getAttribute(BaseConstants.SERVER_LOCATION_PROP);
-             String serverInstanceDir = (String) instanceFO.getAttribute(BaseConstants.SERVER_INSTANCE_DIR_PROP);            
-             if (existsServer(serverDir, serverInstanceDir)) {
-             continue;
-             }
-             */
             if (existsServer(instanceFO)) {
                 continue;
             }
@@ -225,6 +227,7 @@ public class FactoryDelegate {
      * @throws DeploymentManagerCreationException
      */
     public synchronized BaseDeploymentManager getDeploymentManager(String uri, String username, String password) throws DeploymentManagerCreationException {
+//        BaseUtils.out("FactoryDelegate getDeploymentManager uri=" + uri);
 
         deleteUnusedInstances();
 
@@ -237,15 +240,20 @@ public class FactoryDelegate {
         BaseDeploymentManager manager = managers.get(uri);
 
         if (null == manager) {
-            manager = new BaseDeploymentManager(uri);
-            manager.setSpecifics(specifics);
+            manager = new BaseDeploymentManager(uri,specifics);
+            //manager.setSpecifics(specifics);
 
             // put into cache
             managers.put(uri, manager);
+            
+            //initManger(uri);
+            
+            specifics.register( manager);
         }
 
         return manager;
     }
+
 
     /**
      *

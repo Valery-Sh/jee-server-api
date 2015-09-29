@@ -1,6 +1,5 @@
 package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.util.HashSet;
 import java.util.Set;

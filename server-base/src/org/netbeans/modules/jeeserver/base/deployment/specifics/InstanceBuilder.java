@@ -60,18 +60,32 @@ public abstract class InstanceBuilder {
 
     private static final Logger LOG = Logger.getLogger(InstanceBuilder.class.getName());
     private WizardDescriptor wiz;
-    
+    private InstanceBuilder.Options opt;    
+            
+    public static enum Options {
+        NEW,
+        EXISTING,
+        CUSTOMIZER
+    }
     protected Properties configProps;
     
-    public InstanceBuilder(Properties configProps) {
+    public InstanceBuilder(Properties configProps, InstanceBuilder.Options opt) {
         this.configProps = configProps;
+        this.opt = opt;
     }
 
+    public InstanceBuilder.Options getOptions() {
+        return opt;
+    }
+    
     public abstract Set instantiate();
-
+    
     public abstract InputStream getZipTemplateInputStream();
     
-    public abstract void finishInstantiateProjectDir(Set result);
+    public abstract void copyCommandManagerLib(Set result);
+    
+    
+    public abstract void removeCommandManager(Project project);    
 
     
     public WizardDescriptor getWizardDescriptor() {
@@ -101,7 +115,7 @@ public abstract class InstanceBuilder {
         Project p = ProjectManager.getDefault().findProject(dir);
         OpenProjects.getDefault().open(new Project[]{p}, true);
         result.add(p);
-        finishInstantiateProjectDir(result);        
+        copyCommandManagerLib(result);        
     }
 
     /**
@@ -152,14 +166,12 @@ public abstract class InstanceBuilder {
         Map<String, String> ip = new HashMap<>();
         FileObject projectDir = FileUtil.toFileObject(FileUtil.normalizeFile((File) wiz.getProperty("projdir")));
         String serverId = (String) wiz.getProperty(BaseConstants.SERVER_ID_PROP);
-        String url = serverId + ":" + BaseConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath();
+        String url = buildURL(serverId,projectDir);
         String jettyHome = (String) wiz.getProperty(BaseConstants.HOME_DIR_PROP);
 //        String jettyVersion = Utils.getJettyVersion(jettyHome);
 
-        String displayName = projectDir.getNameExt();
-
         ip.put(BaseConstants.SERVER_ID_PROP, serverId);
-        ip.put(BaseConstants.DISPLAY_NAME_PROP, displayName);
+        ip.put(BaseConstants.DISPLAY_NAME_PROP, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP));
 
         ip.put(BaseConstants.HOST_PROP, (String) wiz.getProperty(BaseConstants.HOST_PROP));
         ip.put(BaseConstants.HTTP_PORT_PROP, (String) wiz.getProperty(BaseConstants.HTTP_PORT_PROP));
@@ -172,6 +184,10 @@ public abstract class InstanceBuilder {
 //        modifyPropertymap(ip);
 
         return ip;
+    }
+    
+    protected String buildURL(String serverId, FileObject projectDir) {
+        return serverId + ":" + BaseConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath();
     }
 
     private void unZipFile(InputStream source, FileObject projectRoot) throws IOException {
@@ -256,7 +272,7 @@ public abstract class InstanceBuilder {
         }
 
     }
-
+    
     protected static void filterBuildXML(FileObject fo, ZipInputStream str, String name) throws IOException {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
