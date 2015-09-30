@@ -21,6 +21,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import static org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction.RP;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
@@ -30,18 +31,19 @@ import org.openide.execution.ExecutorTask;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.RequestProcessor;
+
 /**
- * The class provides implementations of the  context aware action 
- * to be performed to stop the server from the server 
- * project's pop up menu.
- * 
+ * The class provides implementations of the context aware action to be
+ * performed to stop the server from the server project's pop up menu.
+ *
  * @author V. Shyshkin
  */
 @ActionID(
         category = "Project",
         id = "org.netbeans.modules.jee.server.deployment.actions.StopServerAction")
 @ActionRegistration(
-        displayName = "#CTL_StopServerAction",lazy=false)
+        displayName = "#CTL_StopServerAction", lazy = false)
 @ActionReference(path = "Projects/Actions", position = 0)
 @Messages("CTL_StopServerAction=Stop Server")
 public final class StopServerAction extends AbstractAction implements ContextAwareAction {
@@ -50,10 +52,12 @@ public final class StopServerAction extends AbstractAction implements ContextAwa
     public void actionPerformed(ActionEvent e) {
         assert false;
     }
+
     /**
      * Creates an action for the given context.
+     *
      * @param context a lookup that contains the server project instance of type
-     *  {@literal Project}.
+     * {@literal Project}.
      * @return a new instance of type {@link #ContextAction}
      */
     @Override
@@ -67,38 +71,46 @@ public final class StopServerAction extends AbstractAction implements ContextAwa
 
     private static final class ContextAction extends AbstractAction {
 
-        
+        protected static final RequestProcessor RP = new RequestProcessor(BaseDeploymentManager.class);
+
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
             manager = BaseUtils.managerOf(context);
-            
+
             boolean show = false;
             if (manager != null) {
-                manager.updateServerIconAnnotator();                
-                show = ! isStopped();
-                boolean isStopped = isStopped();
-                boolean running = manager.isActuallyRunning();
-                //manager.
-                if (running && isStopped || (!running) && !isStopped) {
-                    show = manager.isServerRunning();
-                }
-                //show = manager.isServerRunning();
+                //manager.updateServerIconAnnotator();
+                /*                show = ! isStopped();
+                 boolean isStopped = isStopped();
+                 boolean running = manager.isActuallyRunning();
+                 //manager.
+                 if (running && isStopped || (!running) && !isStopped) {
+                 show = manager.isServerRunning();
+                 }
+                 */
+                show = manager.isServerRunning();
+                setEnabled(show);
+                // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
+                putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
+
             }
-            
-            setEnabled(show);
+
+            //setEnabled(show);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager==null);
-            putValue(NAME, "&Stop Server");
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager
+                    == null);
+            putValue(NAME,
+                    "&Stop Server");
         }
 
         public boolean isStopped() {
-            
+
             ExecutorTask task = manager.getServerTask();
 
             boolean stopped = false;
 
-            if (task == null || (task != null && task.isFinished()) ) {
+            if (task == null || (task != null && task.isFinished())) {
                 stopped = true;
             }
             return stopped;

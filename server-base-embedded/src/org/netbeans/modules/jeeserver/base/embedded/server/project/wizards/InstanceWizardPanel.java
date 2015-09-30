@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.WizardDescriptor;
 import org.openide.WizardValidationException;
 import org.openide.util.HelpCtx;
@@ -30,6 +31,12 @@ public abstract class InstanceWizardPanel  implements WizardDescriptor.Panel,
     }
     @Override
     public abstract Component getComponent();
+
+    public void setComponent(InstancePanelVisual component) {
+        this.component = component;
+    }
+    
+    
 
 /*    public HelpCtx getHelp() {
         return new HelpCtx(EmbeddedServerProjectWizardPanel.class);

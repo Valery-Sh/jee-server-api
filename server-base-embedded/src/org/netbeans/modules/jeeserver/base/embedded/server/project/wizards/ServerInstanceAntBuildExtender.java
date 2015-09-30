@@ -100,13 +100,13 @@ public class ServerInstanceAntBuildExtender {
         try {
             ProjectManager.getDefault().saveProject(project);
         } catch (IOException ex) {
-           LOG.log(Level.INFO, ex.getMessage());
+            LOG.log(Level.INFO, ex.getMessage());
 
         }
-        if ( ! isValid()) {
+        if (!isValid()) {
             rebuild();
         }
-        
+
         FileObject projFo = project.getProjectDirectory();
         try {
             FileObject toDir = projFo.createFolder(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
@@ -117,26 +117,26 @@ public class ServerInstanceAntBuildExtender {
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
-        
+
     }
 
     protected void rebuild() {
         try {
             project.getProjectDirectory().getFileObject(BUILD_IMPL_XML).delete();
-            OpenProjects.getDefault().close(new Project[] {project});
-            OpenProjects.getDefault().open(new Project[] {project},true);
-        } catch(IOException ex) {
-           LOG.log(Level.INFO, ex.getMessage());
+            OpenProjects.getDefault().close(new Project[]{project});
+            OpenProjects.getDefault().open(new Project[]{project}, true);
+        } catch (IOException ex) {
+            LOG.log(Level.INFO, ex.getMessage());
         }
-        addBuildScript();        
+        addBuildScript();
     }
-    
+
     protected boolean isValid() {
-        
+
         boolean valid = false;
-        
+
         FileObject buildimplFo = project.getProjectDirectory().getFileObject(BUILD_IMPL_XML);
-        
+
         try (InputStream is = buildimplFo.getInputStream();) {
             //---------------------------------------------------------------------
             // Pay attension tht third parameter. It's true to correctly 
@@ -152,21 +152,22 @@ public class ServerInstanceAntBuildExtender {
                 for (int i = 0; i < nl.getLength(); i++) {
                     Element el = (Element) nl.item(i);
                     String fileAttr = el.getAttribute("file");
-                    if (fileAttr == null ) {
+                    if (fileAttr == null) {
                         continue;
                     }
-                    if ( SERVER_BUILDXML_NAME.equals(el.getAttributeNode("file").getValue()) ) {
+                    if (SERVER_BUILDXML_NAME.equals(el.getAttributeNode("file").getValue())) {
                         valid = true;
                         break;
                     }
                 }
             }
-            
+
         } catch (IOException | DOMException | SAXException ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
         return valid;
     }
+
     /**
      * Removes build script extension.
      */
@@ -175,17 +176,20 @@ public class ServerInstanceAntBuildExtender {
         try {
             FileObject projFo = project.getProjectDirectory();
             FileObject toDelete = projFo.getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
-            toDelete.delete();
-            ProjectManager.getDefault().saveProject(project);            
+            if (toDelete != null) {
+                toDelete.delete();
+                ProjectManager.getDefault().saveProject(project);
+            }
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
-        
+
     }
+
     /**
      * Creates or updates an extension build script. The name of the build file
-     * is specified by the constant {@link #EMBEDDED_BUILDXML_PATH}. To create or
-     * update the build file the method applies {@code .xls} file with a name
+     * is specified by the constant {@link #EMBEDDED_BUILDXML_PATH}. To create
+     * or update the build file the method applies {@code .xls} file with a name
      * specified by the constant {@link #BUILD_XSL }.
      */
     protected void refreshScript() {
@@ -200,7 +204,7 @@ public class ServerInstanceAntBuildExtender {
                 if ((GeneratedFilesHelper.FLAG_MODIFIED & flags) != 0
                         && (GeneratedFilesHelper.FLAG_OLD_PROJECT_XML & flags) != 0
                         && (GeneratedFilesHelper.FLAG_OLD_STYLESHEET & flags) != 0) {
-            
+
                     FileObject buildScript = project.getProjectDirectory().getFileObject(xmlPath);
                     if (buildScript != null) {
                         buildScript.delete();

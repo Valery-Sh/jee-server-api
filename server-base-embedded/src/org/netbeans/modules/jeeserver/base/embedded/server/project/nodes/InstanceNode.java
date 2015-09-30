@@ -7,7 +7,6 @@ package org.netbeans.modules.jeeserver.base.embedded.server.project.nodes;
 
 import java.awt.Image;
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,15 +15,17 @@ import javax.swing.Action;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants.*;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions.ServerInstanciesActions.InstancePropertiesAction;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions.ServerInstanciesActions.RemoveInstanceAction;
+import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
@@ -42,37 +43,43 @@ public class InstanceNode extends FilterNode implements ChildrenKeysModel {
     private final InstanceContent lookupContents;
     private InstanceNodeChildrenKeys childKeys;
     private final String key;
-    private final NodeModel nodeModel;
+    //private final NodeModel nodeModel;
     private String displayName;
     //private Properties instanceProps;
 
-    public InstanceNode(Node original, String key, NodeModel nodeModel) {
-
-        this(original, key, nodeModel, new InstanceContent(), new InstanceNodeChildrenKeys(key));
+    //public InstanceNode(Node original, String key, NodeModel nodeModel) {
+    public InstanceNode(Node original, String key) {        
+        //this(original, key, nodeModel, new InstanceContent(), new InstanceNodeChildrenKeys(key));
+        this(original, key, new InstanceContent(), new InstanceNodeChildrenKeys(key));        
     }
 
-    public InstanceNode(Node original, String key, NodeModel nodeModel, InstanceContent content, InstanceNodeChildrenKeys childKeys) {
+//    public InstanceNode(Node original, String key, NodeModel nodeModel, InstanceContent content, InstanceNodeChildrenKeys childKeys) {
+    public InstanceNode(Node original, String key, InstanceContent content, InstanceNodeChildrenKeys childKeys) {    
         super(original, new InstanceNodeChildrenKeys(key), new AbstractLookup(content));
         this.key = key;
-        this.nodeModel = nodeModel;
+        //this.nodeModel = nodeModel;
         //instanceProps = BaseUtils.loadProperties(key.getFileObject("instance.properties"));
         lookupContents = content;
+        lookupContents.add(original.getLookup().lookup(FileObject.class));
         this.childKeys = childKeys;
         init();
     }
 
     private void init() {
-        Lookup lk = ServerSuiteManager.getManager(key).getServerLookup();
 
-        ServerInstanceProperties sip = lk.lookup(ServerInstanceProperties.class);
+        InstanceProperties props = InstanceProperties.getInstanceProperties(key);
+        ServerInstanceProperties sip = new ServerInstanceProperties();
+        sip.setServerId(props.getProperty(BaseConstants.SERVER_ID_PROP));
+        sip.setUri(props.getProperty(BaseConstants.URL_PROP));
 
         lookupContents.add(sip);
         lookupContents.add(this);
-        NodeModel model = new NodeModel(this);
-        lookupContents.add(model);
-
-        InstanceProperties props = InstanceProperties.getInstanceProperties(key);
+        //NodeModel model = new NodeModel(this);
+        //lookupContents.add(model);
+        lookupContents.add(childKeys);
+        lookupContents.add(this);        
         this.displayName = props.getProperty(DISPLAY_NAME_PROP);
+        //model.getServerInstancesModel();
     }
 
     public String getKey() {
@@ -119,7 +126,10 @@ public class InstanceNode extends FilterNode implements ChildrenKeysModel {
                     new StopServerAction().createContextAwareInstance(getLookup()),
                     null, //new PropertiesAction().createContextAwareInstance(project.getLookup())
                     RemoveInstanceAction
-                    .getContextAwareInstance(getLookup())
+                        .getContextAwareInstance(getLookup()),
+                    null,
+                    InstancePropertiesAction
+                        .getContextAwareInstance(getLookup())
                 };
 
         return actions;
@@ -188,10 +198,15 @@ public class InstanceNode extends FilterNode implements ChildrenKeysModel {
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if ("server-running".equals(evt.getPropertyName())) {
-            BaseUtils.out("!!!!!!!!!!!!! fireIconChande");
             serverRunning = (Boolean) evt.getNewValue();
             fireIconChange();
-        }
+        } else if (BaseConstants.DISPLAY_NAME_PROP.equals(evt.getPropertyName())) {
+            String newValue = (String) evt.getNewValue();
+            String oldValue = displayName;
+            displayName = newValue;
+            fireDisplayNameChange(oldValue, newValue);
+        } else 
+
         if (childKeys != null  )  {
             childKeys.propertyChange(evt);
         }

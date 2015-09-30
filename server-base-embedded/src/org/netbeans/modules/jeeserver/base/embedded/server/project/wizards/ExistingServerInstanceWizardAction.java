@@ -8,6 +8,7 @@ package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -16,13 +17,15 @@ import java.util.Properties;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
-import org.netbeans.api.project.Project;
+import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ChildrenKeysModel;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNodeModel;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.DialogDisplayer;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
@@ -40,17 +43,29 @@ public class ExistingServerInstanceWizardAction extends AbstractAction implement
     public static final boolean[] panelVisited = new boolean[]{false, false};
 
     protected Lookup context;
-    protected File existingProjectDir;
-
-    public ExistingServerInstanceWizardAction(Lookup context, File existingProjectDir) {
+    protected File instanceProjectDir;
+    protected List<WizardDescriptor.Panel<WizardDescriptor>> panels;
+    protected WizardDescriptor wiz;        
+    
+    public ExistingServerInstanceWizardAction(Lookup context, File instanceProjectDir) {
         this.context = context;
-        this.existingProjectDir = existingProjectDir;
+        this.instanceProjectDir = instanceProjectDir;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<WizardDescriptor.Panel<WizardDescriptor>>();
-        panels.add(new ServerInstanceConnectorWizardPanel());
+        
+        wiz = initialize(new ServerInstanceConnectorWizardPanel());
+
+        if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
+            save();
+        }
+    }
+
+    public WizardDescriptor initialize(WizardDescriptor.Panel<WizardDescriptor> p) {
+
+        panels = new ArrayList<>();
+        panels.add(p);
         String[] steps = new String[panels.size()];
         for (int i = 0; i < panels.size(); i++) {
             Component c = panels.get(i).getComponent();
@@ -58,42 +73,67 @@ public class ExistingServerInstanceWizardAction extends AbstractAction implement
             steps[i] = c.getName();
             if (c instanceof JComponent) { // assume Swing components
                 JComponent jc = (JComponent) c;
-                jc.putClientProperty("WizardPanel_contentSelectedIndex", new Integer(i));
+                jc.putClientProperty("WizardPanel_contentSelectedIndex", i);
                 // Step name (actually the whole list for reference).
                 jc.putClientProperty("WizardPanel_contentData", steps);
 
             }
         }
-        WizardDescriptor wiz = new WizardDescriptor(new WizardDescriptor.ArrayIterator<WizardDescriptor>(panels));
+        wiz = new WizardDescriptor(new WizardDescriptor.ArrayIterator<>(panels));
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle("...dialog title...");
-        wiz.putProperty("projdir", existingProjectDir);
-        wiz.putProperty("name", existingProjectDir.getName());
+        wiz.putProperty("projdir", instanceProjectDir);
+        wiz.putProperty("name", instanceProjectDir.getName());
 
-        if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
-            // do something
-            WizardDescriptor d = ((InstanceWizardPanel) panels.get(0)).getDescriptor();
+        fillWizardDescriptor(wiz);
 
-            SuiteUtil.isServerProject(null);
-
-            String serverId = (String) wiz.getProperty(SuiteConstants.SERVER_ID_PROP);
-            ServerSpecifics ss = BaseUtils.getServerSpecifics(serverId);
-
-            FileObject instanciesDir = context.lookup(FileObject.class);
-
-            Properties props = new Properties();
-            props.setProperty("project.based.type", "ant");
-            props.setProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP, instanciesDir.getPath());
-            InstanceBuilder b;
-
-            EmbeddedInstanceBuilder eib = (EmbeddedInstanceBuilder) ss.getInstanceBuilder(props, InstanceBuilder.Options.EXISTING);
-            eib.setWizardDescriptor(wiz);
-
-            eib.instantiate();
-
-            context.lookup(ChildrenKeysModel.class).modelChanged();
-        }
+        return wiz;
     }
 
+    public void save() {
+        
+        String serverId = (String) wiz.getProperty(SuiteConstants.SERVER_ID_PROP);
+        ServerSpecifics ss = BaseUtils.getServerSpecifics(serverId);
+
+        FileObject instancesDir = gerServerInstancesDir(context); //context.lookup(FileObject.class);
+
+        Properties props = new Properties();
+        props.setProperty("project.based.type", "ant");
+        props.setProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP, instancesDir.getPath());
+
+        InstanceBuilder eib = getBuilder(ss, props);
+        eib.setWizardDescriptor(wiz);
+        eib.instantiate();
+        
+        String uri = (String) wiz.getProperty(BaseConstants.URL_PROP);        
+        SuiteNodeModel suiteModel = ServerSuiteManager.getServerSuiteProject(uri)
+                .getLookup().lookup(SuiteNodeModel.class);
+        suiteModel.modelChanged();
+        suiteModel.propertyChange(new PropertyChangeEvent(suiteModel, BaseConstants.DISPLAY_NAME_PROP, 
+                    null, wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP)));
+        
+        //
+        // We cannot use context as it may be build artificially for customizer
+        // See org.netbeans.modules.jeeserver.base.embedded.nodes.EmbManagerNode
+        //
+/*        if ( lk != null ) {
+            ChildrenKeysModel m = lk.lookup(ChildrenKeysModel.class);
+            m.modelChanged();
+        }
+*/        
+
+    }
+
+    protected InstanceBuilder getBuilder(ServerSpecifics specifics, Properties props) {
+        return (EmbeddedInstanceBuilder) specifics.getInstanceBuilder(props, InstanceBuilder.Options.EXISTING);
+    }
+
+    protected FileObject gerServerInstancesDir(Lookup context) {
+        return context.lookup(FileObject.class);
+    }
+
+    protected void fillWizardDescriptor(WizardDescriptor wiz) {
+
+    }
 }

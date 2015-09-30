@@ -1,6 +1,5 @@
 package org.netbeans.modules.jeeserver.base.embedded.server.project;
 
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.NodeModel;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,7 +18,9 @@ import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ChildrenKeysModel;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNodeModel;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
@@ -84,19 +85,17 @@ public class ServerSuiteManager {
         return result;
     }
 
-    public static AbstractLookup getInstanceLookup(String uri) {
-
-        InstanceContent c = new InstanceContent();
-        ServerInstanceProperties sip = new ServerInstanceProperties();
-        c.add(sip);
-        InstanceProperties props = InstanceProperties.getInstanceProperties(uri);
-        sip.setServerId(props.getProperty(BaseConstants.SERVER_ID_PROP));
-        sip.setUri(props.getProperty(BaseConstants.URL_PROP));
-        //sip.setCurrentDeploymentMode(sip.getManager().getCurrentDeploymentMode());        
-        return new AbstractLookup(c);
+    public static Lookup getServerInstanceLookup(String uri) {
+        SuiteNodeModel snm = getServerSuiteProject(uri).getLookup().lookup(SuiteNodeModel.class);
+        Lookup lk = snm.getServerInstanceLookup(uri);
+        if ( lk != null ) {
+            return lk;
+        }
+        return null;
     }
-
+    
     public static Project getServerSuiteProject(String uri) {
+BaseUtils.out("Suitemanager getServerSuiteProjecturi = " + uri);
         InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
         String suiteLocation;
         if (ip != null) {
@@ -124,6 +123,12 @@ public class ServerSuiteManager {
                 .getLookup()
                 .lookup(ChildrenKeysModel.class)
                 .modelChanged();
+    }
+    public static FileObject getServerInstancesDir(String uri) {
+
+        return ServerSuiteManager.getServerSuiteProject(uri)
+                .getProjectDirectory()
+                .getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER);
     }
 
 }

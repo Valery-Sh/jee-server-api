@@ -60,13 +60,13 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
             }
         }
 
-        FileObject instanciesDir = FileUtil.toFileObject(new File(configProps.getProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP)));
+        FileObject instancesDir = FileUtil.toFileObject(new File(configProps.getProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP)));
         String projName = (String) getWizardDescriptor().getProperty("name");
 
-        String instDirName = FileUtil.findFreeFolderName(instanciesDir, projName);
+        //String instDirName = FileUtil.findFreeFolderName(instancesDir, projName);
 
-        Project suite = FileOwnerQuery.getOwner(instanciesDir);
-        ip.setProperty(SuiteConstants.SERVER_INSTANCE_NAME_PROP, instDirName);
+        Project suite = FileOwnerQuery.getOwner(instancesDir);
+        //ip.setProperty(SuiteConstants.SERVER_INSTANCE_NAME_PROP, instDirName);
         ip.setProperty(SuiteConstants.SUITE_PROJECT_LOCATION, suite.getProjectDirectory().getPath());
         
 //        suite.getLookup().lookup(InstanceLookups.class)
@@ -75,8 +75,8 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
     
     @Override
     protected String buildURL(String serverId, FileObject projectDir) {
-        String serverInstanciesFolder = configProps.getProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP);
-        String suite = new File(serverInstanciesFolder).getParent();
+        String serverInstancesFolder = configProps.getProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP);
+        String suite = new File(serverInstancesFolder).getParent();
         return serverId + ":" + BaseConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath()
                 + ":server:suite:project:" +  suite;
     }

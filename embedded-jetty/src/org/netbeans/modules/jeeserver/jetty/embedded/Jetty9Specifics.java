@@ -6,10 +6,10 @@
  * License as published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
  *
- * Jetty Server Embedded support in NetBeans IDE is distributed in the hope that it
- * will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
- * of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
- * Public License for more details.
+ * Jetty Server Embedded support in NetBeans IDE is distributed in the hope that
+ * it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+ * warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * General Public License for more details.
  *
  * You should see the GNU General Public License here:
  * <http://www.gnu.org/licenses/>.
@@ -26,7 +26,6 @@ import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -38,6 +37,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.EmbeddedInstanceBuilder;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
@@ -63,12 +63,12 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
     //private static final String HELPER_JAR = "nb-jetty-helper.jar";
     public static final String JETTY_SHUTDOWN_KEY = "netbeans";
-
+/*
     @Override
     public boolean pingServer(BaseDeploymentManager dm) {
 
         String urlString = dm.buildUrl();
-        if ( urlString == null ) {
+        if (urlString == null) {
             return false;
         }
         try {
@@ -98,17 +98,18 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         return false;
 
     }
+*/
+
 
     @Override
     public boolean shutdownCommand(BaseDeploymentManager dm) {
         String urlString = dm.buildUrl();
-        if ( urlString == null ) {
+        if (urlString == null) {
             return false;
         }
         boolean result = false;
 
         //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject);
-
         String key = JETTY_SHUTDOWN_KEY;
         //for future String pkey = sp.getServerConfigProperties().getProperty("jetty-shutdown-key");
         String pkey = null;
@@ -142,7 +143,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         //
         long pingtimeout = System.currentTimeMillis() + SuiteConstants.SERVER_TIMEOUT_DELAY;
         result = true;
-        while (pingServer(dm)) {
+        while (pingServer(dm, 0)) {
             try {
                 Thread.sleep(200);
             } catch (InterruptedException ie) {
@@ -158,9 +159,9 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     @Override
     public String execCommand(BaseDeploymentManager dm, String cmd) {
         String urlString = dm.buildUrl();
-        if ( urlString == null ) {
+        if (urlString == null) {
             return null;
-        }        
+        }
         HttpURLConnection connection = null;
         String result = null;
         try {
@@ -180,7 +181,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         } catch (SocketException e) {
             System.out.println("Exception command=" + cmd + ". Msg=" + e.getMessage());
         } catch (IOException e) {
-            System.out.println("Exception command=" + cmd + ". Msg="  + e.getMessage());
+            System.out.println("Exception command=" + cmd + ". Msg=" + e.getMessage());
         } finally {
             if (connection != null) {
                 connection.disconnect();
@@ -233,9 +234,8 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
 //    private String buildUrl(Project p) {
 //        return BaseUtils.managerOf(p.getLookup()).buildUrl();
-        //return "http://" + sp.getHost() + ":" + sp.getHttpPort();
+    //return "http://" + sp.getHost() + ":" + sp.getHttpPort();
 //    }
-
     @Override
     public FindJSPServlet getFindJSPServlet(DeploymentManager dm) {
         return new JettyFindJspServlet((BaseDeploymentManager) dm);
@@ -248,11 +248,10 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
     @Override
     public void projectCreated(FileObject projectDir, Map<String, Object> props) {
-        String actualServerId = (String)props.get(SuiteConstants.SERVER_ACTUAL_ID_PROP);
+        String actualServerId = (String) props.get(SuiteConstants.SERVER_ACTUAL_ID_PROP);
         String cmOut = actualServerId + "-command-manager";
         String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + actualServerId + "-command-manager.jar";
-        
-                
+
         FileObject libExt = projectDir.getFileObject(SuiteConstants.SERVER_CONFIG_FOLDER + "/lib/ext");
         FileObject cmFo;// = null;
         try {
@@ -264,7 +263,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N
         }
-        
+
         //
         // Plugin jar => we can create a class from template
         //
@@ -276,12 +275,12 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
             String src = SuiteConstants.SERVER_PROJECT_FOLDER + "/src/main/java";
             BaseUtils.out("---------- src=" + src);
             BaseUtils.out("---------- projDir=" + projectDir.getPath());
-            
+
             FileObject srcFo = projectDir.getFileObject(src);
             BaseUtils.out("---------- srcfo=" + srcFo);
-            
+
             FileObject toDelete = srcFo.getFileObject("javaapplication0");
-            if ( toDelete != null ) {
+            if (toDelete != null) {
                 toDelete.delete();
             }
             FileObject targetFo = srcFo.createFolder("org")
@@ -304,40 +303,40 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         }
     }
 
-/*    protected void addJarToServerClassPath(File jar, FileObject projectDir) throws IOException {
+    /*    protected void addJarToServerClassPath(File jar, FileObject projectDir) throws IOException {
 
-        if (projectDir == null || jar == null || !jar.exists()) {
-            return;
-        }
-        URI[] uri = new URI[]{Utilities.toURI(jar)};
-        ProjectClassPathModifier.addRoots(uri, getSourceRoot(projectDir), ClassPath.COMPILE);
-    }
-*/
-/*    protected FileObject getSourceRoot(FileObject projectDir) {
-        Project p = FileOwnerQuery.getOwner(projectDir);
-        Sources sources = ProjectUtils.getSources(p);
-        SourceGroup[] sourceGroups
-                = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
-        FileObject result = null;
-        try {
-            for (SourceGroup sourceGroup : sourceGroups) {
-                result = sourceGroup.getRootFolder();
-                break;
+     if (projectDir == null || jar == null || !jar.exists()) {
+     return;
+     }
+     URI[] uri = new URI[]{Utilities.toURI(jar)};
+     ProjectClassPathModifier.addRoots(uri, getSourceRoot(projectDir), ClassPath.COMPILE);
+     }
+     */
+    /*    protected FileObject getSourceRoot(FileObject projectDir) {
+     Project p = FileOwnerQuery.getOwner(projectDir);
+     Sources sources = ProjectUtils.getSources(p);
+     SourceGroup[] sourceGroups
+     = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
+     FileObject result = null;
+     try {
+     for (SourceGroup sourceGroup : sourceGroups) {
+     result = sourceGroup.getRootFolder();
+     break;
 
-            }
-        } catch (UnsupportedOperationException ex) {
-            LOG.log(Level.FINE, ex.getMessage()); //NOI18N
-        }
-        return result;
-    }
-*/
-/*    protected void setMainClass(FileObject projDir) {
-        FileObject fo = projDir.getFileObject("nbproject/project.properties");
-        EditableProperties props = BaseUtils.loadEditableProperties(fo);
-        props.setProperty("main.class", "org.embedded.server.JettyEmbeddedServer");
-        BaseUtils.storeEditableProperties(props, fo);
-    }
-*/
+     }
+     } catch (UnsupportedOperationException ex) {
+     LOG.log(Level.FINE, ex.getMessage()); //NOI18N
+     }
+     return result;
+     }
+     */
+    /*    protected void setMainClass(FileObject projDir) {
+     FileObject fo = projDir.getFileObject("nbproject/project.properties");
+     EditableProperties props = BaseUtils.loadEditableProperties(fo);
+     props.setProperty("main.class", "org.embedded.server.JettyEmbeddedServer");
+     BaseUtils.storeEditableProperties(props, fo);
+     }
+     */
     @Override
     public boolean needsShutdownPort() {
         return false;
@@ -378,20 +377,25 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     @Override
     public Properties getContextPoperties(FileObject config) {
         return JettyModuleConfiguration.getContextProperties(config);
-    }            
-    
+    }
+
     @Override
     public InstanceBuilder getInstanceBuilder(Properties props, InstanceBuilder.Options options) {
         InstanceBuilder ib = null;
 
-        if ( "ant".equals(props.getProperty("project.based.type")) ) {
+        if ("ant".equals(props.getProperty("project.based.type"))) {
+            if ( options.equals(InstanceBuilder.Options.CUSTOMIZER)) {
+              ib = new JettyCustomizeInstanceBuilder(props, options);
+            } else {
+              ib = new JettyInstanceBuilder(props, options);
+            }
+            ((EmbeddedInstanceBuilder) ib).setMavenbased(false);
+            
+        } else if ("maven".equals(props.getProperty("project.based.type"))) {
             ib = new JettyInstanceBuilder(props, options);
-            ((JettyInstanceBuilder)ib).setMavenbased(false);
-        } else if ( "maven".equals(props.getProperty("project.based.type")) ) {
-            ib = new JettyInstanceBuilder(props,options);
-            ((JettyInstanceBuilder)ib).setMavenbased(true);
+            ((EmbeddedInstanceBuilder) ib).setMavenbased(true);
         }
-        
+
         return ib;
     }
 

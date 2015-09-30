@@ -59,6 +59,7 @@ import org.xml.sax.SAXException;
 public abstract class InstanceBuilder {
 
     private static final Logger LOG = Logger.getLogger(InstanceBuilder.class.getName());
+    
     private WizardDescriptor wiz;
     private InstanceBuilder.Options opt;    
             
@@ -141,10 +142,13 @@ public abstract class InstanceBuilder {
     protected void instantiateServerProperties(Set result) {
         Map<String, String> ipmap = getPropertyMap();
         String url = ipmap.get(BaseConstants.URL_PROP);
+BaseUtils.out("InstanceBuilder.instantiateServerProperties uri=" + url);
         String displayName = ipmap.get(BaseConstants.DISPLAY_NAME_PROP);
 
         try {
             InstanceProperties ip = InstanceProperties.createInstanceProperties(url, null, null, displayName, ipmap);
+BaseUtils.out("InstanceBuilder.instantiateProperties CREATED");
+            
             result.add(ip);
             //wiz.putProperty(ip.getProperty(BaseConstants.URL_PROP), url);
         } catch (InstanceCreationException ex) {
@@ -167,6 +171,8 @@ public abstract class InstanceBuilder {
         FileObject projectDir = FileUtil.toFileObject(FileUtil.normalizeFile((File) wiz.getProperty("projdir")));
         String serverId = (String) wiz.getProperty(BaseConstants.SERVER_ID_PROP);
         String url = buildURL(serverId,projectDir);
+        wiz.putProperty(BaseConstants.URL_PROP, url);        
+BaseUtils.out("getPropertyMap url=" + url);
         String jettyHome = (String) wiz.getProperty(BaseConstants.HOME_DIR_PROP);
 //        String jettyVersion = Utils.getJettyVersion(jettyHome);
 
@@ -175,6 +181,7 @@ public abstract class InstanceBuilder {
 
         ip.put(BaseConstants.HOST_PROP, (String) wiz.getProperty(BaseConstants.HOST_PROP));
         ip.put(BaseConstants.HTTP_PORT_PROP, (String) wiz.getProperty(BaseConstants.HTTP_PORT_PROP));
+BaseUtils.out("getPropertyMap PORT=" + ip.get(BaseConstants.HTTP_PORT_PROP));        
         ip.put(BaseConstants.DEBUG_PORT_PROP, (String) wiz.getProperty(BaseConstants.DEBUG_PORT_PROP));
         ip.put(BaseConstants.SHUTDOWN_PORT_PROP, (String) wiz.getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
         ip.put(BaseConstants.URL_PROP, url);

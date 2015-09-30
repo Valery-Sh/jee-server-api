@@ -363,10 +363,10 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
     void initialValidatePorts() {
         category.setValid(true);
         category.setErrorMessage(null);
-        if (SuiteUtil.isHttpPortBusy(Integer.parseInt(getPort()), context)) {
+        if (SuiteUtil.isHttpPortBusy_OLD(Integer.parseInt(getPort()), context)) {
             // Warning message do not use setValid
             category.setErrorMessage(NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_HTTP_PORT_IN_USE", getPort()));
-        } else if (needsShutdownPort() && SuiteUtil.isShutdownPortBusy(Integer.parseInt(getShutdownPort()), context)) {
+        } else if (needsShutdownPort() && SuiteUtil.isShutdownPortBusy_OLD(Integer.parseInt(getShutdownPort()), context)) {
             category.setErrorMessage(NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_SHUTDOWN_PORT_IN_USE", getShutdownPort()));
         }
     }
@@ -426,7 +426,7 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
             }
         }
         
-        if (SuiteUtil.isHttpPortBusy(Integer.parseInt(port), context)) {
+        if (SuiteUtil.isHttpPortBusy_OLD(Integer.parseInt(port), context)) {
             // Warning message do not use setValid
             category.setErrorMessage(NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_HTTP_PORT_IN_USE", port));
             return;
@@ -434,7 +434,7 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
 
         msg = NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_SHUTDOWN_PORT_IN_USE", shutdownPort);
         if (needsShutdownPort()) {
-            if (SuiteUtil.isShutdownPortBusy(Integer.parseInt(shutdownPort), context)) {
+            if (SuiteUtil.isShutdownPortBusy_OLD(Integer.parseInt(shutdownPort), context)) {
                 category.setErrorMessage(msg);
             }
         }

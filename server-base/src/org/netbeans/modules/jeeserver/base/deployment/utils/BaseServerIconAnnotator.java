@@ -24,7 +24,6 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.spi.project.ProjectIconAnnotator;
 import org.openide.util.ChangeSupport;
 import org.openide.util.ImageUtilities;
-import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
 import org.openide.util.lookup.ServiceProvider;
 
@@ -56,33 +55,33 @@ public class BaseServerIconAnnotator implements ProjectIconAnnotator {
     @Override
     public Image annotateIcon(Project p, Image orig, boolean openedNode) {
         if ("AServerSuite01".equals(p.getProjectDirectory().getNameExt())) {
-            BaseUtils.out("!!!!!!!!!!! AServerSuite01");
+//            BaseUtils.out("!!!!!!!!!!! AServerSuite01");
         }
         //     Lookup lk = p.getLookup().lookup(InstanceContexts.class);
         BaseDeploymentManager dm = BaseUtils.managerOf(p);
         if (dm == null) {
             return orig;
         }
-        if (dm.getServerLookup() == null) {
+        /*if (ServerSuiteManager.createServerLookup(dm.getUri()) == null) {
             // it's a global context and does it's work earlier 
             return orig;
-        }
+        }*/
         //ServerInstanceProperties sp = dm.getServerLookup().lookup(ServerInstanceProperties.class);
-        Image im = dm.getSpecifics().getProjectImage(null);
+        Image projImage = dm.getSpecifics().getProjectImage(null);
 
-        if (im == null) {
+        if (projImage == null) {
             return orig;
         }
-        Image mim = im;
+        Image runImage = projImage;
         /**
          * We don't ping a server as we can by calling dm.getServerRunning
          */
-//        if (dm.isServerStarted()) {
+
         if (dm.isActuallyRunning()) {
-            mim = ImageUtilities.mergeImages(im, ImageUtilities.loadImage(RUNNING_IMAGE), 16, 8);
+            runImage = ImageUtilities.mergeImages(projImage, ImageUtilities.loadImage(RUNNING_IMAGE), 16, 8);
         }
         long t1 = System.currentTimeMillis();
-        BaseUtils.out("TIME 1 = " + t1);
+//        BaseUtils.out("TIME 1 = " + t1);
         RP.post(
                 new Runnable() {
 
@@ -93,9 +92,7 @@ public class BaseServerIconAnnotator implements ProjectIconAnnotator {
 
                 }, 0, Thread.NORM_PRIORITY
         );
-        BaseUtils.out("TIME 2 = " + (System.currentTimeMillis() - t1));
-
-        return mim;
+        return runImage;
     }
 
     public @Override

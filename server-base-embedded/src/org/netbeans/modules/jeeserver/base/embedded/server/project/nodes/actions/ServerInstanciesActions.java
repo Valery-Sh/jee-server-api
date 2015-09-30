@@ -17,11 +17,13 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.CustomizeServerInstanceWizardAction;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ExistingServerInstanceWizardAction;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ServerInstanceAntBuildExtender;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ServerInstanceWizardAction;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
+//import org.netbeans.modules.project.uiapi.Utilities;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
@@ -30,6 +32,7 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
+import org.openide.util.Utilities;
 
 /**
  *
@@ -116,10 +119,10 @@ public class ServerInstanciesActions {
                                 DialogDisplayer.getDefault().notify(d);
                                 return;
                             }
-                            ExistingServerInstanceWizardAction action = 
-                                    new ExistingServerInstanceWizardAction(context,selectedFile);
+                            ExistingServerInstanceWizardAction action
+                                    = new ExistingServerInstanceWizardAction(context, selectedFile);
                             action.actionPerformed(null);
-                            
+
                         } else {
                             System.out.println("File access cancelled by user.");
                         }
@@ -166,18 +169,69 @@ public class ServerInstanciesActions {
                 //dm = BaseUtils.managerOf(context);
 
             }
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 BaseDeploymentManager dm = context.lookup(ServerInstanceProperties.class).getManager();
                 Project instanceProject = dm.getServerProject();
 
-                if ( instanceProject != null ) {
+                if (instanceProject != null) {
                     ServerInstanceAntBuildExtender extender = new ServerInstanceAntBuildExtender(instanceProject);
                     extender.disableExtender();
                 }
                 ServerSuiteManager.removeInstance(context.lookup(ServerInstanceProperties.class).getUri());
             }
         }
+    }
+//        Utilities.getBuildExecutionSupportImplementation().    
+
+    public static class InstancePropertiesAction extends AbstractAction implements ContextAwareAction {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            assert false;
+        }
+
+        @Override
+        public Action createContextAwareInstance(Lookup context) {
+            return new InstancePropertiesAction.ContextAction(context);
+        }
+
+        public static Action getContextAwareInstance(Lookup context) {
+            return new InstancePropertiesAction.ContextAction(context);
+        }
+
+        private static final class ContextAction extends AbstractAction { //implements ProgressListener {
+
+            private final Lookup context;
+            private final RequestProcessor.Task task;
+
+            public ContextAction(Lookup context) {
+                this.context = context;
+                
+                putValue(NAME, "&Properties");
+
+                task = new RequestProcessor("AddBody").create(new Runnable() { // NOI18N
+                    @Override
+                    public void run() {
+                        CustomizeServerInstanceWizardAction action
+                                = new CustomizeServerInstanceWizardAction(context, FileUtil.toFile(context.lookup(FileObject.class)));
+                        action.actionPerformed(null);
+                    }
+                });
+
+            }
+
+            public @Override
+            void actionPerformed(ActionEvent e) {
+                task.schedule(0);
+
+                if ("waitFinished".equals(e.getActionCommand())) {
+                    task.waitFinished();
+                }
+
+            }
+        }//class
     }
 
     public static class ProjectFilter {
@@ -195,17 +249,18 @@ public class ServerInstanciesActions {
             FileObject fo = proj.getProjectDirectory().getFileObject("nbproject/project.xml");
             if (fo != null && SuiteUtil.projectTypeByProjectXml(fo).equals(SuiteConstants.HTML5_PROJECTTYPE)) {
                 return "The selected project is an Html5 Project ";
-            } 
+            }
             if (fo != null && SuiteUtil.projectTypeByProjectXml(fo).equals(SuiteConstants.WEB_PROJECTTYPE)) {
                 return "The selected project is an Web Application";
             }
-            if ( BaseUtils.isMavenWebProject(proj) ) {
-                return "The selected project is a Maven  Web Application";                
+            if (BaseUtils.isMavenWebProject(proj)) {
+                return "The selected project is a Maven  Web Application";
             }
-            if ( BaseUtils.isMavenProject(proj) || BaseUtils.isAntProject(proj)) {
-                return null;                
+            if (BaseUtils.isMavenProject(proj) || BaseUtils.isAntProject(proj)) {
+                return null;
             }
-            return "The selected project is a Maven  Web Application";                
+            return "The selected project is a Maven  Web Application";
         }
     }
+
 }//class

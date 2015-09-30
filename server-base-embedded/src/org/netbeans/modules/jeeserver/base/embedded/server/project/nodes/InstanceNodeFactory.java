@@ -8,6 +8,7 @@ package org.netbeans.modules.jeeserver.base.embedded.server.project.nodes;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.spi.project.ui.support.NodeFactory;
 import org.netbeans.spi.project.ui.support.NodeFactorySupport;
@@ -44,9 +45,11 @@ public class InstanceNodeFactory implements NodeFactory {
     public static Node getNode(String key, Project suiteProj) {
         Node node = null;
         try {
-            FileObject fo = suiteProj.getProjectDirectory().getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER);
-            node = new InstanceNode(DataObject.find(fo).getNodeDelegate(), key
-                    ,suiteProj.getLookup().lookup(NodeModel.class));
+            //FileObject fo = suiteProj.getProjectDirectory().getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER);
+            FileObject fo = ServerSuiteManager.getManager(key).getServerProject().getProjectDirectory();
+            node = new InstanceNode(DataObject.find(fo).getNodeDelegate(), key);
+//                    ,suiteProj.getLookup().lookup(NodeModel.class));
+            
         } catch (Exception ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }

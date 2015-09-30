@@ -1,5 +1,6 @@
 package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -7,17 +8,16 @@ import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
 import javax.enterprise.deploy.spi.factories.DeploymentFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JSpinner;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants.*;
 
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
@@ -26,7 +26,7 @@ import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.WizardDescriptor;
 import org.openide.util.NbBundle;
 
-public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisual implements DocumentListener, ChangeListener, ActionListener {
+public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual implements DocumentListener, ActionListener {
 
     public static final String PROP_PORT = "portNumber";
     public static final String PROP_DEBUG_PORT = "debugPortNumber";
@@ -36,6 +36,8 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
     
     public ServerInstanceConnectorVisualPanel(InstanceWizardPanel panel) {
         initComponents();
+        saveButton.setVisible(false);
+        nextTimeMsgLabel.setVisible(false);
         this.messageLabel.setVisible(false);
         this.panel = panel;
         addListeners();
@@ -47,7 +49,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
     }
     private void addListeners() {
         serverId_ComboBox.addActionListener(this);
-        incremental_Deployment_CheckBox.addActionListener(this);
+        //incremental_Deployment_CheckBox.addActionListener(this);
         projectDisplayNameTextField.getDocument().addDocumentListener(this);
 
     }
@@ -131,14 +133,15 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
 
         }
         port = Integer.parseInt(getPort(serverPort_Spinner));
-        if (SuiteUtil.isHttpPortBusy(port, null)) {
+        String excludeUri = (String)wiz.getProperty(URL_PROP);
+        if (SuiteUtil.isHttpPortBusy(port, excludeUri) ) {
             wizardDescriptor.putProperty("WizardPanel_warningMessage",
                     NbBundle.getMessage(ServerInstanceConnectorVisualPanel.class, "MSG_HTTP_PORT_IN_USE", String.valueOf(port)));
             return true;
         }
         if (needsShutdownPort()) {
             port = Integer.parseInt(getPort(shutdownPort_Spinner));
-            if (SuiteUtil.isShutdownPortBusy(port, null)) {
+            if (SuiteUtil.isShutdownPortBusy(port, excludeUri)) {
                 wizardDescriptor.putProperty("WizardPanel_warningMessage",
                         NbBundle.getMessage(ServerInstanceConnectorVisualPanel.class, "MSG_SHUTDOWN_PORT_IN_USE", String.valueOf(port)));
                 return true;
@@ -157,35 +160,40 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         return getSpecifics().needsShutdownPort();
     }
 
-    public void store(WizardDescriptor d) {
+    @Override
+    public void store(WizardDescriptor wiz) {
         
         ServerInstanceWizardAction.panelVisited[1] = true;
         
-        d.putProperty(HTTP_PORT_PROP, getPort());
-        d.putProperty(DEBUG_PORT_PROP, getDebugPort());
-        d.putProperty(HOST_PROP, getHost());
-        d.putProperty(DISPLAY_NAME_PROP, getDisplayName());
+        wiz.putProperty(HTTP_PORT_PROP, getPort());
+        wiz.putProperty(DEBUG_PORT_PROP, getDebugPort());
+        wiz.putProperty(HOST_PROP, getHost());
+        wiz.putProperty(DISPLAY_NAME_PROP, getDisplayName());
         
 //        String p = getShutdownPort();
-        d.putProperty(SHUTDOWN_PORT_PROP, getShutdownPort());
+        wiz.putProperty(SHUTDOWN_PORT_PROP, getShutdownPort());
         DefaultComboBoxModel<String> dcm = (DefaultComboBoxModel<String>) serverId_ComboBox.getModel();
-
-        String actualServerId = (String) dcm.getSelectedItem();
-        String serverId = BaseUtils.getServerIdByAcualId(actualServerId);
-        d.putProperty(SERVER_ID_PROP, serverId);
         
-        d.putProperty(SERVER_ACTUAL_ID_PROP, actualServerId);
-        
-        d.putProperty(INCREMENTAL_DEPLOYMENT, isIncrementalDeployment());
+        if ( this.serverId_ComboBox.isEnabled() ) {
+            //-----------------------------------------------------------
+            // Add New Instance or Add Existing. 
+            // For customizer we shouldn't store those properties
+            //------------------------------------------------------------
+            String actualServerId = (String) dcm.getSelectedItem();
+            String serverId = BaseUtils.getServerIdByAcualId(actualServerId);
+            wiz.putProperty(SERVER_ID_PROP, serverId);
+            wiz.putProperty(SERVER_ACTUAL_ID_PROP, actualServerId);
+        }
+//        wiz.putProperty(INCREMENTAL_DEPLOYMENT, isIncrementalDeployment());
     }
     
-    String isIncrementalDeployment() {
+/*    String isIncrementalDeployment() {
         return incremental_Deployment_CheckBox.isSelected() ?
                 "true" : "false";
     }
+*/    
     String getActualServerId() {
         DefaultComboBoxModel<String> dcm = (DefaultComboBoxModel<String>) serverId_ComboBox.getModel();
-//BaseUtils.out("getActualServerId dcm.getSelectedItem()=" + dcm.getSelectedItem());                                
         return (String) dcm.getSelectedItem();
     }
     String getDisplayName() {
@@ -255,12 +263,14 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         String actualServerId = (String) wiz.getProperty(SERVER_ACTUAL_ID_PROP);
         if (actualServerId != null && dcm.getIndexOf(actualServerId) >= 0) {
             dcm.setSelectedItem(actualServerId);
+            this.serverId_ComboBox.setFont(new Font((String)dcm.getSelectedItem(),Font.BOLD, serverId_ComboBox.getFont().getSize() ));            
         }
         
         
         File projectLocation = (File) wiz.getProperty("projdir");
         this.projectLocationTextField.setText(projectLocation.getAbsolutePath());
         String projectName = (String) wiz.getProperty("name");
+        
         this.projectNameTextField.setText(projectName);
         String displayName = (String) wiz.getProperty(DISPLAY_NAME_PROP);
         if ( displayName == null ) {
@@ -272,7 +282,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         this.projectDisplayNameTextField.setText(displayName);
         
 
-        String incrDepl = (String) wiz.getProperty("incrementalDeployment");
+/*        String incrDepl = (String) wiz.getProperty("incrementalDeployment");
         if ( incrDepl == null ) {
             incrDepl = "true";
         }
@@ -281,7 +291,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         } else {
             incremental_Deployment_CheckBox.setSelected(false);
         }
-        
+*/        
         hostTextField.setText("localhost");
         readDefaultPortSettings(wiz);
 
@@ -290,6 +300,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
     void readDefaultPortSettings(WizardDescriptor settings) {
         
         String port = (String) settings.getProperty(HTTP_PORT_PROP);
+        
         if (port == null) {
             port = String.valueOf(getSpecifics().getDefaultPort());
         }
@@ -319,6 +330,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         addPortListeners();
     }
 
+    @Override
     public void validate(WizardDescriptor d) {
         // nothing to validate
     }
@@ -358,11 +370,12 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         if (e.getSource() == serverId_ComboBox) {
             panel.fireChangeEvent();
             readDefaultPortSettings(wiz);
-        } else if (e.getSource() == incremental_Deployment_CheckBox) {
-            panel.fireChangeEvent();
-            //readDefaultPortSettings(wiz);
-        }
+        } 
+    }
 
+    @Override
+    public JButton getSaveButton() {
+        return saveButton;
     }
 
     protected class PortHandler implements DocumentListener {
@@ -433,7 +446,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         serverDebugPort_Spinner = new javax.swing.JSpinner();
         shutdownPort_Label = new javax.swing.JLabel();
         shutdownPort_Spinner = new javax.swing.JSpinner();
-        incremental_Deployment_CheckBox = new javax.swing.JCheckBox();
+        nextTimeMsgLabel = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         serverId_ComboBox = new javax.swing.JComboBox();
         messageLabel = new javax.swing.JLabel();
@@ -444,6 +457,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
         projectDisplayNameLabel = new javax.swing.JLabel();
         projectDisplayNameTextField = new javax.swing.JTextField();
         horSeparator = new javax.swing.JSeparator();
+        saveButton = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(hostLabel, org.openide.util.NbBundle.getMessage(ServerInstanceConnectorVisualPanel.class, "ServerInstanceConnectorVisualPanel.hostLabel.text")); // NOI18N
 
@@ -461,8 +475,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
 
         shutdownPort_Spinner.setEditor(new javax.swing.JSpinner.NumberEditor(shutdownPort_Spinner, "#"));
 
-        incremental_Deployment_CheckBox.setSelected(true);
-        org.openide.awt.Mnemonics.setLocalizedText(incremental_Deployment_CheckBox, "Supports Incremental Deployment"); // NOI18N
+        org.openide.awt.Mnemonics.setLocalizedText(nextTimeMsgLabel, "Note: Changes will take affect the next time you start the server"); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -471,7 +484,7 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(incremental_Deployment_CheckBox)
+                    .addComponent(nextTimeMsgLabel)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(hostLabel)
@@ -485,12 +498,12 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
                             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
                                 .addComponent(shutdownPort_Spinner, javax.swing.GroupLayout.Alignment.LEADING)
                                 .addComponent(serverDebugPort_Spinner, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)))))
-                .addContainerGap(74, Short.MAX_VALUE))
+                .addContainerGap(46, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
+                .addGap(29, 29, 29)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(hostTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(hostLabel))
@@ -506,9 +519,9 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(shutdownPort_Label)
                     .addComponent(shutdownPort_Spinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(28, 28, 28)
-                .addComponent(incremental_Deployment_CheckBox)
-                .addContainerGap(25, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 47, Short.MAX_VALUE)
+                .addComponent(nextTimeMsgLabel)
+                .addContainerGap())
         );
 
         jTabbedPane1.addTab(org.openide.util.NbBundle.getMessage(ServerInstanceConnectorVisualPanel.class, "ServerInstanceConnectorVisualPanel.jPanel1.TabConstraints.tabTitle"), jPanel1); // NOI18N
@@ -533,6 +546,8 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
 
         horSeparator.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
+        org.openide.awt.Mnemonics.setLocalizedText(saveButton, "Save changes"); // NOI18N
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -540,29 +555,29 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTabbedPane1, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(messageLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(18, 18, 18)
-                        .addComponent(serverId_ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(projectNameLabel)
-                            .addComponent(projectLocationLabel)
-                            .addComponent(projectDisplayNameLabel))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(projectDisplayNameTextField)
-                            .addComponent(projectNameTextField, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(projectLocationTextField, javax.swing.GroupLayout.Alignment.TRAILING))))
-                .addContainerGap())
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addContainerGap()
                     .addComponent(horSeparator)
-                    .addContainerGap()))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 516, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(projectNameLabel)
+                                    .addComponent(projectLocationLabel)
+                                    .addComponent(projectDisplayNameLabel))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addComponent(projectLocationTextField, javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(projectNameTextField)
+                                    .addComponent(projectDisplayNameTextField)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addGap(18, 18, 18)
+                                .addComponent(serverId_ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(saveButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(messageLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -579,20 +594,19 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(projectDisplayNameTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(projectDisplayNameLabel))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 50, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(horSeparator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(27, 27, 27)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1)
                     .addComponent(serverId_ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 288, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(messageLabel)
-                .addGap(9, 9, 9))
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addGap(134, 134, 134)
-                    .addComponent(horSeparator, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addContainerGap(411, Short.MAX_VALUE)))
+                .addComponent(jTabbedPane1)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(saveButton)
+                    .addComponent(messageLabel))
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -601,17 +615,18 @@ public final class ServerInstanceConnectorVisualPanel extends InstancePanelVisua
     private javax.swing.JSeparator horSeparator;
     private javax.swing.JLabel hostLabel;
     private javax.swing.JTextField hostTextField;
-    private javax.swing.JCheckBox incremental_Deployment_CheckBox;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JLabel messageLabel;
+    private javax.swing.JLabel nextTimeMsgLabel;
     private javax.swing.JLabel projectDisplayNameLabel;
     private javax.swing.JTextField projectDisplayNameTextField;
     private javax.swing.JLabel projectLocationLabel;
     private javax.swing.JTextField projectLocationTextField;
     private javax.swing.JLabel projectNameLabel;
     private javax.swing.JTextField projectNameTextField;
+    private javax.swing.JButton saveButton;
     private javax.swing.JLabel serverDebugPortLabel;
     private javax.swing.JSpinner serverDebugPort_Spinner;
     private javax.swing.JComboBox serverId_ComboBox;

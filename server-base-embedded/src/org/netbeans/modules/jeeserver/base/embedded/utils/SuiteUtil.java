@@ -136,7 +136,20 @@ public class SuiteUtil extends BaseUtils {
      * @return {@literal true } if the given port is already in use.
      * {@literal false} otherwise
      */
-    public static boolean isHttpPortBusy(int port, Lookup exclude) {
+    public static boolean isHttpPortBusy_OLD(int port, Lookup exclude) {
+        return isPortBusy_OLD(port, BaseConstants.HTTP_PORT_PROP, exclude);
+    }
+    /**
+     * Checks whether the specified port is already in use. The method doesn't
+     * make something like "ping". It simply looks at all the registered Server
+     * Instances to determine the {@literal http port} they use.
+     *
+     * @param port the {@literal http port} to check
+     * @param exclude the embedded project, whose port is not taken into account
+     * @return {@literal true } if the given port is already in use.
+     * {@literal false} otherwise
+     */
+    public static boolean isHttpPortBusy(int port, String exclude) {
         return isPortBusy(port, BaseConstants.HTTP_PORT_PROP, exclude);
     }
 
@@ -150,12 +163,29 @@ public class SuiteUtil extends BaseUtils {
      * @return {@literal true } if the given port is already in use.
      * {@literal false} otherwise
      */
-    public static boolean isDebugPortBusy(int port, Lookup exclude) {
-        return isPortBusy(port, BaseConstants.DEBUG_PORT_PROP, exclude);
+    public static boolean isDebugPortBusy_OLD(int port, Lookup exclude) {
+        return isPortBusy_OLD(port, BaseConstants.DEBUG_PORT_PROP, exclude);
     }
 
-    public static boolean isShutdownPortBusy(int port, Lookup exclude) {
-        return isPortBusy(port, BaseConstants.SHUTDOWN_PORT_PROP, exclude);
+    /**
+     * Checks whether the specified port is already in use. The method doesn't
+     * make something like "ping". It simply looks at all the registered Server
+     * Instances to determine the {@literal http port} they use.
+     *
+     * @param port the {@literal http port} to check
+     * @param exclude the embedded project, whose port is not taken into account
+     * @return {@literal true } if the given port is already in use.
+     * {@literal false} otherwise
+     */
+    public static boolean isDebugPortBusy(int port, String uri) {
+        return isPortBusy(port, BaseConstants.DEBUG_PORT_PROP, uri);
+    }
+    
+    public static boolean isShutdownPortBusy_OLD(int port, Lookup exclude) {
+        return isPortBusy_OLD(port, BaseConstants.SHUTDOWN_PORT_PROP, exclude);
+    }
+    public static boolean isShutdownPortBusy(int port, String uri) {
+        return isPortBusy(port, BaseConstants.SHUTDOWN_PORT_PROP, uri);
     }
 
     /**
@@ -169,15 +199,12 @@ public class SuiteUtil extends BaseUtils {
      * @return {@literal true } if the given port is already in use.
      * {@literal false} otherwise
      */
-    public static boolean isPortBusy(int port, String portPropName, Lookup exclude) {
+    public static boolean isPortBusy(int port, String portPropName, String exclude) {
         boolean result = false;
         String[] uris = Deployment.getDefault().getServerInstanceIDs();
-        String excludeUri = null;
-        if (exclude != null) {
-            excludeUri = managerOf(exclude).getUri();
-        }
+        
         for (String uri : uris) {
-            if (uri.equals(excludeUri)) {
+            if (uri.equals(exclude)) {
                 continue;
             }
             try {
@@ -196,6 +223,44 @@ public class SuiteUtil extends BaseUtils {
         return result;
     }
 
+    /**
+     * Checks whether the specified port is already in use. The method doesn't
+     * make something like "ping". It simply looks at all the registered Server
+     * Instances to determine the {@literal port} they use.
+     *
+     * @param port the {@literal port} to check
+     * @param portPropName
+     * @param exclude the embedded project, whose port is not taken into account
+     * @return {@literal true } if the given port is already in use.
+     * {@literal false} otherwise
+     */
+    public static boolean isPortBusy_OLD(int port, String portPropName, Lookup exclude) {
+        boolean result = false;
+        String[] uris = Deployment.getDefault().getServerInstanceIDs();
+        String excludeUri = null;
+        if ( exclude != null ) {
+            excludeUri = managerOf(exclude).getUri();
+        }
+        for (String uri : uris) {
+            if (uri.equals(exclude)) {
+                continue;
+            }
+            try {
+                String p = InstanceProperties.getInstanceProperties(uri).getProperty(portPropName);
+                if (p == null) {
+                    continue;
+                }
+                if (Integer.parseInt(p) == port) {
+                    result = true;
+                    break;
+                }
+            } catch (IllegalStateException | NumberFormatException ex) {
+                LOG.log(Level.INFO, ex.getMessage());
+            }
+        }
+        return result;
+    }
+    
     /**
      *
      * @param webProject

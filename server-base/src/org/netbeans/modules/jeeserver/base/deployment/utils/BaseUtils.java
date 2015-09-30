@@ -458,7 +458,9 @@ public class BaseUtils {
 
         for (String uri : deployment.getServerInstanceIDs()) {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
-
+            if ( ip == null ) {
+                continue;
+            }
             String foundServerLocation = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
             if (foundServerLocation == null || !new File(foundServerLocation).exists()) {
                 // May be not a native plugin server
@@ -583,27 +585,12 @@ public class BaseUtils {
      */
     public static BaseDeploymentManager managerOf(Lookup context) {
         ServerInstanceProperties sp = context.lookup(ServerInstanceProperties.class);
-        BaseUtils.out("BaseUtils managerOf 1");
         if (sp == null) {
             return null;
         }
-        BaseUtils.out("BaseUtils managerOf 2");
-        String uri = sp.getUri();
-        //InstanceProperties.
         return sp.getManager();
     }
 
-    /**
-     * Returns an instance of {@literal ServerInstanceProperties} for a given
-     * server project.
-     *
-     * @param serverProject a server project
-     * @return
-     */
-    /*    public static ServerInstanceProperties getServerProperties(Project serverProject) {
-     return serverProject.getLookup().lookup(ServerInstanceProperties.class);
-     }
-     */
     /**
      * Returns an instance of {@literal ServerInstanceProperties} for a given
      * server project.

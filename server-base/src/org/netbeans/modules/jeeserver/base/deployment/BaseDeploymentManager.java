@@ -57,6 +57,7 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 import org.openide.util.Pair;
+import org.openide.util.RequestProcessor;
 
 /**
  * The {@literal javax.enterprise.deploy.spi.DeploymentManager} implementation.
@@ -68,12 +69,18 @@ import org.openide.util.Pair;
 public class BaseDeploymentManager implements DeploymentManager2 {
 
     private static final Logger LOG = Logger.getLogger(BaseDeploymentManager.class.getName());
+
+    protected static final RequestProcessor RP = new RequestProcessor(BaseDeploymentManager.class);
+
     /**
      * The deployment mode the server started.
      */
     protected Deployment.Mode currentDeploymentMode;
 
     private boolean waiting;
+
+    private boolean actuallyRunning;
+
     /**
      * The value that uniquely identifies the instance of the class
      */
@@ -170,10 +177,10 @@ public class BaseDeploymentManager implements DeploymentManager2 {
         return FileOwnerQuery.getOwner(fo);
     }
 
-    public Lookup getServerLookup() {
+/*    public Lookup getServerLookup() {
         return getSpecifics().getServerLookup(this);
     }
-
+*/
     /**
      * Returns the object that represents the specific server functionality. For
      * example, Jetty module provides it's own implementation of
@@ -245,33 +252,50 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     public void setCurrentDeploymentMode(Deployment.Mode currentDeploymentMode) {
         Deployment.Mode old = this.currentDeploymentMode;
         this.currentDeploymentMode = currentDeploymentMode;
-        if ( currentDeploymentMode == null ) {
-            running = false;
+/*        if (currentDeploymentMode == null) {
+            actuallyRunning = false;
         } else {
-            running = true;
+            actuallyRunning = true;
         }
+*/
+        //boolean oldValue = actuallyRunning;
+        actuallyRunning = isServerRunning();
         if (old == null && currentDeploymentMode != null
                 || old != null && currentDeploymentMode == null) {
-            //getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old != null, currentDeploymentMode != null));        
+            //getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-actuallyRunning", old != null, currentDeploymentMode != null));        
             //ServerInstanceProperties sp = getServerLookup().lookup(ServerInstanceProperties.class);
             //sp.setCurrentDeploymentMode(currentDeploymentMode);
             //updateServerIconAnnotator();
         }
-        updateServerIconAnnotator();
-        getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old != null, currentDeploymentMode != null));
+        //updateServerIconAnnotator(old != null,currentDeploymentMode != null);
+//        getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old != null, currentDeploymentMode != null));
     }
 
     /**
      * Updates visual representation of the project in the
      * {@literal NetBeans Project View}. Just change the icon that indicates the
-     * server running state. The method is invoked when the {@link #currentDeploymentMode) changes.
+     * server actuallyRunning state. The method is invoked when the {@link #currentDeploymentMode) changes.
+     * @param oldValue
+     * @param newValue
      * @see #setCurrentDeploymentMode(org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment.Mode)
      */
-    public void updateServerIconAnnotator() {
-        BaseServerIconAnnotator sia = Lookup.getDefault().lookup(BaseServerIconAnnotator.class);
-        if (sia != null) {
-            sia.serverStateChanged();
+    public void updateServerIconAnnotator(boolean oldValue, boolean newValue) {
+        if ( oldValue == newValue ) {
+            return;
         }
+        RP.post(new Runnable() {
+            @Override
+            public void run() {
+                BaseServerIconAnnotator sia = Lookup.getDefault().lookup(BaseServerIconAnnotator.class);
+                if (sia != null) {
+                    sia.serverStateChanged();
+                }
+                BaseUtils.out("updateServerIconAnnotator propertyChange  old=" + oldValue + "; new=" + newValue);
+                getSpecifics().propertyChange(new PropertyChangeEvent(BaseDeploymentManager.this, "server-running", oldValue, newValue));
+
+            }
+        }, 0, Thread.NORM_PRIORITY);
+
     }
 
     /**
@@ -386,45 +410,45 @@ public class BaseDeploymentManager implements DeploymentManager2 {
         return "http://" + host + ":" + port;
     }
 
-    private boolean running;
-
     public boolean isActuallyRunning() {
-        return running;
+        return actuallyRunning;
     }
 
     public void setActuallyRunning(boolean running) {
-        boolean old = this.running;
-        this.running = running;
-        /*        if ( running && currentDeploymentMode == null ) {
+        boolean old = this.actuallyRunning;
+        this.actuallyRunning = running;
+        /*        if ( actuallyRunning && currentDeploymentMode == null ) {
          setCurrentDeploymentMode(Deployment.Mode.RUN);
          return;
-         } else if ( (! running) && currentDeploymentMode != null ) {
+         } else if ( (! actuallyRunning) && currentDeploymentMode != null ) {
          setCurrentDeploymentMode(null);
          return;
 
          }
          */
-        if (!old && running
-                || old && !running) {
-            getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old, running));
+//        if (!old && running
+//                || old && !running) {
+//            getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old, running));
             //ServerInstanceProperties sp = getServerLookup().lookup(ServerInstanceProperties.class);
             //sp.setCurrentDeploymentMode(currentDeploymentMode);
-            updateServerIconAnnotator();
-        }
+        
+            updateServerIconAnnotator(old, running);
+            
+//        }
 
         //updateServerIconAnnotator();
     }
 
     /**
-     * Determines whether the server is running. Delegates the execution of this
-     * method to the null null null null     {@link ServerSpecifics#pingServer(org.netbeans.api.project.Project) 
+     * Determines whether the server is actuallyRunning. Delegates the execution
+     * of this method to the null null null null null     {@link ServerSpecifics#pingServer(org.netbeans.api.project.Project) 
      *
-     * @return {@literal true} if the server is running. {@literal false} otherwise.
+     * @return {@literal true} if the server is actuallyRunning. {@literal false} otherwise.
      */
     public boolean isServerRunning() {
 
-        setActuallyRunning(getSpecifics().pingServer(this));
-        return running;
+        setActuallyRunning(pingServer());
+        return actuallyRunning;
         //return getSpecifics().pingServer(this);
     }
 
@@ -524,8 +548,8 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * Used by {@literal StartServerAction},{@literal StartServerDebugAction},
      * {@literal StartServerProfileAction} and {@literal StopServerAction}.
      *
-     * @return {@literal true} if the server is not running. {@literal false}
-     * otherwise
+     * @return {@literal true} if the server is not actuallyRunning.
+     * {@literal false} otherwise
      * @see StartServerAction}
      * @see StartServerDebugAction}
      * @see StartServerProfileAction}
@@ -555,7 +579,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * @return ProgressObject an object that tracks and reports the status of
      * the distribution process.
      * @throws IllegalStateException is thrown when the method is called when
-     * the server is not running.
+     * the server is not actuallyRunning.
      */
     @Override
     public ProgressObject distribute(Target[] targets, File moduleArchive, File deploymentPlan) throws IllegalStateException {

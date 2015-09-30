@@ -23,14 +23,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 import javax.swing.Action;
+import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
 import static org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.Bundle.ServerInstanciesRootNode_shortDescription;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions.ServerInstanciesActions;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.actions.PropertiesAction;
+import org.openide.filesystems.FileObject;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.FilterNode;
@@ -55,7 +58,7 @@ import org.openide.util.lookup.InstanceContent;
 public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysModel {
 
     private static final Logger LOG = Logger.getLogger(ServerInstancesRootNode.class.getName());
-    
+
     private final InstanceContent lookupContents;
 
     private RootChildrenKeys childKeys;
@@ -78,7 +81,22 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
         super(node, childKeys, new AbstractLookup(instanceContent));
         this.childKeys = childKeys;
         this.lookupContents = instanceContent;
-        lookupContents.add(new NodeModel(this));
+        //lookupContents.add(new NodeModel(this));
+        //lookupContents.add(this);
+        BaseUtils.out("ServerInstancesRootNode fileObject=" + node.getLookup().lookup(FileObject.class));
+        FileObject fo  = node.getLookup().lookup(FileObject.class);
+        lookupContents.add(fo);
+        
+        lookupContents.add(childKeys);
+        init(fo);
+    }
+
+    private void init(FileObject dir) {
+        lookupContents.add(this);
+        FileOwnerQuery.getOwner(dir).getLookup()
+                .lookup(SuiteNodeModel.class)
+                .setModel(this);
+        
     }
 
     public RootChildrenKeys getChildKeys() {
@@ -93,20 +111,23 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
      * @param serverSuite
      */
     protected final void init(Project serverSuite) {
-        serverSuite.getLookup().lookup(NodeModel.class).init(this);
+        serverSuite.getLookup().lookup(SuiteNodeModel.class).setModel(this);
 
         setShortDescription(ServerInstanciesRootNode_shortDescription());
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        BaseUtils.out("ServerInstanceRootNode: propertyChange new = " + evt.getNewValue());
-        if (childKeys != null && "server-running".equals(evt.getPropertyName()) )  {
-            if (childKeys != null) {
-                childKeys.propertyChange(evt);
+        if (childKeys != null) {
+            if (null != evt.getPropertyName()) {
+                switch (evt.getPropertyName()) {
+                    case "server-running":
+                    case BaseConstants.DISPLAY_NAME_PROP:
+                        childKeys.propertyChange(evt);
+                        break;
+                }
             }
         }
-
     }
 
     /**
@@ -193,30 +214,30 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
 
     @Override
     public void modelChanged() {
-        if ( childKeys != null ) {
+        if (childKeys != null) {
             childKeys.addNotify();
         }
     }
 
-/*    @Override
-    public List<InstanceNode> getInstanceNodes() {
-        if (childKeys == null) {
-            return null;
-        }
-        List<InstanceNode> list = null;
-        Node[] nodes = childKeys.getNodes();
-        if (nodes == null) {
-            return null;
-        }
-        list = new ArrayList<>();
-        for (Node node : nodes) {
-            if (node instanceof InstanceNode) {
-                list.add((InstanceNode) node);
-            }
-        }
-        return list;
-    }
-*/
+    /*    @Override
+     public List<InstanceNode> getInstanceNodes() {
+     if (childKeys == null) {
+     return null;
+     }
+     List<InstanceNode> list = null;
+     Node[] nodes = childKeys.getNodes();
+     if (nodes == null) {
+     return null;
+     }
+     list = new ArrayList<>();
+     for (Node node : nodes) {
+     if (node instanceof InstanceNode) {
+     list.add((InstanceNode) node);
+     }
+     }
+     return list;
+     }
+     */
     /**
      * The implementation of the Children.Key of the {@literal Server Libraries}
      * node.

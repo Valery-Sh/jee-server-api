@@ -6,8 +6,10 @@
 package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 
 import java.io.File;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.event.ChangeEvent;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileUtil;
@@ -281,4 +283,14 @@ public class ServerInstanceMavenProjectVisualPanel extends InstancePanelVisual {
     private javax.swing.JTextField projectNameTextField;
     private javax.swing.JTextField versionTextField;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public JButton getSaveButton() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

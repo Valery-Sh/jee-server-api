@@ -45,7 +45,7 @@ public abstract class ServerInstanceWizardAction extends AbstractAction implemen
         panelVisited[1] = false;
 
         //List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<WizardDescriptor.Panel<WizardDescriptor>>();
-        List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<WizardDescriptor.Panel<WizardDescriptor>>();
+        List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<>();
         panels.add(new ServerInstanceProjectWizardPanel(isMavenBased()));
         panels.add(new ServerInstanceConnectorWizardPanel());
         String[] steps = new String[panels.size()];
@@ -61,13 +61,13 @@ public abstract class ServerInstanceWizardAction extends AbstractAction implemen
                  jc.putClientProperty(WizardDescriptor.PROP_CONTENT_DISPLAYED, true);
                  jc.putClientProperty(WizardDescriptor.PROP_CONTENT_NUMBERED, true);
                  */
-                jc.putClientProperty("WizardPanel_contentSelectedIndex", new Integer(i));
+                jc.putClientProperty("WizardPanel_contentSelectedIndex", i);
                 // Step name (actually the whole list for reference).
                 jc.putClientProperty("WizardPanel_contentData", steps);
 
             }
         }
-        WizardDescriptor wiz = new WizardDescriptor(new WizardDescriptor.ArrayIterator<WizardDescriptor>(panels));
+        WizardDescriptor wiz = new WizardDescriptor(new WizardDescriptor.ArrayIterator<>(panels));
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle("...dialog title...");
@@ -81,11 +81,11 @@ public abstract class ServerInstanceWizardAction extends AbstractAction implemen
             String serverId = (String) wiz.getProperty(SuiteConstants.SERVER_ID_PROP);
             ServerSpecifics ss = BaseUtils.getServerSpecifics(serverId);
 
-            FileObject instanciesDir = context.lookup(FileObject.class);
+            FileObject instancesDir = context.lookup(FileObject.class);
 
             Properties props = new Properties();
             props.setProperty("project.based.type", "ant");
-            props.setProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP, instanciesDir.getPath());
+            props.setProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP, instancesDir.getPath());
 
             EmbeddedInstanceBuilder eib = (EmbeddedInstanceBuilder) ss.getInstanceBuilder(props, InstanceBuilder.Options.NEW);
             eib.setWizardDescriptor(wiz);

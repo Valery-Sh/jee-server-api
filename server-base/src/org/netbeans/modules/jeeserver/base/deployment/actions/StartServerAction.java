@@ -30,6 +30,7 @@ import org.openide.awt.DynamicMenuContent;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
+import org.openide.util.RequestProcessor;
 
 /**
  * The class provides implementations of the context aware action to be
@@ -77,6 +78,9 @@ public final class StartServerAction extends AbstractAction implements ContextAw
     public Action createContextAwareInstance(Lookup context) {
         return new ContextAction(context);
     }
+    private boolean meme = false;
+    
+    protected static final RequestProcessor RP = new RequestProcessor(BaseDeploymentManager.class);
 
     private static final class ContextAction extends AbstractAction {
 
@@ -84,24 +88,31 @@ public final class StartServerAction extends AbstractAction implements ContextAw
 
         public ContextAction(Lookup context) {
             manager = BaseUtils.managerOf(context);
-            BaseUtils.out("StartServerAction manager: " + manager);
             
             boolean show = false;
             if (manager != null) {
-                manager.updateServerIconAnnotator();
-                show = manager.isStopped();
+                
+                //manager.updateServerIconAnnotator();
+                
+/*                show = manager.isStopped();
                 boolean isStopped = manager.isStopped();
                 boolean running = manager.isActuallyRunning();
 
                 if (running && isStopped || (!running) && !isStopped) {
                     show = ! manager.isServerRunning();
                 }
-                //show = ! manager.isServerRunning();
+*/  
+    
+                show = ! manager.isServerRunning();
+                setEnabled(show);
+                // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
+                putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
+                
             }
             //setEnabled(manager != null && manager.isStopped());
-            setEnabled(show);
+            //setEnabled(show);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
+            //putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
 
             putValue(NAME, "&Start Server");
 

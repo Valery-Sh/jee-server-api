@@ -58,7 +58,7 @@ public class JettyServerSpecifics implements ServerSpecifics {
     public static final String JETTY_SHUTDOWN_KEY = "netbeans";
     public static final String IMAGE = "org/netbeans/modules/jeeserver/jetty/resources/jetty01-16x16.jpg";
 
-    @Override
+/*    @Override
     public boolean pingServer(BaseDeploymentManager dm) {
 
         //ServerInstanceProperties sp = BaseUtils.getServerProperties(serverProject.getLookup());
@@ -93,7 +93,7 @@ public class JettyServerSpecifics implements ServerSpecifics {
         return false;
 
     }
-
+*/
     @Override
     public boolean shutdownCommand(BaseDeploymentManager dm) {
 
@@ -140,7 +140,7 @@ public class JettyServerSpecifics implements ServerSpecifics {
 
         long pingtimeout = System.currentTimeMillis() + BaseConstants.SERVER_TIMEOUT_DELAY;
         result = true;
-        while (pingServer(dm)) {
+        while (pingServer(dm,0)) {
             try {
                 Thread.sleep(200);
             } catch (InterruptedException ie) {
@@ -299,8 +299,9 @@ public class JettyServerSpecifics implements ServerSpecifics {
         return accepted[0];
     }    
     
-    @Override
+/*    @Override
     public Lookup getServerLookup(BaseDeploymentManager dm) {
         return dm.getServerProject().getLookup();
     }    
+*/    
 }

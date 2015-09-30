@@ -1,6 +1,5 @@
 package org.netbeans.modules.jeeserver.base.embedded.server.project;
 
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.NodeModel;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,6 +12,7 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.modules.jeeserver.base.deployment.ide.BaseStartServer;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNodeModel;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 //import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyStartServerPropertiesProvider;
 //import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
@@ -80,7 +80,7 @@ public class ServerSuiteProject implements Project {
                 getProjectActionProvider(),
                 new ProjectOperations(this),
                 openHook,
-                new NodeModel()
+                new SuiteNodeModel()
                 //serverProperties,
                 //getStartServerPropertiesProvider(),
 //                new ServerInstanceAvailableModules<>(this)

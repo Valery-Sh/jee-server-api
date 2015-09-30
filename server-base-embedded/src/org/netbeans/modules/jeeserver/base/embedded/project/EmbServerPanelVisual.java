@@ -427,14 +427,14 @@ public class EmbServerPanelVisual extends JPanel implements DocumentListener, Ch
 
         }
         port = Integer.parseInt(getPort(serverPort_Spinner));
-        if (SuiteUtil.isHttpPortBusy(port, null)) {
+        if (SuiteUtil.isHttpPortBusy_OLD(port, null)) {
             wizardDescriptor.putProperty("WizardPanel_warningMessage",
                     NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_HTTP_PORT_IN_USE", String.valueOf(port)));
             return true;
         }
         if (needsShutdownPort()) {
             port = Integer.parseInt(getPort(shutdownPort_Spinner));
-            if (SuiteUtil.isShutdownPortBusy(port, null)) {
+            if (SuiteUtil.isShutdownPortBusy_OLD(port, null)) {
                 wizardDescriptor.putProperty("WizardPanel_warningMessage",
                         NbBundle.getMessage(EmbServerCustomizerPanelVisual.class, "MSG_SHUTDOWN_PORT_IN_USE", String.valueOf(port)));
                 return true;

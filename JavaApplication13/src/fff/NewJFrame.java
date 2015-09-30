@@ -5,8 +5,16 @@
  */
 package fff;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -31,6 +39,7 @@ public class NewJFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -41,13 +50,22 @@ public class NewJFrame extends javax.swing.JFrame {
             }
         });
 
+        jButton2.setText("jButton2");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(43, 43, 43)
-                .addComponent(jButton1)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jButton2)
+                    .addComponent(jButton1))
                 .addContainerGap(264, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -55,7 +73,9 @@ public class NewJFrame extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGap(36, 36, 36)
                 .addComponent(jButton1)
-                .addContainerGap(235, Short.MAX_VALUE))
+                .addGap(35, 35, 35)
+                .addComponent(jButton2)
+                .addContainerGap(171, Short.MAX_VALUE))
         );
 
         pack();
@@ -68,6 +88,65 @@ public class NewJFrame extends javax.swing.JFrame {
         });
         System.out.println("ServiceLoader = " + sl);
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        URL url = null;
+        try {
+            url = new URL("http://localhost:8488");
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(NewJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        boolean result = false;
+        long timeout = 100;
+        long t1 = 0;
+        try {
+
+            final URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(10);
+// connection initialization
+            final Thread t = new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        connection.connect();
+                    } catch (IOException ex) {
+                        Thread.interrupted();
+                    }
+                }
+            });
+
+            t.start();
+            t.join(timeout);
+            //connection.setRequestMethod("POST");
+            t1 = System.currentTimeMillis();
+            Map<String, List<String>> headerFields = connection.getHeaderFields();
+            if (headerFields == null) {
+                result = false;
+            }
+            for (Map.Entry<String, List<String>> e : headerFields.entrySet()) {
+                if (e.getKey() == null || !e.getKey().trim().toLowerCase().equals("server")) {
+                    continue;
+                }
+                for (String v : e.getValue()) {
+                    if (v != null && v.trim().toLowerCase().startsWith("jetty")) {
+            System.out.println("JETTY FOUND"); 
+                        
+                        result = true;
+                        break;
+                    }
+                }
+                if ( result ) {
+                    break;
+                }
+            }
+            System.out.println("TIME=" + (System.currentTimeMillis() - t1)); 
+            
+        } catch (InterruptedException | IOException ex) {
+            result = false;
+        }
+        System.out.println("PING RESULT: " + result);
+
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -106,5 +185,6 @@ public class NewJFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     // End of variables declaration//GEN-END:variables
 }

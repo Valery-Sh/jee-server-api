@@ -3,8 +3,10 @@ package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 
 import java.io.File;
 import java.util.logging.Logger;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.event.ChangeEvent;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.Document;
@@ -283,6 +285,16 @@ public class ServerInstanceAntProjectVisualPanel extends InstancePanelVisual imp
     @Override
     public JLabel getMessageLabel() {
         return messageLabel;
+    }
+
+    @Override
+    public void stateChanged(ChangeEvent e) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public JButton getSaveButton() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }
