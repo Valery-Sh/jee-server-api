@@ -1,9 +1,5 @@
 package org.netbeans.jetty.server.support;
 
-import java.util.EnumSet;
-import java.util.Map;
-import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration;
 import org.eclipse.jetty.deploy.App;
 import org.eclipse.jetty.deploy.AppLifeCycle;
 import org.eclipse.jetty.deploy.graph.Node;
