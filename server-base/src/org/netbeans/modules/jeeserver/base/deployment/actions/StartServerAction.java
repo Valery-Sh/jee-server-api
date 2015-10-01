@@ -78,42 +78,26 @@ public final class StartServerAction extends AbstractAction implements ContextAw
     public Action createContextAwareInstance(Lookup context) {
         return new ContextAction(context);
     }
-    private boolean meme = false;
-    
+
     protected static final RequestProcessor RP = new RequestProcessor(BaseDeploymentManager.class);
 
     private static final class ContextAction extends AbstractAction {
 
-        private BaseDeploymentManager manager;
+        private final BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
             manager = BaseUtils.managerOf(context);
-            
+
             boolean show = false;
             if (manager != null) {
-                
-                //manager.updateServerIconAnnotator();
-                
-/*                show = manager.isStopped();
-                boolean isStopped = manager.isStopped();
-                boolean running = manager.isActuallyRunning();
-
-                if (running && isStopped || (!running) && !isStopped) {
-                    show = ! manager.isServerRunning();
-                }
-*/  
-    
-                show = ! manager.isServerRunning();
-                setEnabled(show);
+                show = !manager.isServerRunning();
                 // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
                 putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
-                
-            }
-            //setEnabled(manager != null && manager.isStopped());
-            //setEnabled(show);
-            // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            //putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
 
+            }
+            setEnabled(show);
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
+            
             putValue(NAME, "&Start Server");
 
         }

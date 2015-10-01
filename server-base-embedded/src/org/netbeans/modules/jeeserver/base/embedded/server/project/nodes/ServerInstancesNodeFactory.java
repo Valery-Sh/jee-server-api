@@ -57,7 +57,7 @@ public class ServerInstancesNodeFactory implements NodeFactory {
 */        
         try {
             ServerInstancesRootNode node = new ServerInstancesRootNode(suiteProject);
-            node.init(suiteProject);
+            //node.init(suiteProject);
             return NodeFactorySupport.fixedNodeList(node);
         } catch (DataObjectNotFoundException ex) {
             LOG.log(Level.INFO, ex.getMessage());

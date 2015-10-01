@@ -14,7 +14,7 @@ import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.spi.project.support.ant.GeneratedFilesHelper;
 import org.openide.filesystems.FileObject;
@@ -58,7 +58,7 @@ import org.xml.sax.SAXException;
  */
 public class ServerInstanceAntBuildExtender {
 
-    private static final Logger LOG = Logger.getLogger(ServerInstanceWizardAction.class.getName());
+    private static final Logger LOG = Logger.getLogger(ServerInstanceAntBuildExtender.class.getName());
 
     /**
      * The <code>build-impl.xml</code> target tag whose <code>depends</code>
@@ -106,17 +106,37 @@ public class ServerInstanceAntBuildExtender {
         if (!isValid()) {
             rebuild();
         }
+        updateNbDeploymentFile();
+    }
 
+    public void updateNbDeploymentFile() {
         FileObject projFo = project.getProjectDirectory();
         try {
+            FileObject d = projFo.getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
+            if (d != null) {
+                
+                updateNbDeploymentFile(d);
+                return;
+            }
             FileObject toDir = projFo.createFolder(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
             Properties props = new Properties();
-            InstanceProperties ip = ServerSuiteManager.getManager(project).getInstanceProperties();
+            InstanceProperties ip = SuiteManager.getManager(project).getInstanceProperties();
             props.setProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
             BaseUtils.storeProperties(props, toDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
+    }
+
+    public void updateNbDeploymentFile(FileObject nbDir) {
+        FileObject propsFo = nbDir.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_FILE);
+        Properties props = new Properties();
+        if (propsFo != null) {
+            props = BaseUtils.loadProperties(propsFo);
+        } 
+        InstanceProperties ip = SuiteManager.getManager(project).getInstanceProperties();
+        props.setProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
+        BaseUtils.updateProperties(props, nbDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
 
     }
 

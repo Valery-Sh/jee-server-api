@@ -2,18 +2,22 @@ package org.netbeans.modules.jeeserver.base.embedded.server.project.nodes;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.LogicalViewNotifier;
 
 /**
  * 
  * @author V. Shyshkin
  */
-public interface ChildrenKeysModel extends PropertyChangeListener{
+public interface ChildrenNotifier extends LogicalViewNotifier{
     /**
      * The implementation of the method should call an {@literal addNotify() } 
      * of the {@literal FilterNode.Children.Keys } instance.
      */
-    void modelChanged();
+    void childrenChanged();
     @Override
-    void propertyChange(PropertyChangeEvent evt);
+    void iconChange(String uri,boolean newValue);
+    @Override
+    void displayNameChange(String uri,String newValue);
+    
     
 }

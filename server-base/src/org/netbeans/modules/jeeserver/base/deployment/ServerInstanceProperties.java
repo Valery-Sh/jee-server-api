@@ -41,13 +41,13 @@ public class ServerInstanceProperties {
     private String uri;
     private String serverId;
     //private String actualServerId;
-    private String layerProjectFolderPath;
+//    private String layerProjectFolderPath;
     private boolean valid = true;
-    
+  /*  
     public String getLayerProjectFolderPath() {
         return layerProjectFolderPath;
     }
-
+*/
     public boolean isValid() {
         return valid;
     }
@@ -56,10 +56,10 @@ public class ServerInstanceProperties {
         this.valid = valid;
     }
 
-    public void setLayerProjectFolderPath(String layerProjectFolderPath) {
+/*    public void setLayerProjectFolderPath(String layerProjectFolderPath) {
         this.layerProjectFolderPath = layerProjectFolderPath;
     }
-    
+*/    
     /**
      * Returns the current deployment mode. 
      * The value is assigned when the method {@link BaseDeploymentManager#setCurrentDeploymentMode(org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment.Mode) 
@@ -162,6 +162,11 @@ public class ServerInstanceProperties {
     public String getHttpPort() {
         return getManager().getInstanceProperties().getProperty(BaseConstants.HTTP_PORT_PROP);
     }
+    
+    public String getInstanceProperty(String propName) {
+        return getManager().getInstanceProperties().getProperty(propName);
+    }
+    
     /**
      * Returns a string representation of the server's {@literal remote debug port number}.
      * @return a {@literal remote debug port}
@@ -214,19 +219,21 @@ public class ServerInstanceProperties {
        return getManager().getInstanceProperties().getProperty(BaseConstants.DISPLAY_NAME_PROP);
     }
 */    
-    private Properties properties = new Properties();
+//    private Properties properties = new Properties();
     
-    private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
+//    private final PropertyChangeSupport propertyChangeSupport = new PropertyChangeSupport(this);
     
-    public Properties getProperties() {
+/*    public Properties getProperties() {
         return properties;
     }
+*/    
     
-    public void addPropertyChangeListener(PropertyChangeListener listener) {
+/*    public void addPropertyChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
     public void removeChangeListener(PropertyChangeListener listener) {
         propertyChangeSupport.removePropertyChangeListener(listener);
     }
+*/    
 }

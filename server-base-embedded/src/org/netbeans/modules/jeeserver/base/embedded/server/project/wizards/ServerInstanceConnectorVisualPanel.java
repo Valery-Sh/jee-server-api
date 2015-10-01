@@ -163,7 +163,9 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
     @Override
     public void store(WizardDescriptor wiz) {
         
-        ServerInstanceWizardAction.panelVisited[1] = true;
+//        ServerInstanceWizardAction.panelVisited[1] = true;
+        boolean[] v =  (boolean[])wiz.getProperty(ServerInstanceWizardAction.PANEL_VISITED_PROP); 
+        v[0] = true;
         
         wiz.putProperty(HTTP_PORT_PROP, getPort());
         wiz.putProperty(DEBUG_PORT_PROP, getDebugPort());

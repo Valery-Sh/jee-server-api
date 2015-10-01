@@ -130,9 +130,11 @@ public class EmbeddedProjectLogicalView implements LogicalViewProvider {
             super(node,
                     NodeFactorySupport.createCompositeChildren(
                             project,
-                            project.getLookup()
+                            ""),
+/*                            project.getLookup()
                                     .lookup(ServerInstanceProperties.class)
                                     .getLayerProjectFolderPath()),
+*/            
                     // new FilterNode.Children(node),
                     new ProxyLookup(
                             new Lookup[]{

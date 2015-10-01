@@ -90,16 +90,15 @@ public final class StopServerAction extends AbstractAction implements ContextAwa
                  }
                  */
                 show = manager.isServerRunning();
-                setEnabled(show);
                 // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
                 putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
 
             }
+            setEnabled(show);
 
             //setEnabled(show);
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            
-            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager
-                    == null);
+            putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
             putValue(NAME,
                     "&Stop Server");
         }

@@ -2,7 +2,6 @@ package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 
 import java.awt.Color;
 import javax.swing.event.ChangeEvent;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 
 public class ServerInstanceProjectWizardPanel  extends InstanceWizardPanel {
 
@@ -58,6 +57,9 @@ public class ServerInstanceProjectWizardPanel  extends InstanceWizardPanel {
     
     @Override
     public boolean isFinishPanel() {
-        return ServerInstanceWizardAction.panelVisited[1] ;
+        boolean[] v =  (boolean[])wiz.getProperty(ServerInstanceWizardAction.PANEL_VISITED_PROP); 
+        return v[1];
+        //return ServerInstanceWizardAction.panelVisited[1] ;
+        
     }
 }

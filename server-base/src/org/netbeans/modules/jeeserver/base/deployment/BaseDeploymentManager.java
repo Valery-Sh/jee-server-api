@@ -49,6 +49,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.DeploymentContext;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.DeploymentManager2;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.LogicalViewNotifier;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.netbeans.modules.web.api.webmodule.WebModule;
@@ -58,6 +59,7 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
 import org.openide.util.Pair;
 import org.openide.util.RequestProcessor;
+import org.openide.util.lookup.Lookups;
 
 /**
  * The {@literal javax.enterprise.deploy.spi.DeploymentManager} implementation.
@@ -69,8 +71,11 @@ import org.openide.util.RequestProcessor;
 public class BaseDeploymentManager implements DeploymentManager2 {
 
     private static final Logger LOG = Logger.getLogger(BaseDeploymentManager.class.getName());
+    
 
     protected static final RequestProcessor RP = new RequestProcessor(BaseDeploymentManager.class);
+    
+    private Lookup lookup;
 
     /**
      * The deployment mode the server started.
@@ -85,9 +90,17 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * The value that uniquely identifies the instance of the class
      */
     protected final String uri;
+    
+    protected final String serverId;
+    
     protected final BaseTarget defaultTarget;
 
     private FileObject serverProjectDirectory;
+    
+    private ServerInstanceProperties serverProperties;
+
+    private LogicalViewNotifier logicalViewNotifier;
+    
 
     /**
      * ExecutorTask instance of the started server
@@ -96,7 +109,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     /**
      * The object provides the specific server functionality.
      */
-    private ServerSpecifics specifics;
+    private final ServerSpecifics specifics;
 
     private List<Pair<BaseTargetModuleID, BaseTargetModuleID>> initialDeployedModulesOld = new CopyOnWriteArrayList<>();
 
@@ -109,8 +122,9 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      *
      * @param uri the value that uniquely identifies the instance to be created
      */
-    public BaseDeploymentManager(String uri, ServerSpecifics specifics) {
+    public BaseDeploymentManager(String serverId, String uri, ServerSpecifics specifics) {
         LOG.log(Level.FINE, "Creating  DeploymentManager uri={0}", uri); //NOI18N
+        this.serverId = serverId;
         this.uri = uri;
         currentDeploymentMode = null; //Default
         defaultTarget = createDefaultTarget(uri);
@@ -119,12 +133,30 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     private void init() {
-        serverProjectDirectory = getServerProject().getProjectDirectory();
+        String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
+        serverProjectDirectory =  FileUtil.toFileObject(new File(s));
         specifics.register(this);
+        serverProperties = new ServerInstanceProperties(); 
+        logicalViewNotifier = new DeploymentManagerLogicalViewNotifier(this);
+        getLookup();
     }
 
-    public FileObject getServerProjectDirectory() {
-        return serverProjectDirectory;
+    public Lookup getLookup() {
+        
+        if (lookup == null) {
+            
+            serverProperties.setServerId(serverId);
+            serverProperties.setUri(uri);
+//            serverProperties.setLayerProjectFolderPath(this.getLayerProjectFolderPath());
+
+            lookup = Lookups.fixed(new Object[]{
+                this,
+                serverProperties,
+                serverProjectDirectory,
+                logicalViewNotifier
+            });
+        }
+        return lookup;
     }
 
     public synchronized J2eePlatformImpl getPlatform() {
@@ -171,16 +203,27 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * @return an object of type {@literal org.netbeans.api.project.Project}
      */
     public Project getServerProject() {
+        return FileOwnerQuery.getOwner(getServerProjectDirectory());
+    }
+    
+    public FileObject getServerProjectDirectory() {
+        return serverProjectDirectory;
+//        String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
+//        return FileUtil.toFileObject(new File(s));
+        
+    }
+    
+/*    protected Project getServerProjectDirectory() {
         String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
         FileObject fo = FileUtil.toFileObject(new File(s));
 
         return FileOwnerQuery.getOwner(fo);
     }
-
-/*    public Lookup getServerLookup() {
-        return getSpecifics().getServerLookup(this);
-    }
 */
+    /*    public Lookup getServerLookup() {
+     return getSpecifics().getServerLookup(this);
+     }
+     */
     /**
      * Returns the object that represents the specific server functionality. For
      * example, Jetty module provides it's own implementation of
@@ -252,12 +295,12 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     public void setCurrentDeploymentMode(Deployment.Mode currentDeploymentMode) {
         Deployment.Mode old = this.currentDeploymentMode;
         this.currentDeploymentMode = currentDeploymentMode;
-/*        if (currentDeploymentMode == null) {
-            actuallyRunning = false;
-        } else {
-            actuallyRunning = true;
-        }
-*/
+        /*        if (currentDeploymentMode == null) {
+         actuallyRunning = false;
+         } else {
+         actuallyRunning = true;
+         }
+         */
         //boolean oldValue = actuallyRunning;
         actuallyRunning = isServerRunning();
         if (old == null && currentDeploymentMode != null
@@ -275,25 +318,22 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      * Updates visual representation of the project in the
      * {@literal NetBeans Project View}. Just change the icon that indicates the
      * server actuallyRunning state. The method is invoked when the {@link #currentDeploymentMode) changes.
+     *
      * @param oldValue
-     * @param newValue
-     * @see #setCurrentDeploymentMode(org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment.Mode)
+     * @param newValue @see
+     * #setCurrentDeploymentMode(org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment.Mode)
      */
     public void updateServerIconAnnotator(boolean oldValue, boolean newValue) {
-        if ( oldValue == newValue ) {
+        if (oldValue == newValue) {
             return;
         }
-        RP.post(new Runnable() {
-            @Override
-            public void run() {
-                BaseServerIconAnnotator sia = Lookup.getDefault().lookup(BaseServerIconAnnotator.class);
-                if (sia != null) {
-                    sia.serverStateChanged();
-                }
-                BaseUtils.out("updateServerIconAnnotator propertyChange  old=" + oldValue + "; new=" + newValue);
-                getSpecifics().propertyChange(new PropertyChangeEvent(BaseDeploymentManager.this, "server-running", oldValue, newValue));
-
+        RP.post(() -> {
+            BaseServerIconAnnotator sia = Lookup.getDefault().lookup(BaseServerIconAnnotator.class);
+            if (sia != null) {
+                sia.serverStateChanged();
             }
+            BaseUtils.out("updateServerIconAnnotator propertyChange  old=" + oldValue + "; new=" + newValue);
+            getSpecifics().iconChange(getUri(),newValue);
         }, 0, Thread.NORM_PRIORITY);
 
     }
@@ -429,19 +469,18 @@ public class BaseDeploymentManager implements DeploymentManager2 {
 //        if (!old && running
 //                || old && !running) {
 //            getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old, running));
-            //ServerInstanceProperties sp = getServerLookup().lookup(ServerInstanceProperties.class);
-            //sp.setCurrentDeploymentMode(currentDeploymentMode);
-        
-            updateServerIconAnnotator(old, running);
-            
-//        }
+        //ServerInstanceProperties sp = getServerLookup().lookup(ServerInstanceProperties.class);
+        //sp.setCurrentDeploymentMode(currentDeploymentMode);
 
+        updateServerIconAnnotator(old, running);
+
+//        }
         //updateServerIconAnnotator();
     }
 
     /**
      * Determines whether the server is actuallyRunning. Delegates the execution
-     * of this method to the null null null null null     {@link ServerSpecifics#pingServer(org.netbeans.api.project.Project) 
+     * of this method to the null null null null null null     {@link ServerSpecifics#pingServer(org.netbeans.api.project.Project) 
      *
      * @return {@literal true} if the server is actuallyRunning. {@literal false} otherwise.
      */
@@ -452,11 +491,12 @@ public class BaseDeploymentManager implements DeploymentManager2 {
         //return getSpecifics().pingServer(this);
     }
 
-    public boolean isServerStarted() {
+/*    public boolean isServerStarted() {
         return currentDeploymentMode != null;
     }
-
+*/
     public boolean pingServer() {
+        
         return getSpecifics().pingServer(this);
     }
 

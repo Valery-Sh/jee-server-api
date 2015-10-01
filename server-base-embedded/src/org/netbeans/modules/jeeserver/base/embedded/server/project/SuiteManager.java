@@ -14,23 +14,19 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ChildrenKeysModel;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNodeModel;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ChildrenNotifier;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
-import org.openide.util.lookup.AbstractLookup;
-import org.openide.util.lookup.InstanceContent;
 
 /**
  *
  * @author V. Shyshkin
  */
-public class ServerSuiteManager {
+public class SuiteManager {
 
     private static final Logger LOG = Logger.getLogger(BaseUtils.class.getName());
 
@@ -85,17 +81,17 @@ public class ServerSuiteManager {
         return result;
     }
 
-    public static Lookup getServerInstanceLookup(String uri) {
-        SuiteNodeModel snm = getServerSuiteProject(uri).getLookup().lookup(SuiteNodeModel.class);
+/*    public static Lookup getServerInstanceLookup(String uri) {
+        SuiteNotifier snm = getServerSuiteProject(uri).getLookup().lookup(SuiteNotifier.class);
         Lookup lk = snm.getServerInstanceLookup(uri);
         if ( lk != null ) {
             return lk;
         }
         return null;
     }
-    
+*/    
     public static Project getServerSuiteProject(String uri) {
-BaseUtils.out("Suitemanager getServerSuiteProjecturi = " + uri);
+
         InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
         String suiteLocation;
         if (ip != null) {
@@ -119,14 +115,14 @@ BaseUtils.out("Suitemanager getServerSuiteProjecturi = " + uri);
 
         InstanceProperties.removeInstance(uri);
         
-        ServerSuiteManager.getServerSuiteProject(uri)
+        SuiteManager.getServerSuiteProject(uri)
                 .getLookup()
-                .lookup(ChildrenKeysModel.class)
-                .modelChanged();
+                .lookup(SuiteNotifier.class)
+                .instancesChanged();
     }
     public static FileObject getServerInstancesDir(String uri) {
 
-        return ServerSuiteManager.getServerSuiteProject(uri)
+        return SuiteManager.getServerSuiteProject(uri)
                 .getProjectDirectory()
                 .getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER);
     }

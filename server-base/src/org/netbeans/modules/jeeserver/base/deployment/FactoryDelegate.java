@@ -240,7 +240,7 @@ public class FactoryDelegate {
         BaseDeploymentManager manager = managers.get(uri);
 
         if (null == manager) {
-            manager = new BaseDeploymentManager(uri,specifics);
+            manager = new BaseDeploymentManager(serverId, uri,specifics);
             //manager.setSpecifics(specifics);
 
             // put into cache

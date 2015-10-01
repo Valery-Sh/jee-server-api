@@ -12,11 +12,8 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.modules.jeeserver.base.deployment.ide.BaseStartServer;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNodeModel;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
-//import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyStartServerPropertiesProvider;
-//import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
-//import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.netbeans.spi.project.ActionProvider;
 import org.netbeans.spi.project.DeleteOperationImplementation;
 import org.netbeans.spi.project.ProjectState;
@@ -35,11 +32,11 @@ import org.openide.util.lookup.Lookups;
 public class ServerSuiteProject implements Project {
 
     private static final Logger LOG = Logger.getLogger(BaseStartServer.class.getName());
-    public static final String TYPE= "org-netbeans-modules-jeeserver-base-embedded-project";
+    public static final String TYPE = "org-netbeans-modules-jeeserver-base-embedded-project";
     private final FileObject projectDir;
     private final ProjectState state;
     //private final NodeModel instanceContexts;
-            
+
     private Lookup lookup;
 
     public ServerSuiteProject(FileObject projectDir, ProjectState state) {
@@ -56,10 +53,9 @@ public class ServerSuiteProject implements Project {
     protected Project getProject() {
         return FileOwnerQuery.getOwner(projectDir);
     }
-    
+
     //protected abstract String getServerId();
     //protected abstract String getLayerProjectFolderPath();
-    
     @Override
     public Lookup getLookup() {
 
@@ -70,9 +66,9 @@ public class ServerSuiteProject implements Project {
             //serverProperties.setServerId(id);
             //serverProperties.setUri(uri);
             //serverProperties.setLayerProjectFolderPath(this.getLayerProjectFolderPath());
-            
-            ProjectOpenedHook openHook = new ServerSuiteProjectOpenHook(projectDir);
 
+            ProjectOpenedHook openHook = new ServerSuiteProjectOpenHook(projectDir);
+            SuiteNotifier suiteModel = new SuiteNotifier();
             lookup = Lookups.fixed(new Object[]{
                 this,
                 getProjectInformation(),
@@ -80,29 +76,30 @@ public class ServerSuiteProject implements Project {
                 getProjectActionProvider(),
                 new ProjectOperations(this),
                 openHook,
-                new SuiteNodeModel()
+                suiteModel
+                
                 //serverProperties,
-                //getStartServerPropertiesProvider(),
+            //getStartServerPropertiesProvider(),
 //                new ServerInstanceAvailableModules<>(this)
             });
         }
         return lookup;
     }
 
+
     protected LogicalViewProvider getLogicalViewProvider() {
-      
+
         return new ServerSuiteProjectLogicalView(this);
     }
-
 
     protected ProjectInformation getProjectInformation() {
         return new Info();
     }
-    
+
     protected ProjectActionProvider getProjectActionProvider() {
         return new ProjectActionProvider();
     }
-    
+
     private final class ProjectActionProvider implements ActionProvider {
 
         private final String[] supported = new String[]{
@@ -169,7 +166,7 @@ public class ServerSuiteProject implements Project {
         }
 
     }
-    
+
     public final class Info implements ProjectInformation {
 
         @Override
@@ -203,5 +200,5 @@ public class ServerSuiteProject implements Project {
         }
 
     }//class Info
-    
+
 }

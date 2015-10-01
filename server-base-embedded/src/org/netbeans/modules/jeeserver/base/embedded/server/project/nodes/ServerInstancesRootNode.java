@@ -28,7 +28,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.SuiteManager;
 import static org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.Bundle.ServerInstanciesRootNode_shortDescription;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions.ServerInstanciesActions;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
@@ -55,7 +55,7 @@ import org.openide.util.lookup.InstanceContent;
     "ServerInstanciesRootNode.shortDescription=Server Instances for this Server",
     "ServerInstanciesRootNode.availableWebApps=Available Web Applications"
 })
-public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysModel {
+public class ServerInstancesRootNode extends FilterNode implements ChildrenNotifier {
 
     private static final Logger LOG = Logger.getLogger(ServerInstancesRootNode.class.getName());
 
@@ -81,22 +81,19 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
         super(node, childKeys, new AbstractLookup(instanceContent));
         this.childKeys = childKeys;
         this.lookupContents = instanceContent;
-        //lookupContents.add(new NodeModel(this));
-        //lookupContents.add(this);
-        BaseUtils.out("ServerInstancesRootNode fileObject=" + node.getLookup().lookup(FileObject.class));
-        FileObject fo  = node.getLookup().lookup(FileObject.class);
-        lookupContents.add(fo);
-        
+
+        FileObject instanciesDir = node.getLookup().lookup(FileObject.class);
+        lookupContents.add(instanciesDir);
+
         lookupContents.add(childKeys);
-        init(fo);
+        init(instanciesDir);
     }
 
-    private void init(FileObject dir) {
+    private void init(FileObject instanciesDir) {
         lookupContents.add(this);
-        FileOwnerQuery.getOwner(dir).getLookup()
-                .lookup(SuiteNodeModel.class)
+        FileOwnerQuery.getOwner(instanciesDir).getLookup()
+                .lookup(SuiteNotifier.class)
                 .setModel(this);
-        
     }
 
     public RootChildrenKeys getChildKeys() {
@@ -108,17 +105,37 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
      * listener of the {@literal FileEvent } to the {@literal FileObject}
      * associated with a {@literal server-instance-config} folder.
      *
+     * @param uri
+     * @param newValue
      * @param serverSuite
      */
-    protected final void init(Project serverSuite) {
-        serverSuite.getLookup().lookup(SuiteNodeModel.class).setModel(this);
+    /*    protected final void init(Project serverSuite) {
+     serverSuite.getLookup().lookup(SuiteNotifier.class).setModel(this);
 
-        setShortDescription(ServerInstanciesRootNode_shortDescription());
+     setShortDescription(ServerInstanciesRootNode_shortDescription());
+     }
+     */
+    @Override
+    public void iconChange(String uri, boolean newValue) {
+        if (childKeys != null) {
+            childKeys.iconChange(uri, newValue);
+        }
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent evt) {
+    public void displayNameChange(String uri, String newValue) {
         if (childKeys != null) {
+            childKeys.displayNameChange(uri, newValue);
+        }
+        
+    }
+
+/*    
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+
+        if (childKeys != null) {
+
             if (null != evt.getPropertyName()) {
                 switch (evt.getPropertyName()) {
                     case "server-running":
@@ -129,7 +146,7 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
             }
         }
     }
-
+*/
     /**
      * Returns the logical name of the node.
      *
@@ -213,7 +230,7 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
     }
 
     @Override
-    public void modelChanged() {
+    public void childrenChanged() {
         if (childKeys != null) {
             childKeys.addNotify();
         }
@@ -284,7 +301,7 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
         @Override
         public void addNotify() {
 
-            List<String> uris = ServerSuiteManager.getServerInstanceIds(suiteProj);
+            List<String> uris = SuiteManager.getServerInstanceIds(suiteProj);
             this.setKeys(uris);
         }
 
@@ -305,17 +322,62 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
             }
         }
 
-        public void propertyChange(PropertyChangeEvent evt) {
+        public void iconChange(String uri, boolean newValue) {
+            InstanceNode node = findInstanceNode(uri);
+            if ( node == null) {
+                return;
+            }
+            node.iconChange(uri, newValue);
+        }
+
+        public void displayNameChange(String uri, String newValue) {
+            InstanceNode node = findInstanceNode(uri);
+            if ( node == null) {
+                return;
+            }
+            node.displayNameChange(uri, newValue);
+            
+        }
+
+        protected InstanceNode findInstanceNode(String uri) {
             Node[] nodes = this.getNodes();
+
+            if (nodes == null || nodes.length == 0) {
+                return null;
+            }
+
+            int i = 0;
+            InstanceNode result = null;
+            for (Node node : nodes) {
+                if (node instanceof InstanceNode) {
+
+                    String key = ((InstanceNode) node).getKey();
+
+                    if (uri.equals(key)) {
+                        result = (InstanceNode) node;
+                        break;
+                    }
+                }
+            }
+            return result;
+
+        }
+
+   /*     public void propertyChange(PropertyChangeEvent evt) {
+            Node[] nodes = this.getNodes();
+
             if (nodes == null || nodes.length == 0) {
                 return;
             }
+
             int i = 0;
             for (Node node : nodes) {
                 if (node instanceof InstanceNode) {
+
                     String key = ((InstanceNode) node).getKey();
+
                     Object o = evt.getSource();
-                    if (o != null && o instanceof BaseDeploymentManager) {
+                    if (o != null && (o instanceof BaseDeploymentManager)) {
                         String uri = ((BaseDeploymentManager) o).getUri();
                         if (uri.equals(key)) {
                             ((InstanceNode) node).propertyChange(evt);
@@ -324,7 +386,7 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenKeysM
                 }
             }
         }
-
+*/
         /**
          * @return the serverProject
          */

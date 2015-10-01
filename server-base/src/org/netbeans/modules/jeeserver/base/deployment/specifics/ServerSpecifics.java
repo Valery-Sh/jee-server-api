@@ -28,9 +28,7 @@ import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
 import org.openide.filesystems.FileObject;
-import org.openide.util.Lookup;
 
 /**
  *
@@ -43,11 +41,13 @@ public interface ServerSpecifics extends LicensesAcceptor {
     default void register(BaseDeploymentManager dm) {
 
     }
-
-    default void propertyChange(PropertyChangeEvent evt) {
-
+    default void iconChange(String uri,boolean newValue) {
+        
     }
-
+    default void displayNameChange(String uri,String newValue) {
+        
+    }
+    
     default boolean pingServer(BaseDeploymentManager dm) {
         return pingServer(dm, 50);
     }

@@ -22,7 +22,7 @@ import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants.*;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions.ServerInstanciesActions.InstancePropertiesAction;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions.ServerInstanciesActions.RemoveInstanceAction;
 import org.openide.filesystems.FileObject;
@@ -38,7 +38,7 @@ import org.openide.util.lookup.InstanceContent;
  *
  * @author Valery
  */
-public class InstanceNode extends FilterNode implements ChildrenKeysModel {
+public class InstanceNode extends FilterNode implements ChildrenNotifier {
 
     private final InstanceContent lookupContents;
     private InstanceNodeChildrenKeys childKeys;
@@ -48,13 +48,13 @@ public class InstanceNode extends FilterNode implements ChildrenKeysModel {
     //private Properties instanceProps;
 
     //public InstanceNode(Node original, String key, NodeModel nodeModel) {
-    public InstanceNode(Node original, String key) {        
+    public InstanceNode(Node original, String key) {
         //this(original, key, nodeModel, new InstanceContent(), new InstanceNodeChildrenKeys(key));
-        this(original, key, new InstanceContent(), new InstanceNodeChildrenKeys(key));        
+        this(original, key, new InstanceContent(), new InstanceNodeChildrenKeys(key));
     }
 
 //    public InstanceNode(Node original, String key, NodeModel nodeModel, InstanceContent content, InstanceNodeChildrenKeys childKeys) {
-    public InstanceNode(Node original, String key, InstanceContent content, InstanceNodeChildrenKeys childKeys) {    
+    public InstanceNode(Node original, String key, InstanceContent content, InstanceNodeChildrenKeys childKeys) {
         super(original, new InstanceNodeChildrenKeys(key), new AbstractLookup(content));
         this.key = key;
         //this.nodeModel = nodeModel;
@@ -77,7 +77,7 @@ public class InstanceNode extends FilterNode implements ChildrenKeysModel {
         //NodeModel model = new NodeModel(this);
         //lookupContents.add(model);
         lookupContents.add(childKeys);
-        lookupContents.add(this);        
+        lookupContents.add(this);
         this.displayName = props.getProperty(DISPLAY_NAME_PROP);
         //model.getServerInstancesModel();
     }
@@ -126,10 +126,10 @@ public class InstanceNode extends FilterNode implements ChildrenKeysModel {
                     new StopServerAction().createContextAwareInstance(getLookup()),
                     null, //new PropertiesAction().createContextAwareInstance(project.getLookup())
                     RemoveInstanceAction
-                        .getContextAwareInstance(getLookup()),
+                    .getContextAwareInstance(getLookup()),
                     null,
                     InstancePropertiesAction
-                        .getContextAwareInstance(getLookup())
+                    .getContextAwareInstance(getLookup())
                 };
 
         return actions;
@@ -195,7 +195,19 @@ public class InstanceNode extends FilterNode implements ChildrenKeysModel {
         return serverRunning;
     }
 
-    @Override
+    public void iconChange(String uri, boolean newValue) {
+        serverRunning = newValue;
+        fireIconChange();
+    }
+
+    public void displayNameChange(String uri, String newName) {
+        String newValue = newName;
+        String oldValue = displayName;
+        displayName = newValue;
+        fireDisplayNameChange(oldValue, newValue);
+    }
+
+/*    @Override
     public void propertyChange(PropertyChangeEvent evt) {
         if ("server-running".equals(evt.getPropertyName())) {
             serverRunning = (Boolean) evt.getNewValue();
@@ -205,15 +217,13 @@ public class InstanceNode extends FilterNode implements ChildrenKeysModel {
             String oldValue = displayName;
             displayName = newValue;
             fireDisplayNameChange(oldValue, newValue);
-        } else 
-
-        if (childKeys != null  )  {
+        } else if (childKeys != null) {
             childKeys.propertyChange(evt);
         }
     }
-
+*/
     @Override
-    public void modelChanged() {
+    public void childrenChanged() {
         childKeys.addNotify();
     }
 

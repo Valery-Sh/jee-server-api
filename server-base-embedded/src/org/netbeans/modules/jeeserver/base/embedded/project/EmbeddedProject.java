@@ -68,7 +68,7 @@ public abstract class EmbeddedProject implements Project {
             final String uri = id + ":" + BaseConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath();
             serverProperties.setServerId(id);
             serverProperties.setUri(uri);
-            serverProperties.setLayerProjectFolderPath(this.getLayerProjectFolderPath());
+            //serverProperties.setLayerProjectFolderPath(this.getLayerProjectFolderPath());
             
             ProjectOpenedHook openHook = new EmbeddedProjectOpenHook(projectDir, serverProperties);
 

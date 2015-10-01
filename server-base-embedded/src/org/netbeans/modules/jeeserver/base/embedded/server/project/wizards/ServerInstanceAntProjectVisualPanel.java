@@ -202,7 +202,10 @@ public class ServerInstanceAntProjectVisualPanel extends InstancePanelVisual imp
 
     @Override
     public void store(WizardDescriptor d) {
-        ServerInstanceWizardAction.panelVisited[0] = true;
+        
+//        ServerInstanceWizardAction.panelVisited[0] = true;
+        boolean[] v =  (boolean[])d.getProperty(ServerInstanceWizardAction.PANEL_VISITED_PROP); 
+        v[0] = true;
         
         String name = projectNameTextField.getText().trim();
         String folder = createdFolderTextField.getText().trim();

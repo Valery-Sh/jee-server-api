@@ -38,7 +38,7 @@ public class EmbServerCustomizerPanelVisual extends JPanel implements ActionList
         //this.project = BaseUtils.managerOf(context).getServerProject();
         this.context = context;
         this.category = category;
-        this.settings = context.lookup(ServerInstanceProperties.class).getProperties();
+        this.settings = new Properties();//context.lookup(ServerInstanceProperties.class).getProperties();
         read();
         checkServerRunning();
         addListeners();

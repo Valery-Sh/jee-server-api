@@ -13,8 +13,7 @@ import javax.swing.JComponent;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ChildrenKeysModel;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ServerInstancesRootNode;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ChildrenNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.DialogDisplayer;
@@ -22,16 +21,13 @@ import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Lookup;
 
-// An example action demonstrating how the wizard could be called from within
-// your code. You can move the code below wherever you need, or register an action:
-// @ActionID(category="...", id="org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ServerInstanceWizardAction")
-// @ActionRegistration(displayName="Open ServerInstance Wizard")
-// @ActionReference(path="Menu/Tools", position=...)
 public abstract class ServerInstanceWizardAction extends AbstractAction implements ActionListener {
 
     private static final Logger LOG = Logger.getLogger(ServerInstanceWizardAction.class.getName());
 
-    public static final boolean[] panelVisited = new boolean[]{false, false};
+//    public static final boolean[] panelVisited = new boolean[]{false, false};
+    
+    public static final String PANEL_VISITED_PROP = "panel.visited";
 
     protected Lookup context;
 
@@ -41,8 +37,9 @@ public abstract class ServerInstanceWizardAction extends AbstractAction implemen
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        panelVisited[0] = false;
-        panelVisited[1] = false;
+        
+//        panelVisited[0] = false;
+//        panelVisited[1] = false;
 
         //List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<WizardDescriptor.Panel<WizardDescriptor>>();
         List<WizardDescriptor.Panel<WizardDescriptor>> panels = new ArrayList<>();
@@ -68,6 +65,8 @@ public abstract class ServerInstanceWizardAction extends AbstractAction implemen
             }
         }
         WizardDescriptor wiz = new WizardDescriptor(new WizardDescriptor.ArrayIterator<>(panels));
+        
+        wiz.putProperty(PANEL_VISITED_PROP, new boolean[] {false,false});
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle("...dialog title...");
@@ -92,7 +91,7 @@ public abstract class ServerInstanceWizardAction extends AbstractAction implemen
 
             eib.instantiate();
 
-            context.lookup(ChildrenKeysModel.class).modelChanged();
+            context.lookup(ChildrenNotifier.class).childrenChanged();
         }
     }
 

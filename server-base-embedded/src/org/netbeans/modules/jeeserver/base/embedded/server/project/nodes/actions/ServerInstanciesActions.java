@@ -16,7 +16,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.CustomizeServerInstanceWizardAction;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ExistingServerInstanceWizardAction;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ServerInstanceAntBuildExtender;
@@ -32,7 +32,6 @@ import org.openide.filesystems.FileUtil;
 import org.openide.util.ContextAwareAction;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
-import org.openide.util.Utilities;
 
 /**
  *
@@ -119,6 +118,8 @@ public class ServerInstanciesActions {
                                 DialogDisplayer.getDefault().notify(d);
                                 return;
                             }
+                            
+                            
                             ExistingServerInstanceWizardAction action
                                     = new ExistingServerInstanceWizardAction(context, selectedFile);
                             action.actionPerformed(null);
@@ -179,7 +180,7 @@ public class ServerInstanciesActions {
                     ServerInstanceAntBuildExtender extender = new ServerInstanceAntBuildExtender(instanceProject);
                     extender.disableExtender();
                 }
-                ServerSuiteManager.removeInstance(context.lookup(ServerInstanceProperties.class).getUri());
+                SuiteManager.removeInstance(context.lookup(ServerInstanceProperties.class).getUri());
             }
         }
     }
@@ -208,7 +209,6 @@ public class ServerInstanciesActions {
 
             public ContextAction(Lookup context) {
                 this.context = context;
-                
                 putValue(NAME, "&Properties");
 
                 task = new RequestProcessor("AddBody").create(new Runnable() { // NOI18N
@@ -246,6 +246,7 @@ public class ServerInstanciesActions {
             if (proj == null) {
                 return msg;
             }
+            
             FileObject fo = proj.getProjectDirectory().getFileObject("nbproject/project.xml");
             if (fo != null && SuiteUtil.projectTypeByProjectXml(fo).equals(SuiteConstants.HTML5_PROJECTTYPE)) {
                 return "The selected project is an Html5 Project ";
@@ -256,9 +257,13 @@ public class ServerInstanciesActions {
             if (BaseUtils.isMavenWebProject(proj)) {
                 return "The selected project is a Maven  Web Application";
             }
+            if ( SuiteManager.getManager(proj) != null ) {
+                return "The selected project allready registered as a Server Instance";
+            }
             if (BaseUtils.isMavenProject(proj) || BaseUtils.isAntProject(proj)) {
                 return null;
             }
+
             return "The selected project is a Maven  Web Application";
         }
     }

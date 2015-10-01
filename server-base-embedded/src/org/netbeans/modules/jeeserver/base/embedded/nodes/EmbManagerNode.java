@@ -8,7 +8,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ServerInstanceCustomizer;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -60,15 +60,16 @@ public class EmbManagerNode extends AbstractNode {
     public Component getCustomizer() {
         BaseDeploymentManager dm = getDeploymentManager();
         
-        Lookup lk = createInstanceLookup(dm.getUri());
+//        Lookup lk = createInstanceLookup(dm.getUri());
         
-        return new ServerInstanceCustomizer(lk);
+        //return new ServerInstanceCustomizer(lk);
+        return new ServerInstanceCustomizer(dm.getLookup());
     }
     public BaseDeploymentManager getDeploymentManager() {
         return lookup.lookup(BaseDeploymentManager.class);
     }
 
-    private Lookup createInstanceLookup(String uri) {
+/*    private Lookup createInstanceLookup(String uri) {
 
         InstanceContent c = new InstanceContent();
         ServerInstanceProperties sip = createServerInstanceProperties(uri);
@@ -89,7 +90,7 @@ public class EmbManagerNode extends AbstractNode {
         sip.setUri(props.getProperty(BaseConstants.URL_PROP));
         return sip;
     }
-    
+*/    
 /*    
     public JettyDeploymentManager getDeploymentManager() {
         return lookup.lookup(JettyDeploymentManager.class);

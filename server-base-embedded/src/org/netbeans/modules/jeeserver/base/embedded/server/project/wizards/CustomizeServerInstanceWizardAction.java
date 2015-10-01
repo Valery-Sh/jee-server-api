@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 
 import java.io.File;
@@ -10,9 +5,11 @@ import java.util.Properties;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.LogicalViewNotifier;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.SuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
@@ -27,6 +24,30 @@ public class CustomizeServerInstanceWizardAction extends ExistingServerInstanceW
     public CustomizeServerInstanceWizardAction(Lookup context, File instanceProjectDir) {
         super(context, instanceProjectDir);
     }
+    
+    @Override
+    protected void notifySettingChange(Lookup context) {
+        LogicalViewNotifier lvn = context.lookup(LogicalViewNotifier.class);
+        String uri = (String) wiz.getProperty(BaseConstants.URL_PROP);               
+        
+        if( lvn != null ) {
+            
+            lvn.displayNameChange(uri, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP)); 
+        }   
+        
+        SuiteNotifier suiteNotifier = SuiteManager.getServerSuiteProject(uri)
+                .getLookup().lookup(SuiteNotifier.class);
+        suiteNotifier.settingsChanged(uri);
+        
+        
+    }
+/*        LogicalViewNotifier lvn = context.lookup(LogicalViewNotifier.class);
+        if( lvn != null ) {
+            lvn.displayNameChange(uri, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP)); 
+        }
+*/
+    
+    
     @Override
     protected InstanceBuilder getBuilder(ServerSpecifics specifics, Properties props) {
         return (EmbeddedInstanceBuilder) specifics.getInstanceBuilder(props, InstanceBuilder.Options.CUSTOMIZER);
@@ -34,7 +55,7 @@ public class CustomizeServerInstanceWizardAction extends ExistingServerInstanceW
     @Override
     protected FileObject gerServerInstancesDir(Lookup context) {
         String uri = context.lookup(ServerInstanceProperties.class).getUri();
-        return ServerSuiteManager.getServerInstancesDir(uri);
+        return SuiteManager.getServerInstancesDir(uri);
     }
     
     @Override

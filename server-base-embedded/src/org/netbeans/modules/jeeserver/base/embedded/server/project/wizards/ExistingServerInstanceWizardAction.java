@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.netbeans.modules.jeeserver.base.embedded.server.project.wizards;
 
 import java.awt.Component;
@@ -17,14 +12,14 @@ import java.util.Properties;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
-import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.LogicalViewNotifier;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteManager;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ChildrenKeysModel;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNodeModel;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.SuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNotifier;
+import static org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ServerInstanceWizardAction.PANEL_VISITED_PROP;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.DialogDisplayer;
 import org.openide.WizardDescriptor;
@@ -61,7 +56,11 @@ public class ExistingServerInstanceWizardAction extends AbstractAction implement
             save();
         }
     }
-
+    
+    public  WizardDescriptor getWizardDescriptor() {
+        return wiz;
+    }
+    
     public WizardDescriptor initialize(WizardDescriptor.Panel<WizardDescriptor> p) {
 
         panels = new ArrayList<>();
@@ -80,6 +79,8 @@ public class ExistingServerInstanceWizardAction extends AbstractAction implement
             }
         }
         wiz = new WizardDescriptor(new WizardDescriptor.ArrayIterator<>(panels));
+        wiz.putProperty(PANEL_VISITED_PROP, new boolean[] {false,false});
+        
         // {0} will be replaced by WizardDesriptor.Panel.getComponent().getName()
         wiz.setTitleFormat(new MessageFormat("{0}"));
         wiz.setTitle("...dialog title...");
@@ -105,26 +106,54 @@ public class ExistingServerInstanceWizardAction extends AbstractAction implement
         InstanceBuilder eib = getBuilder(ss, props);
         eib.setWizardDescriptor(wiz);
         eib.instantiate();
+
+        notifySettingChange(context);
         
-        String uri = (String) wiz.getProperty(BaseConstants.URL_PROP);        
-        SuiteNodeModel suiteModel = ServerSuiteManager.getServerSuiteProject(uri)
-                .getLookup().lookup(SuiteNodeModel.class);
-        suiteModel.modelChanged();
-        suiteModel.propertyChange(new PropertyChangeEvent(suiteModel, BaseConstants.DISPLAY_NAME_PROP, 
-                    null, wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP)));
+/*        String uri = (String) wiz.getProperty(BaseConstants.URL_PROP);        
         
-        //
-        // We cannot use context as it may be build artificially for customizer
-        // See org.netbeans.modules.jeeserver.base.embedded.nodes.EmbManagerNode
-        //
-/*        if ( lk != null ) {
-            ChildrenKeysModel m = lk.lookup(ChildrenKeysModel.class);
-            m.modelChanged();
-        }
+        notifySettingChange();
+        
+        SuiteNotifier suiteNotifier = SuiteManager.getServerSuiteProject(uri)
+                .getLookup().lookup(SuiteNotifier.class);
+        
+        suiteNotifier.instancesChanged();        
+        suiteNotifier.displayNameChange(uri, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP));         
 */        
+/*        SuiteNotifier suiteModel = SuiteManager.getServerSuiteProject(uri)
+                .getLookup().lookup(SuiteNotifier.class);
+        suiteModel.instancesChanged();
+        suiteModel.propertyChange(new PropertyChangeEvent(
+                SuiteManager.getManager(uri)
+                , BaseConstants.DISPLAY_NAME_PROP, 
+                    null, wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP)));
 
+                if (childKeys != null) {
+            childKeys.iconChange(uri, newValue);
+        
+        }
+*/    
+/*        LogicalViewNotifier lvn = context.lookup(LogicalViewNotifier.class);
+        if( lvn != null ) {
+            lvn.displayNameChange(uri, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP)); 
+        }
+*/
     }
-
+    
+    protected void notifySettingChange(Lookup context) {
+        String uri = (String) wiz.getProperty(BaseConstants.URL_PROP);        
+        
+        SuiteNotifier suiteNotifier = SuiteManager.getServerSuiteProject(uri)
+                .getLookup().lookup(SuiteNotifier.class);
+        
+        suiteNotifier.instancesChanged();        
+        suiteNotifier.displayNameChange(uri, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP));         
+/*        LogicalViewNotifier lvn = context.lookup(LogicalViewNotifier.class);
+        if( lvn != null ) {
+            lvn.displayNameChange(uri, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP)); 
+        }
+*/
+        
+    }
     protected InstanceBuilder getBuilder(ServerSpecifics specifics, Properties props) {
         return (EmbeddedInstanceBuilder) specifics.getInstanceBuilder(props, InstanceBuilder.Options.EXISTING);
     }
