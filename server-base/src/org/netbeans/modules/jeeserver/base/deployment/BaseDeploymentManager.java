@@ -16,7 +16,6 @@
  */
 package org.netbeans.modules.jeeserver.base.deployment;
 
-import java.beans.PropertyChangeEvent;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseServerIconAnnotator;
 import java.io.File;
 import java.io.InputStream;
@@ -51,7 +50,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.spi.DeploymentManager2;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.LogicalViewNotifier;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.web.api.webmodule.WebModule;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
@@ -120,7 +119,9 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     /**
      * Create a new instance of the class for a given {@literal uri}.
      *
+     * @param serverId
      * @param uri the value that uniquely identifies the instance to be created
+     * @param specifics
      */
     public BaseDeploymentManager(String serverId, String uri, ServerSpecifics specifics) {
         LOG.log(Level.FINE, "Creating  DeploymentManager uri={0}", uri); //NOI18N
@@ -133,27 +134,28 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
 
     private void init() {
-        String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
-        serverProjectDirectory =  FileUtil.toFileObject(new File(s));
-        specifics.register(this);
+        //String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
+        //serverProjectDirectory =  FileUtil.toFileObject(new File(s));
+        //specifics.register(this);
         serverProperties = new ServerInstanceProperties(); 
         logicalViewNotifier = new DeploymentManagerLogicalViewNotifier(this);
-        getLookup();
+        //getLookup();
     }
 
     public Lookup getLookup() {
         
         if (lookup == null) {
-            
             serverProperties.setServerId(serverId);
             serverProperties.setUri(uri);
+            serverProjectDirectory = getServerProjectDirectory();
 //            serverProperties.setLayerProjectFolderPath(this.getLayerProjectFolderPath());
 
             lookup = Lookups.fixed(new Object[]{
                 this,
                 serverProperties,
                 serverProjectDirectory,
-                logicalViewNotifier
+                logicalViewNotifier,
+                getSpecifics().getStartServerPropertiesProvider(this)
             });
         }
         return lookup;
@@ -207,23 +209,12 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     }
     
     public FileObject getServerProjectDirectory() {
-        return serverProjectDirectory;
-//        String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
-//        return FileUtil.toFileObject(new File(s));
+//        return serverProjectDirectory;
+        String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
+        return FileUtil.toFileObject(new File(s));
         
     }
     
-/*    protected Project getServerProjectDirectory() {
-        String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
-        FileObject fo = FileUtil.toFileObject(new File(s));
-
-        return FileOwnerQuery.getOwner(fo);
-    }
-*/
-    /*    public Lookup getServerLookup() {
-     return getSpecifics().getServerLookup(this);
-     }
-     */
     /**
      * Returns the object that represents the specific server functionality. For
      * example, Jetty module provides it's own implementation of
@@ -295,23 +286,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     public void setCurrentDeploymentMode(Deployment.Mode currentDeploymentMode) {
         Deployment.Mode old = this.currentDeploymentMode;
         this.currentDeploymentMode = currentDeploymentMode;
-        /*        if (currentDeploymentMode == null) {
-         actuallyRunning = false;
-         } else {
-         actuallyRunning = true;
-         }
-         */
-        //boolean oldValue = actuallyRunning;
         actuallyRunning = isServerRunning();
-        if (old == null && currentDeploymentMode != null
-                || old != null && currentDeploymentMode == null) {
-            //getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-actuallyRunning", old != null, currentDeploymentMode != null));        
-            //ServerInstanceProperties sp = getServerLookup().lookup(ServerInstanceProperties.class);
-            //sp.setCurrentDeploymentMode(currentDeploymentMode);
-            //updateServerIconAnnotator();
-        }
-        //updateServerIconAnnotator(old != null,currentDeploymentMode != null);
-//        getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old != null, currentDeploymentMode != null));
     }
 
     /**
@@ -332,7 +307,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
             if (sia != null) {
                 sia.serverStateChanged();
             }
-            BaseUtils.out("updateServerIconAnnotator propertyChange  old=" + oldValue + "; new=" + newValue);
+            BaseUtil.out("updateServerIconAnnotator propertyChange  old=" + oldValue + "; new=" + newValue);
             getSpecifics().iconChange(getUri(),newValue);
         }, 0, Thread.NORM_PRIORITY);
 
@@ -457,25 +432,8 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     public void setActuallyRunning(boolean running) {
         boolean old = this.actuallyRunning;
         this.actuallyRunning = running;
-        /*        if ( actuallyRunning && currentDeploymentMode == null ) {
-         setCurrentDeploymentMode(Deployment.Mode.RUN);
-         return;
-         } else if ( (! actuallyRunning) && currentDeploymentMode != null ) {
-         setCurrentDeploymentMode(null);
-         return;
-
-         }
-         */
-//        if (!old && running
-//                || old && !running) {
-//            getSpecifics().propertyChange(new PropertyChangeEvent(this, "server-running", old, running));
-        //ServerInstanceProperties sp = getServerLookup().lookup(ServerInstanceProperties.class);
-        //sp.setCurrentDeploymentMode(currentDeploymentMode);
 
         updateServerIconAnnotator(old, running);
-
-//        }
-        //updateServerIconAnnotator();
     }
 
     /**
@@ -491,10 +449,6 @@ public class BaseDeploymentManager implements DeploymentManager2 {
         //return getSpecifics().pingServer(this);
     }
 
-/*    public boolean isServerStarted() {
-        return currentDeploymentMode != null;
-    }
-*/
     public boolean pingServer() {
         
         return getSpecifics().pingServer(this);
@@ -680,7 +634,6 @@ public class BaseDeploymentManager implements DeploymentManager2 {
      */
     @Override
     public ProgressObject start(TargetModuleID[] modules) throws IllegalStateException {
-        BaseUtils.out("DEPLOYMENT MANAGER: start targetModuleID={0}" + modules[0]);
         LOG.log(Level.INFO, "DEPLOYMENT MANAGER: start targetModuleID={0}", modules[0]);
         if (!isServerRunning()) {
             throw new IllegalStateException("ESDeploymentManager.start called on disconnected instance");   // NOI18N

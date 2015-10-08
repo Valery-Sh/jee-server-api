@@ -37,7 +37,7 @@ import static org.netbeans.modules.jeeserver.base.deployment.config.ModulesChang
 import org.netbeans.modules.jeeserver.base.deployment.config.ModulesChangeListener;
 import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
 import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.Bundle.WebModulesRootNode_availableWebApps;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.Bundle.WebModulesRootNode_shortDescription;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;

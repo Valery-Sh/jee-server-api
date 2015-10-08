@@ -1,18 +1,15 @@
 package org.netbeans.modules.jeeserver.base.embedded.specifics;
 
-import java.beans.PropertyChangeEvent;
 import java.io.InputStream;
-import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.SuiteManager;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.ChildrenNotifier;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.SuiteNotifier;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
+import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
@@ -25,51 +22,52 @@ import org.openide.filesystems.FileRenameEvent;
  */
 public interface EmbeddedServerSpecifics extends ServerSpecifics {
 
-    static final Logger LOG = Logger.getLogger(SuiteUtil.class.getName());
-
+    //private static final Logger LOG = Logger.getLogger(EmbeddedServerSpecifics.class.getName());
     boolean supportsDistributeAs(SuiteConstants.DistributeAs distributeAs);
 
     default InputStream getPomFileTemplate() {
         return null;
     }
-    
+
     @Override
-    default void iconChange(String uri,boolean newValue) {
+    default void iconChange(String uri, boolean newValue) {
         SuiteManager.getServerSuiteProject(uri)
                 .getLookup()
                 .lookup(SuiteNotifier.class)
                 .iconChange(uri, newValue);
     }
+
     @Override
-    default void displayNameChange(String uri,String newValue) {
+    default void displayNameChange(String uri, String newValue) {
         SuiteManager.getServerSuiteProject(uri)
                 .getLookup()
                 .lookup(SuiteNotifier.class)
                 .displayNameChange(uri, newValue);
     }
-/*
-    @Override
-    default void propertyChange(PropertyChangeEvent evt) {
-        Object o = evt.getSource();
-        BaseDeploymentManager dm = null;
-        if (o instanceof BaseDeploymentManager) {
-            dm = (BaseDeploymentManager) o;
-            switch (evt.getPropertyName()) {
-                case "server-running":
-                    SuiteNotifier model = SuiteManager.getServerSuiteProject(dm.getUri()).getLookup().lookup(SuiteNotifier.class);
-                    model.propertyChange(evt);
+    /*
+     @Override
+     default void propertyChange(PropertyChangeEvent evt) {
+     Object o = evt.getSource();
+     BaseDeploymentManager dm = null;
+     if (o instanceof BaseDeploymentManager) {
+     dm = (BaseDeploymentManager) o;
+     switch (evt.getPropertyName()) {
+     case "server-running":
+     SuiteNotifier model = SuiteManager.getServerSuiteProject(dm.getUri()).getLookup().lookup(SuiteNotifier.class);
+     model.propertyChange(evt);
 
-                    break;
-            }
-        }
+     break;
+     }
+     }
 
-    }
-*/
-/*    @Override
-    default Lookup getServerLookup(BaseDeploymentManager dm) {
-        return SuiteManager.getServerInstanceLookup(dm.getUri());
-    }
-*/
+     }
+     */
+    /*    @Override
+     default Lookup getServerLookup(BaseDeploymentManager dm) {
+     return SuiteManager.getServerInstanceLookup(dm.getUri());
+     }
+     */
+
     @Override
     default void register(BaseDeploymentManager dm) {
         FileObject fo = dm.getServerProjectDirectory();
@@ -113,4 +111,10 @@ public interface EmbeddedServerSpecifics extends ServerSpecifics {
             }
         });
     }
+
+    @Override
+    default StartServerPropertiesProvider getStartServerPropertiesProvider(BaseDeploymentManager dm) {
+        return new EmbeddedStartServerPropertiesProvider(dm);
+    }
+
 }

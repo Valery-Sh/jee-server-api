@@ -36,7 +36,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyServerInstancePanelVisual;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyServerInstanceWizardPanel;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyProperties;
@@ -330,10 +330,10 @@ public class JettyServerCustomizer extends JettyServerInstancePanelVisual implem
         props.setProperty(prop, iniProps.getProperty(BaseConstants.HTTP_PORT_PROP));
 
         prop = jvs.getTimeoutPropertyName();
-        BaseUtils.out("jvs.getTimeoutPropertyName()=" + prop);
-        BaseUtils.out("jvs.getTimeoutPropertyName()=" + prop);
+        BaseUtil.out("jvs.getTimeoutPropertyName()=" + prop);
+        BaseUtil.out("jvs.getTimeoutPropertyName()=" + prop);
         
-        BaseUtils.out("iniProps.getProperty(JettyConstants.JETTY_HTTP_TIMEOUT)=" + iniProps.getProperty(JettyConstants.JETTY_HTTP_TIMEOUT));
+        BaseUtil.out("iniProps.getProperty(JettyConstants.JETTY_HTTP_TIMEOUT)=" + iniProps.getProperty(JettyConstants.JETTY_HTTP_TIMEOUT));
         
         props.setProperty(prop, iniProps.getProperty(JettyConstants.JETTY_HTTP_TIMEOUT));
         try (FileOutputStream fos = new FileOutputStream(httpIni.getPath())) {

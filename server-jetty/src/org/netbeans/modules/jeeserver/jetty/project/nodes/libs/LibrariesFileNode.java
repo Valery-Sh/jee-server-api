@@ -15,7 +15,7 @@ import java.util.logging.Logger;
 import javax.swing.Action;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.libraries.Library;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.LibrariesFileLocator;
 import org.netbeans.modules.jeeserver.jetty.project.JettyProjectLogicalView;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.libs.NodeOptions.ROOT;
@@ -139,7 +139,7 @@ public class LibrariesFileNode extends FilterNode {
                     props.setProperty("name", name);
                     props.setProperty("displayName", displayName);
 
-                    BaseUtils.storeProperties(props, libFolder, JettyConstants.LIBRARY_FILE);
+                    BaseUtil.storeProperties(props, libFolder, JettyConstants.LIBRARY_FILE);
                 } catch (IOException ex) {
                     LOG.log(Level.INFO, ex.getMessage());
                     continue;
@@ -160,7 +160,7 @@ public class LibrariesFileNode extends FilterNode {
         if (propFo == null) {
             return null;
         }
-        return BaseUtils.loadProperties(propFo);
+        return BaseUtil.loadProperties(propFo);
     }
 
     protected FileObject getExtFolder() {

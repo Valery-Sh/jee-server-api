@@ -31,7 +31,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationExceptio
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.customizer.JettyServerCustomizer;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import static org.netbeans.modules.jeeserver.jetty.util.Utils.getDefaultPropertyMap;
@@ -113,7 +113,7 @@ public final class PropertiesAction extends AbstractAction implements ContextAwa
         }
 
         private void loadManager() {
-            manager = BaseUtils.managerOf(project.getLookup());
+            manager = BaseUtil.managerOf(project.getLookup());
         }
 
         public @Override
@@ -124,7 +124,7 @@ public final class PropertiesAction extends AbstractAction implements ContextAwa
         public void perform() {
             if (manager == null) {
                 createServerInstance();
-                manager = BaseUtils.managerOf(project.getLookup());
+                manager = BaseUtil.managerOf(project.getLookup());
             }
 
             JettyServerCustomizer c = new JettyServerCustomizer(manager);

@@ -20,7 +20,7 @@ import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformFactory;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
 
 /**
@@ -32,7 +32,7 @@ public class JettyServerPlatformFactory extends J2eePlatformFactory {
     private static JettyServerPlatformFactory platformFactory;
     
     private JettyServerPlatformFactory() {
-        BaseUtils.out("JettyServerPlatformFactory CONSTRUCTOR ");
+        BaseUtil.out("JettyServerPlatformFactory CONSTRUCTOR ");
     }
     
     public static JettyServerPlatformFactory getInstance() {

@@ -6,7 +6,7 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibrariesFileNode.FileKeys;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.libs.NodeOptions.FILE_IN_EXT;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.libs.NodeOptions.FILE_IN_ROOT;
@@ -160,10 +160,10 @@ public class LibraryNodeFactory implements NodeFactory {
             try {
                 FileObject keyFo = FileUtil.toFileObject(new File(key.toString()));
                 if ( keyFo == null ) {
-                    BaseUtils.out("1 LibraryNodeFactory key = " + key);
+                    BaseUtil.out("1 LibraryNodeFactory key = " + key);
                 }
                 if ( DataObject.find(keyFo) == null ) {
-                    BaseUtils.out("2 LibraryNodeFactory key = " + key);
+                    BaseUtil.out("2 LibraryNodeFactory key = " + key);
                 }
                 Node originalNode = DataObject.find(keyFo).getNodeDelegate();
 

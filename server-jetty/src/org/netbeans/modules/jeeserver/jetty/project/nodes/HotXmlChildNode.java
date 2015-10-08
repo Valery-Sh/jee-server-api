@@ -20,7 +20,7 @@ import java.awt.Image;
 import java.util.Properties;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.util.ImageUtilities;
 
@@ -65,7 +65,7 @@ public class HotXmlChildNode extends HotBaseWebAppChildNode {
     public Image getIcon(int type) {
         Properties p = getContextProperties();
         if ( p != null && p.getProperty("war") != null) {
-            if ( BaseUtils.isHtml5Project(p.getProperty("war")) ) {
+            if ( BaseUtil.isHtml5Project(p.getProperty("war")) ) {
                 return ImageUtilities.loadImage(HTML5_IMAGE);          
             }
         }

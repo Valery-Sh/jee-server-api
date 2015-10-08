@@ -1,16 +1,12 @@
 package org.netbeans.modules.jeeserver.base.embedded.project;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;

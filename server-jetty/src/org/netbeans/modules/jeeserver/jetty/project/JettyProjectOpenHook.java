@@ -30,7 +30,7 @@ import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationException;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.actions.PropertiesAction;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.netbeans.spi.project.ui.ProjectOpenedHook;
@@ -55,11 +55,11 @@ public class JettyProjectOpenHook extends ProjectOpenedHook {
     @Override
     protected void projectOpened() {
         String uri = Utils.buildUri(projectDir);
-        BaseUtils.out("projectOpened uri=" + uri);
+        BaseUtil.out("projectOpened uri=" + uri);
         try {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
             if (ip == null) {
-                BaseUtils.out("projectOpened 1");
+                BaseUtil.out("projectOpened 1");
 
                 Map<String, String> map = getDefaultPropertyMap();
                 ip = InstanceProperties.createInstanceProperties(uri, null, null, projectDir.getNameExt(), map);
@@ -94,7 +94,7 @@ public class JettyProjectOpenHook extends ProjectOpenedHook {
                 }
             }
 
-            BaseUtils.out("projectOpened 2");
+            BaseUtil.out("projectOpened 2");
 
         } catch (InstanceCreationException ex) {
             LOG.log(Level.INFO, ex.getMessage());

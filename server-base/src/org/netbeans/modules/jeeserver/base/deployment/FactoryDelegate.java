@@ -25,12 +25,10 @@ import javax.enterprise.deploy.spi.DeploymentManager;
 import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectManager;
-import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
@@ -78,8 +76,6 @@ public class FactoryDelegate {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
             if (ip != null) {
                 InstanceProperties.removeInstance(uri);
-//        BaseUtils.out("FactoryDelegate deleteUnusedInstances uri=" + uri);
-
                 toDelete.remove(uri);
             }
             InstanceProperties.getInstanceProperties(uri);
@@ -161,28 +157,13 @@ public class FactoryDelegate {
             return false;
         }
 
-//        return BaseUtils.isServerProject(p);
         if (p.getLookup().lookup(ServerInstanceProperties.class) == null) {
             return false;
         }
-
-        /*        if (serverInstanceDir == null) {
-         return false;
-         }
-
-         fo = FileUtil.toFileObject(new File(serverInstanceDir));
-         if (fo == null) {
-         return false;
-         }
-
-         if (fo.getFileObject("instance.properties") == null) {
-         return false;
-         }
-         */
         return true;
     }
 
-    public final synchronized void registerUnusedInstances() {
+    public  synchronized void registerUnusedInstances() {
 
         FileObject dir = FileUtil.getConfigFile("/J2EE/InstalledServers");
         FileObject instanceFOs[] = dir.getChildren();
@@ -227,8 +208,6 @@ public class FactoryDelegate {
      * @throws DeploymentManagerCreationException
      */
     public synchronized BaseDeploymentManager getDeploymentManager(String uri, String username, String password) throws DeploymentManagerCreationException {
-//        BaseUtils.out("FactoryDelegate getDeploymentManager uri=" + uri);
-
         deleteUnusedInstances();
 
         if (InstanceProperties.getInstanceProperties(uri) == null) {
@@ -241,13 +220,7 @@ public class FactoryDelegate {
 
         if (null == manager) {
             manager = new BaseDeploymentManager(serverId, uri,specifics);
-            //manager.setSpecifics(specifics);
-
-            // put into cache
             managers.put(uri, manager);
-            
-            //initManger(uri);
-            
             specifics.register( manager);
         }
 

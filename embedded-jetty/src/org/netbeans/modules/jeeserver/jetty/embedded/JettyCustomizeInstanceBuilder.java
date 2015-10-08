@@ -15,8 +15,8 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.EmbeddedInstanceBuilder;
+import org.netbeans.modules.jeeserver.base.embedded.EmbeddedInstanceBuilder;
+import org.openide.filesystems.FileObject;
 
 /**
  *
@@ -59,13 +59,23 @@ public class JettyCustomizeInstanceBuilder extends EmbeddedInstanceBuilder {
     }
 
     @Override
-    public void copyCommandManagerLib(Set result) {
+    public void createOrUpdateNbDeployment(Set result) {
         throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
     public void removeCommandManager(Project project) {
         throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected String getCommandManagerJarName() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    protected FileObject getLibDir(Project project) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
 }

@@ -15,6 +15,17 @@ public class SuiteConstants extends BaseConstants {
         UNPACKED_WARS,
         WARS
     }
+    
+    public static final String PANEL_VISITED_PROP = "panel.visited";
+    
+    public static final String MAVEN_MAIN_CLASS_PROP = "maven.main.class";
+    public static final String MAVEN_DEBUG_CLASSPATH_PROP = "maven.debug.classpath";
+    public static final String MAVEN_RUN_CLASSPATH_PROP = "maven.run.classpath";
+    
+    public static final String MAVEN_WORK_DIR_PROP = "maven.work.dir";
+    
+    
+    
     public static final String SERVER_INSTANCE_NAME_PROP = "server-instance-display-name";     
     public static final String SERVER_INSTANCES_DIR_PROP = "server-instances-dir"; 
     public static final String SUITE_PROJECT_LOCATION = "embedded-suite-project-location"; 

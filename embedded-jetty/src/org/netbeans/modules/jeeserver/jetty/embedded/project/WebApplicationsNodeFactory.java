@@ -7,7 +7,8 @@ package org.netbeans.modules.jeeserver.jetty.embedded.project;
 
 import org.netbeans.spi.project.ui.support.NodeFactory;
 
-@NodeFactory.Registration(projectType = "org-jetty-embedded-instance-project")
-public class WebApplicationsNodeFactory extends org.netbeans.modules.jeeserver.base.embedded.project.WebApplicationsNodeFactory{
+
+@NodeFactory.Registration(projectType = "org-jetty-embedded-webapp-project")
+public class WebApplicationsNodeFactory extends org.netbeans.modules.jeeserver.base.embedded.webapp.nodes.WebApplicationsNodeFactory{
     
 }

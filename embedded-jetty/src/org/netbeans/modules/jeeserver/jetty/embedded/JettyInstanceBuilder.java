@@ -24,9 +24,11 @@ import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.LibrariesFileLocator;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ServerInstanceAntBuildExtender;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.EmbeddedInstanceBuilder;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceAntBuildExtender;
+import org.netbeans.modules.jeeserver.base.embedded.EmbeddedInstanceBuilder;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceBuildExtender;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
@@ -63,14 +65,19 @@ public class JettyInstanceBuilder extends EmbeddedInstanceBuilder {
                 FileObject dir = FileUtil.toFileObject(dirF);
                 Project p = ProjectManager.getDefault().findProject(dir);
                 set.add(p);
-                copyCommandManagerLib(set);
+                createOrUpdateNbDeployment(set);
             }
             instantiateServerProperties(set);
             instantiateServerInstanceDir(set);
-            ServerInstanceAntBuildExtender extender = new ServerInstanceAntBuildExtender(findProject(set));
+
+            ServerInstanceBuildExtender extender;
+            if (!isMavenbased()) {
+                extender = new ServerInstanceAntBuildExtender(findProject(set));
+            } else {
+                extender = new ServerInstanceBuildExtender(findProject(set));
+            }
             extender.enableExtender();
-            
-            
+
             modifyClasspath(set);
 
         } catch (IOException ex) {
@@ -85,48 +92,51 @@ public class JettyInstanceBuilder extends EmbeddedInstanceBuilder {
                 + zipAntTemplatePath);
     }
 
-    private Project findProject(Set result) {
-        Project p = null;
-        for (Object o : result) {
-            if (o instanceof Project) {
-                p = (Project) o;
-            }
-        }
-        return p;
-    }
-
     protected FileObject getSrcDir(Project p) {
-        return p.getProjectDirectory().getFileObject("src");
-    }
-
-    protected FileObject getLibDir(Project p) {
-        return p.getProjectDirectory().getFileObject("lib/ext");
+        FileObject fo = p.getProjectDirectory().getFileObject("src");
+        BaseUtil.out("JettyInstanceBuilder srcDir fo=" + fo);
+//        if ( ! BaseUtil.isAntProject(p)) {
+//            fo = p.getProjectDirectory().getFileObject("src/main/java");
+//        }
+        return fo;
     }
 
     @Override
-    public void copyCommandManagerLib(Set result) {
+    protected FileObject getLibDir(Project p) {
+        FileObject fo;
+//        if (BaseUtil.isAntProject(p)) {
+        fo = p.getProjectDirectory().getFileObject("lib/ext");
+//        } else {
+//            fo = p.getProjectDirectory().getFileObject("nbdeployment/lib");
+//        }
+        return fo;
+    }
+
+    @Override
+    public void createOrUpdateNbDeployment(Set result) {
         Project proj = findProject(result);
 
-        String actualServerId = (String) getWizardDescriptor()
-                .getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);
-        String cmOut = actualServerId + "-command-manager";
-        String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + actualServerId + "-command-manager.jar";
+        String classpackage = (String) getWizardDescriptor()
+                .getProperty("package");
 
-        FileObject libExt = getLibDir(proj);
-        if (libExt == null) {
-            libExt = createLib(result);
+
+        FileObject libFolder = getLibDir(proj);
+        
+        if (libFolder == null) {
+            libFolder = createLib(proj);
         }
-        FileObject cmFo;// = null;
+        
+        addCommandManagerJar(libFolder);
+        
         try {
-            cmFo = libExt.createData(cmOut, "jar");
-            try (OutputStream os = cmFo.getOutputStream(); InputStream is = getClass().getClassLoader().getResourceAsStream(cmIn)) {
-                FileUtil.copy(is, os);
-            }
-
+            copyBuildXml(libFolder);
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N
         }
 
+
+        modifyPomXml(proj);
+        updateServerInstanceProperties(proj);
         //
         // Plugin jar => we can create a class from template
         //
@@ -142,15 +152,28 @@ public class JettyInstanceBuilder extends EmbeddedInstanceBuilder {
             if (toDelete != null) {
                 toDelete.delete();
             }
-            FileObject targetFo = srcFo.createFolder("org")
-                    .createFolder("embedded")
-                    .createFolder("server");
+            FileObject targetFo = srcFo;
+
+            if (classpackage != null) {
+                String path = classpackage.replace(".", "/");
+                targetFo = FileUtil.createFolder(targetFo, path);
+
+            } else {
+                classpackage = "org.embedded.server";
+                targetFo = srcFo.createFolder("org")
+                        .createFolder("embedded")
+                        .createFolder("server");
+            }
+
             outputFolder = DataFolder.findFolder(targetFo);
+
             template = DataObject.find(
                     FileUtil.getConfigFile("Templates/jetty9/JettyEmbeddedServer"));
             templateParams.put("port", getWizardDescriptor().getProperty(BaseConstants.HTTP_PORT_PROP));
             templateParams.put("comStart", "");
             templateParams.put("comEnd", "");
+            templateParams.put("classpackage", classpackage);
+            templateParams.put("command.manager.param", getCommandManagerJarName());
 
             template.createFromTemplate(
                     outputFolder,
@@ -161,28 +184,58 @@ public class JettyInstanceBuilder extends EmbeddedInstanceBuilder {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N
         }
     }
+    protected void addCommandManagerJar(FileObject targetFolder) {
+        String cmOut = getCommandManagerJarName();
+        if ( cmOut == null || targetFolder.getFileObject(cmOut + ".jar") != null ) {
+            return;
+        }
+        
+        String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + cmOut + ".jar";
 
-    public FileObject createLib(Set result) {
+        FileObject cmFo;
+        try {
+            cmFo = targetFolder.createData(cmOut, "jar");
+            try (OutputStream os = cmFo.getOutputStream(); InputStream is = getClass().getClassLoader().getResourceAsStream(cmIn)) {
+                FileUtil.copy(is, os);
+            }
+        } catch (IOException ex) {
+            LOG.log(Level.INFO, ex.getMessage()); //NOI18N
+        }
+    }
+
+
+    /**
+     *
+     * @param project
+     */
+    protected void modifyPomXml(Project project) {
+    }
+
+    public FileObject createLib(Project project) {
         FileObject libFo = null;
-        Project p = findProject(result);
-        File libFolder = new File(p.getProjectDirectory().getPath() + "/lib/ext");
-        FileObject fo = p.getProjectDirectory().getFileObject("lib/ext");
+
+        File libFolder;
+        FileObject fo;
+        libFolder = new File(project.getProjectDirectory().getPath() + "/lib/ext");
+        fo = project.getProjectDirectory().getFileObject("lib/ext");
+
         if (fo == null) {
             try {
                 libFo = FileUtil.createFolder(libFolder);
-
             } catch (IOException ex) {
                 LOG.log(Level.INFO, ex.getMessage()); //NOI18N
             }
         }
+        BaseUtil.out("JettyInstanceBuilder createLib libfo=" + libFo);
         return libFo;
     }
 
     @Override
     public void removeCommandManager(Project proj) {
-        String actualServerId = (String) getWizardDescriptor()
-                .getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);
-        String cm = actualServerId + "-command-manager.jar";
+//        String actualServerId = (String) getWizardDescriptor()
+//                .getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);
+//        String cm = actualServerId + Jetty9Specifics.JETTY_JAR_POSTFIX;
+        String cm = getCommandManagerJarName();
         FileObject libExt = getLibDir(proj);
         if (libExt != null) {
             FileObject cmFo = libExt.getFileObject(cm);
@@ -197,96 +250,10 @@ public class JettyInstanceBuilder extends EmbeddedInstanceBuilder {
 
     }
 
+    @Override
     protected String getCommandManagerJarName() {
         String actualServerId = (String) getWizardDescriptor()
                 .getProperty(SuiteConstants.SERVER_ACTUAL_ID_PROP);
-        return actualServerId + "-command-manager.jar";
-
+        return actualServerId + Jetty9Specifics.JETTY_JAR_POSTFIX;
     }
-    /*    public void modifyClasspath(Set result) {
-     Project p = findProject(result);
-     FileObject libExt = getLibDir(p);
-     if (libExt == null) {
-     return;
-     }        
-     String jarName = getCommandManagerJarName();
-        
-     final File jar = new File(libExt.getPath() + "/" + jarName);
-     if (jar == null || ! jar.exists() ) {
-     return;
-     }
-     HashMap<String, List<URL>> map = new HashMap<>();
-     List<URL> list = new ArrayList<>();
-     try {
-     list.add(Utilities.toURI(jar).toURL());
-     map.put("classpath", list);
-     Library lib = LibraryManager.getDefault().createLibrary("j2se", jarName, map);
-     ProjectClassPathModifier.addLibraries(new Library[]{lib}, p.getProjectDirectory(), ClassPath.COMPILE);
-     } catch (IOException ex) {
-     LOG.log(Level.INFO, ex.getMessage()); //NOI18N
-     }
-
-     }
-     */
-
-    public void modifyClasspath(Set result) {
-
-        Project p = findProject(result);
-
-        FileObject libExt = getLibDir(p);
-        if (libExt == null) {
-            return;
-        }
-
-        String jarName = getCommandManagerJarName();
-        final File jar = new File(libExt.getPath() + "/" + jarName);
-        if (jar == null || !jar.exists()) {
-            return;
-        }
-
-        FileObject root = getSourceRoot(p);
-        if (root == null) {
-            return;
-        }
-        //
-        // Now check if there is allredy the jar in the classpath of the project
-        //
-        ClassPath cp = ClassPath.getClassPath(root, ClassPath.COMPILE);
-        if ( cp == null ) {
-            return;
-        }
-        for (Entry e : cp.entries()) {
-            File entryJar = LibrariesFileLocator.getFile(e.getURL());
-            if (jar.equals(entryJar)) {
-                return;
-            }
-        }
-        //
-        // Add jar to classpath
-        //
-        URI[] uri = new URI[]{Utilities.toURI(jar)};
-
-        try {
-            ProjectClassPathModifier.addRoots(uri, root, ClassPath.COMPILE);
-        } catch (IOException ex) {
-            LOG.log(Level.FINE, ex.getMessage());
-        }
-    }
-
-    protected FileObject getSourceRoot(Project p) {
-        Sources sources = ProjectUtils.getSources(p);
-        SourceGroup[] sourceGroups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
-        FileObject root = null;
-        try {
-            for (SourceGroup sourceGroup : sourceGroups) {
-                root = sourceGroup.getRootFolder();
-                break;
-
-            }
-        } catch (UnsupportedOperationException ex) {
-            LOG.log(Level.INFO, ex.getMessage());
-        }
-        return root;
-    }
-
 }

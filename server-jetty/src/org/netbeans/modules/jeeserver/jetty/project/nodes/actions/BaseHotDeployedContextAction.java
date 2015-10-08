@@ -21,7 +21,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
@@ -189,10 +189,10 @@ public class BaseHotDeployedContextAction extends AbstractHotDeployedContextActi
         sb.append("cmd=");
         sb.append(command);
         sb.append("&cp=");
-        sb.append(BaseUtils.encode(props.getProperty(CONTEXTPATH)));
+        sb.append(BaseUtil.encode(props.getProperty(CONTEXTPATH)));
         if ( props.getProperty(WAR) != null ) {
             sb.append("&dir=");
-            sb.append(BaseUtils.encode(props.getProperty(WAR)));
+            sb.append(BaseUtil.encode(props.getProperty(WAR)));
         }
 
         return sb.toString();
@@ -206,7 +206,7 @@ public class BaseHotDeployedContextAction extends AbstractHotDeployedContextActi
             try {
                 fo.delete();
             } catch (IOException ex) {
-                BaseUtils.out("BaseHotDeployedContextAction contextFo.delete EXCEPTION " + fo.getNameExt() + "; ex=" + ex.getMessage());
+                BaseUtil.out("BaseHotDeployedContextAction contextFo.delete EXCEPTION " + fo.getNameExt() + "; ex=" + ex.getMessage());
                 LOG.log(Level.INFO, ex.getMessage());
             }
         } else {

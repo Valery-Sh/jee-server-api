@@ -19,7 +19,7 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.actions.CommandActionProgress;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.spi.project.ActionProvider;
 import org.openide.filesystems.FileLock;
@@ -142,14 +142,14 @@ public class EmbPackageUtils {
     public static Properties createHtml5Properties(Project html5Proj) {
         
         FileObject fo = html5Proj.getProjectDirectory();
-        Properties html5Props = BaseUtils.loadHtml5ProjectProperties(fo.getPath());
+        Properties html5Props = BaseUtil.loadHtml5ProjectProperties(fo.getPath());
 
-        String siteRoot = BaseUtils.resolve(SuiteConstants.HTML5_SITE_ROOT_PROP, html5Props);
+        String siteRoot = BaseUtil.resolve(SuiteConstants.HTML5_SITE_ROOT_PROP, html5Props);
         if (siteRoot == null) {
             siteRoot = BaseConstants.HTML5_DEFAULT_SITE_ROOT_PROP;
         }
         Properties props = new Properties();
-        String contextPath = BaseUtils.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5Props);
+        String contextPath = BaseUtil.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5Props);
         
         if (contextPath == null) {
             contextPath = fo.getNameExt();
@@ -187,7 +187,7 @@ public class EmbPackageUtils {
             //Path meta_inf = Files.createDirectories(target.toPath().resolve("META-INF"));
             Copier.ZipUtil.copy(siteRoot, warFile);
 
-            BaseUtils.storeProperties(props, package_dist, web_app_config);
+            BaseUtil.storeProperties(props, package_dist, web_app_config);
             File tmpFile = new File(package_dist.getPath() + "/" + web_app_config);
 
             Copier.ZipUtil.copy(tmpFile, warFile, "WEB-INF");
@@ -225,7 +225,7 @@ public class EmbPackageUtils {
             Path meta_inf = Files.createDirectories(target.toPath().resolve("META-INF"));
 //            ZipUtil.copyToZip(siteRoot, serverJar, web_apps_pack + "/" + fo.getNameExt());
 
-            BaseUtils.storeProperties(props, FileUtil.toFileObject(meta_inf.toFile()), web_app_config);
+            BaseUtil.storeProperties(props, FileUtil.toFileObject(meta_inf.toFile()), web_app_config);
 //            File tmpFile = new File(package_dist.getPath() + "/" + web_app_config);
 
 //            ZipUtil.copyToZip(tmpFile, serverJar, web_apps_pack + "/" + fo.getNameExt() + "/META-INF");
@@ -257,7 +257,7 @@ public class EmbPackageUtils {
             File siteRoot = FileUtil.toFile(fo.getFileObject(props.getProperty(SuiteConstants.HTML5_SITE_ROOT_PROP)));
             Copier.ZipUtil.copy(siteRoot, serverJar, web_apps_pack + "/" + fo.getNameExt());
 
-            BaseUtils.storeProperties(props, package_dist, web_app_config);
+            BaseUtil.storeProperties(props, package_dist, web_app_config);
             File tmpFile = new File(package_dist.getPath() + "/" + web_app_config);
 
             Copier.ZipUtil.copy(tmpFile, serverJar, web_apps_pack + "/" + fo.getNameExt() + "/META-INF");
@@ -423,7 +423,7 @@ public class EmbPackageUtils {
     public static FileObject getWarFile(FileObject webProjDir) {
         FileObject war = null;
         if (webProjDir.isFolder()) {
-            war = BaseUtils.getWar(FileOwnerQuery.getOwner(webProjDir));
+            war = BaseUtil.getWar(FileOwnerQuery.getOwner(webProjDir));
         }
         return war;
     }
@@ -448,7 +448,7 @@ public class EmbPackageUtils {
                 continue;
             }
             if (!fo.isFolder() && SuiteConstants.WEB_REF.equals(fo.getExt())) {
-                Properties props = BaseUtils.loadProperties(fo);
+                Properties props = BaseUtil.loadProperties(fo);
                 String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 war = getWarFile(FileUtil.toFileObject(new File(location)));
                 if (war != null) {
@@ -458,7 +458,7 @@ public class EmbPackageUtils {
             }
 
             if (!fo.isFolder() && SuiteConstants.WAR_REF.equals(fo.getExt())) {
-                Properties props = BaseUtils.loadProperties(fo);
+                Properties props = BaseUtil.loadProperties(fo);
                 String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 if (new File(location).exists()) {
                     war = FileUtil.toFileObject(new File(location));
@@ -488,7 +488,7 @@ public class EmbPackageUtils {
                 list.add(FileOwnerQuery.getOwner(fo));
             }
             if (SuiteConstants.WEB_REF.equals(fo.getExt())) {
-                Properties props = BaseUtils.loadProperties(fo);
+                Properties props = BaseUtil.loadProperties(fo);
                 String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 FileObject webref = FileUtil.toFileObject(new File(location));
                 list.add(FileOwnerQuery.getOwner(webref));
@@ -511,7 +511,7 @@ public class EmbPackageUtils {
         FileObject appsFo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
         for (FileObject fo : appsFo.getChildren()) {
             if (SuiteConstants.HTML_REF.equals(fo.getExt())) {
-                Properties props = BaseUtils.loadProperties(fo);
+                Properties props = BaseUtil.loadProperties(fo);
                 String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
                 FileObject ref = FileUtil.toFileObject(new File(location));
                 list.add(FileOwnerQuery.getOwner(ref));
@@ -529,7 +529,7 @@ public class EmbPackageUtils {
      */
     public static String validateWebRef(FileObject webRef) {
         String msg;
-        Properties props = BaseUtils.loadProperties(webRef);
+        Properties props = BaseUtil.loadProperties(webRef);
         String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
         String msg1 = ".webref refers to ";
         File file = new File(location);
@@ -558,7 +558,7 @@ public class EmbPackageUtils {
      */
     public static String validateWarRef(FileObject warRef) {
         String msg = null;
-        Properties props = BaseUtils.loadProperties(warRef);
+        Properties props = BaseUtil.loadProperties(warRef);
         String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
         String msg1 = ".warref refers to ";
         File file = new File(location);
@@ -579,7 +579,7 @@ public class EmbPackageUtils {
      */
     public static String validateHtmRef(FileObject ref) {
         String msg = null;
-        Properties props = BaseUtils.loadProperties(ref);
+        Properties props = BaseUtil.loadProperties(ref);
         String location = props.getProperty(SuiteConstants.WEB_APP_LOCATION_PROP);
         String msg1 = ".htmref refers to ";
         File file = new File(location);
@@ -589,7 +589,7 @@ public class EmbPackageUtils {
         } else if (fo.getFileObject("nbproject/project.xml") == null) {
             msg = msg1 + " not existing Html5 project.";
         } else {
-            String type = BaseUtils.projectTypeByProjectXml(fo.getFileObject("nbproject/project.xml"));
+            String type = BaseUtil.projectTypeByProjectXml(fo.getFileObject("nbproject/project.xml"));
             if (!SuiteConstants.HTML5_PROJECTTYPE.equals(type)) {
                 msg = msg1 + " not an Html5 project.";
             }

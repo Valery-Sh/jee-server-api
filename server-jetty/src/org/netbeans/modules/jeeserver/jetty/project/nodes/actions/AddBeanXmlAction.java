@@ -27,7 +27,7 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -85,7 +85,7 @@ public final class AddBeanXmlAction extends AbstractAction implements ContextAwa
             
             
             webProject = webapplookup.lookup(Project.class);
-            J2eeModuleProvider p = BaseUtils.getJ2eeModuleProvider(webProject);
+            J2eeModuleProvider p = BaseUtil.getJ2eeModuleProvider(webProject);
             String id = "";
             if ( p != null) {
                 id = p.getServerInstanceID();

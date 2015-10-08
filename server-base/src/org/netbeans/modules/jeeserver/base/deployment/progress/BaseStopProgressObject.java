@@ -22,7 +22,7 @@ import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.DialogDisplayer;
 import org.openide.NotifyDescriptor;
 import org.openide.execution.ExecutorTask;
@@ -96,7 +96,7 @@ public class BaseStopProgressObject extends AbstractProgressObject {
                 getManager().getServerTask().stop();
                 shutdown = getManager().getServerTask().waitFinished(BaseConstants.SERVER_TIMEOUT_DELAY);
             } catch (InterruptedException ex) {
-                BaseUtils.out("STOP SERVER EXCEPTION");
+                BaseUtil.out("STOP SERVER EXCEPTION");
                 shutdown = false;
             }
         }

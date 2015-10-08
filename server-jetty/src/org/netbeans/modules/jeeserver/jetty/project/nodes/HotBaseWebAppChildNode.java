@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Properties;
 import javax.swing.Action;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.actions.ShowInBrowserWebAppAction;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.actions.StartHotDeployedWebAppAction;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.actions.StopHotDeployedWebAppAction;
@@ -208,7 +208,7 @@ public class HotBaseWebAppChildNode extends FilterNode {
             return list1.toArray(new Action[list1.size()]);
         } catch (DataObjectNotFoundException ex) {
             Exceptions.printStackTrace(ex);
-            BaseUtils.out("GET ACTION EXCEPTION " + ex.getMessage());
+            BaseUtil.out("GET ACTION EXCEPTION " + ex.getMessage());
         }
         
         return null;

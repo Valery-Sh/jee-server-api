@@ -16,7 +16,7 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.awt.DynamicMenuContent;
 import org.openide.filesystems.FileObject;
@@ -93,7 +93,7 @@ public abstract class AbstractHotDeployedContextAction extends AbstractAction {
     }
     
     private void loadManager() {
-        manager = BaseUtils.managerOf(project.getLookup());
+        manager = BaseUtil.managerOf(project.getLookup());
     }
 
     public @Override
@@ -127,9 +127,9 @@ public abstract class AbstractHotDeployedContextAction extends AbstractAction {
         sb.append("cmd=");
         sb.append(command);
         sb.append("&cp=");
-        sb.append(BaseUtils.encode(props.getProperty(CONTEXTPATH)));
+        sb.append(BaseUtil.encode(props.getProperty(CONTEXTPATH)));
         sb.append("&dir=");
-        sb.append(BaseUtils.encode(props.getProperty(WAR)));
+        sb.append(BaseUtil.encode(props.getProperty(WAR)));
 
         return sb.toString();
     }

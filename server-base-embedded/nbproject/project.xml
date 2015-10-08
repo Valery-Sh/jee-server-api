@@ -114,6 +114,14 @@
                     </run-dependency>
                 </dependency>
                 <dependency>
+                    <code-name-base>org.netbeans.modules.java.source</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>0.138.3.32.2.25.8</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
                     <code-name-base>org.netbeans.modules.jeeserver.base.deployment</code-name-base>
                     <build-prerequisite/>
                     <compile-dependency/>
@@ -164,6 +172,14 @@
                     <run-dependency>
                         <release-version>0</release-version>
                         <specification-version>1.26.1</specification-version>
+                    </run-dependency>
+                </dependency>
+                <dependency>
+                    <code-name-base>org.netbeans.spi.editor.hints.projects</code-name-base>
+                    <build-prerequisite/>
+                    <compile-dependency/>
+                    <run-dependency>
+                        <specification-version>1.7.1.1.7</specification-version>
                     </run-dependency>
                 </dependency>
                 <dependency>
@@ -265,22 +281,17 @@
             </module-dependencies>
             <public-packages>
                 <package>org.netbeans.modules.jeeserver.base.embedded</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.actions</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.config</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.nodes</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.project.ant</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.project.config</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.project.maven</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.project.nodes</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.project.nodes.libs</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.project.web</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.server.project</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.server.project.nodes</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.server.project.nodes.actions</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.server.project.wizard</package>
-                <package>org.netbeans.modules.jeeserver.base.embedded.server.project.wizards</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.project.wizard</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.specifics</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.utils</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.webapp</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.webapp.actions</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.webapp.nodes</package>
             </public-packages>
         </data>
     </configuration>

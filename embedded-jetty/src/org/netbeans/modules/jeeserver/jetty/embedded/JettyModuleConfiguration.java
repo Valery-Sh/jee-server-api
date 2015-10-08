@@ -28,7 +28,7 @@ import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.config.AbstractModuleConfiguration;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.xml.XMLUtil;
@@ -120,7 +120,7 @@ public class JettyModuleConfiguration  extends AbstractModuleConfiguration {
             }
 
         } catch (IOException | DOMException | SAXException ex) {
-            BaseUtils.out("EXCEPTION " + ex.getMessage());
+            BaseUtil.out("EXCEPTION " + ex.getMessage());
         }
         return result;
     }
@@ -151,7 +151,7 @@ public class JettyModuleConfiguration  extends AbstractModuleConfiguration {
                 os.close();
 
             } catch (IOException ex) {
-                BaseUtils.out("getProjectJettyWebXmlFileObject EXCEPTION " + ex.getMessage());
+                BaseUtil.out("getProjectJettyWebXmlFileObject EXCEPTION " + ex.getMessage());
                 LOG.log(Level.INFO, "JettyModuleConfiguration.getProjectPropertiesFileObject. {0}", ex.getMessage()); //NOI18N                        
             }
 
@@ -197,7 +197,7 @@ public class JettyModuleConfiguration  extends AbstractModuleConfiguration {
             }
 
         } catch (IOException | DOMException | SAXException ex) {
-            BaseUtils.out("Utils: getContextProperties EXCEPTION " + ex.getMessage());
+            BaseUtil.out("Utils: getContextProperties EXCEPTION " + ex.getMessage());
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N                        
 
         }

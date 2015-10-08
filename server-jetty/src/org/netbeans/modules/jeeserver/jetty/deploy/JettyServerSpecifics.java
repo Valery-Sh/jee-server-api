@@ -36,7 +36,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.deploy.config.JettyServerModuleConfiguration;
 import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
@@ -117,7 +117,7 @@ public class JettyServerSpecifics implements ServerSpecifics {
 
         FileObject buildXml = pp.getBuildXml(serverProject);
         Properties props = pp.getStopProperties(serverProject);
-        ExecutorTask st = BaseUtils.managerOf(serverProject.getLookup()).getServerTask();
+        ExecutorTask st = BaseUtil.managerOf(serverProject.getLookup()).getServerTask();
         InputOutput stio = null;
         if (st != null) {
             stio = st.getInputOutput();
@@ -304,4 +304,9 @@ public class JettyServerSpecifics implements ServerSpecifics {
         return dm.getServerProject().getLookup();
     }    
 */    
+
+    @Override
+    public StartServerPropertiesProvider getStartServerPropertiesProvider(BaseDeploymentManager dm) {
+        return dm.getServerProject().getLookup().lookup(StartServerPropertiesProvider.class);
+    }
 }

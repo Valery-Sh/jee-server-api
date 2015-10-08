@@ -61,10 +61,10 @@ public class LibrariesFileLocator {
         } else {
             return null;
         }
-        BaseUtils.out("+++++++++++ findFile.path=" + path);
+        BaseUtil.out("+++++++++++ findFile.path=" + path);
         try {
             URL newurl = new URL(path);
-            BaseUtils.out("+++++++++++ findFile.newurl.path=" + newurl.getPath());
+            BaseUtil.out("+++++++++++ findFile.newurl.path=" + newurl.getPath());
             file = locateFile(newurl);
         } catch (MalformedURLException ex) {
             LOG.log(Level.INFO, ex.getMessage());

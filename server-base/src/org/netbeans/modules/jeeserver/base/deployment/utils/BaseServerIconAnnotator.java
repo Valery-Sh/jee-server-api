@@ -58,7 +58,7 @@ public class BaseServerIconAnnotator implements ProjectIconAnnotator {
 //            BaseUtils.out("!!!!!!!!!!! AServerSuite01");
         }
         //     Lookup lk = p.getLookup().lookup(InstanceContexts.class);
-        BaseDeploymentManager dm = BaseUtils.managerOf(p);
+        BaseDeploymentManager dm = BaseUtil.managerOf(p);
         if (dm == null) {
             return orig;
         }

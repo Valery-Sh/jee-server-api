@@ -27,7 +27,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.config.ServerInstanceAvailableModules;
 import org.netbeans.modules.jeeserver.base.deployment.config.WebModuleConfig;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Info;
 import org.netbeans.modules.jeeserver.jetty.project.JettyLibBuilder;
 import org.netbeans.modules.jeeserver.jetty.deploy.JettyServerPlatformImpl;
@@ -211,7 +211,7 @@ public class StartIni extends AbsractJettyConfig {
          */
         @Override
         public void fileChanged(FileEvent ev) {
-            BaseDeploymentManager manager = BaseUtils.managerOf(project.getLookup());
+            BaseDeploymentManager manager = BaseUtil.managerOf(project.getLookup());
             //RequestProcessor rp = new RequestProcessor("Server processor", 1);
             RP.post(new RunnableImpl(manager), 0, Thread.NORM_PRIORITY);
         }
@@ -250,7 +250,7 @@ public class StartIni extends AbsractJettyConfig {
             String baseDir = Paths.get(
                     project.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER)
                     .toString();
-            String homeDir = BaseUtils.getServerProperties(project.getLookup()).getHomeDir();
+            String homeDir = BaseUtil.getServerProperties(project.getLookup()).getHomeDir();
 
             List<String> modules = ini.getEnabledModules();
             //Map<String, List<String>> byIniName = IniModules.getEnabledModulesByIniName(baseDir, homeDir);

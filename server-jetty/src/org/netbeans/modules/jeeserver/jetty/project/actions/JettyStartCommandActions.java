@@ -20,7 +20,7 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import static org.netbeans.modules.jeeserver.base.deployment.progress.BaseRunProgressObject.LOG;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.awt.DynamicMenuContent;
 import org.openide.execution.ExecutorTask;
@@ -92,7 +92,7 @@ public final class JettyStartCommandActions extends AbstractAction implements Co
         }
 
         private void loadManager() {
-            manager = BaseUtils.managerOf(project.getLookup() );
+            manager = BaseUtil.managerOf(project.getLookup() );
         }
 
         public @Override

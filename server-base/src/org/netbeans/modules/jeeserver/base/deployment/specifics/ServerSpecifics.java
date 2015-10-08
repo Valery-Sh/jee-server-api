@@ -17,7 +17,6 @@
 package org.netbeans.modules.jeeserver.base.deployment.specifics;
 
 import java.awt.Image;
-import java.beans.PropertyChangeEvent;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -127,6 +126,7 @@ public interface ServerSpecifics extends LicensesAcceptor {
 
     Image getProjectImage(Project serverProject);
 
+    StartServerPropertiesProvider getStartServerPropertiesProvider(BaseDeploymentManager dm);
     /**
      *
      * @param projDir

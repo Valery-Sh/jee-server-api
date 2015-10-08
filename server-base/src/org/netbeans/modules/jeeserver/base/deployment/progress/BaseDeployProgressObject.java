@@ -30,7 +30,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTarget;
 import org.netbeans.modules.jeeserver.base.deployment.BaseTargetModuleID;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 
 import org.netbeans.modules.web.api.webmodule.WebModule;
 import org.openide.filesystems.FileObject;
@@ -93,7 +93,7 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         this.setTargetModuleID(module);
         setCompleteImmediately(completeImmediately);
         setMode(getManager().getCurrentDeploymentMode());
-        BaseUtils.out("command = 'undeploy'");
+        BaseUtil.out("command = 'undeploy'");
         fireRunning(CommandType.UNDEPLOY, getManager().getDefaultTarget().getName());
         RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
@@ -108,7 +108,7 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         this.setTargetModuleID(module);
         setCompleteImmediately(completeImmediately);
         setMode(getManager().getCurrentDeploymentMode());
-        BaseUtils.out("command = 'destroy'");
+        BaseUtil.out("command = 'destroy'");
         fireRunning(CommandType.UNDEPLOY, getManager().getDefaultTarget().getName());
         RP.post(this, 0, Thread.NORM_PRIORITY);
         return this;
@@ -197,7 +197,7 @@ public class BaseDeployProgressObject extends AbstractProgressObject {
         try {
             fireCompleted(commandType, getManager().getDefaultTarget().getName());
         } catch (Throwable e) {
-            BaseUtils.out("EXCEPTION!");
+            BaseUtil.out("EXCEPTION!");
             LOG.log(Level.INFO, e.getMessage());
         }
 

@@ -25,8 +25,8 @@ import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.ServerSuiteProjectFactory;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.project.ServerSuiteProjectFactory;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
@@ -35,7 +35,7 @@ import org.openide.util.Lookup;
  *
  * @author V. Shyshkin
  */
-public class SuiteUtil extends BaseUtils {
+public class SuiteUtil extends BaseUtil {
 
     private static final Logger LOG = Logger.getLogger(SuiteUtil.class.getName());
 

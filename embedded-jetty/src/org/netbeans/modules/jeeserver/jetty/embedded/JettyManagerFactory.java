@@ -23,6 +23,7 @@ import javax.enterprise.deploy.spi.factories.DeploymentFactory;
 import org.netbeans.modules.jeeserver.base.deployment.FactoryDelegate;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
+//import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.EmbeddedFactoryDelegate;
 
 /**
@@ -137,6 +138,8 @@ public class JettyManagerFactory implements DeploymentFactory, ServerSpecificsPr
 
     @Override
     public String[] getSupportedServerIds() {
-        return new String[] {"jetty-9"};
+        return new String[] {"jetty-9-embedded"};
     }
+    
+    
 }

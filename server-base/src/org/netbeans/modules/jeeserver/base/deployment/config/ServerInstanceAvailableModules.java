@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Properties;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
 import org.openide.filesystems.FileEvent;
@@ -202,9 +202,9 @@ public class ServerInstanceAvailableModules<T extends AbstractModuleConfiguratio
             }
             boolean remove = p1.equals(p2);
             if (proj != null && !remove) {
-                if (BaseUtils.isAntProject(proj)) {
+                if (BaseUtil.isAntProject(proj)) {
                     p2 = Paths.get(proj.getProjectDirectory().getPath(), "nbproject");
-                } else if (BaseUtils.isMavenProject(proj)) {
+                } else if (BaseUtil.isMavenProject(proj)) {
                     p2 = Paths.get(proj.getProjectDirectory().getPath(), "nb-configuration.xml");
                 } else {
                     p2 = null;

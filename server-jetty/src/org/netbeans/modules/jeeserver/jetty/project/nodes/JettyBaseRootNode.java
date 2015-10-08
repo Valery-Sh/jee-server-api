@@ -28,7 +28,7 @@ import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyProperties;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.openide.actions.PropertiesAction;
@@ -281,12 +281,12 @@ public class JettyBaseRootNode extends FilterNode {
             JettyProperties jvs = JettyProperties.getInstance(project);
             String portProp = jvs.getHttpPortPropertyName();
 
-            String port = BaseUtils.getServerProperties(project.getLookup()).getHttpPort();
-            Properties props = BaseUtils.loadProperties(ev.getFile());
+            String port = BaseUtil.getServerProperties(project.getLookup()).getHttpPort();
+            Properties props = BaseUtil.loadProperties(ev.getFile());
             if (port.equals(props.getProperty(portProp))) {
                 return;
             }
-            String uri = BaseUtils.getServerProperties(project.getLookup()).getUri();
+            String uri = BaseUtil.getServerProperties(project.getLookup()).getUri();
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
             ip.setProperty(BaseConstants.HTTP_PORT_PROP, props.getProperty(portProp));
         }

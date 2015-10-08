@@ -24,6 +24,14 @@ public interface ServerSpecificsProvider {
     String getServerId();
     String[] getSupportedServerIds();
     /**
+     * Must return a string concatenation: {@literal actualId} parameter
+     * and the string as postfix.
+     * 
+     * @param actualId
+     * @return a command manager name as a string without extension
+     */
+    //String getCommandManagerName(String actualId );
+    /**
      *  Returns an object 
      *  @return 
      */

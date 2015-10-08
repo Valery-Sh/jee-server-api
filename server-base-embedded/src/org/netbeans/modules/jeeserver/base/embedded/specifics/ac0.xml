@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<fileobject name="D:|NetBeans802Plugins|TestWebApps|AM02">
+    <attr name="AuxilaryConfiguration" stringvalue="
+        <?xml version="1.0' encoding='UTF-8&quot?>\u000d\u000a
+        <project-private>\u000d\u000a    
+            <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>\u000d\u000a    
+            <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">\u000d\u000a        
+                <group>\u000d\u000a            
+                    <file>file:/D:/NetBeans802Plugins/TestWebApps/AM02/pom.xml
+                    </file>\u000d\u000a            
+                    <file>file:/D:/NetBeans802Plugins/TestWebApps/AM02/nb-configuration.xml
+                    </file>\u000d\u000a            
+                    <file>file:/D:/NetBeans802Plugins/TestWebApps/AM02/nbactions-embedded-server.xml
+                    </file>\u000d\u000a            
+                    <file>file:/D:/NetBeans802Plugins/TestWebApps/AM02/build.xml
+                    </file>\u000d\u000a            
+                    <file>file:/D:/NetBeans802Plugins/TestWebApps/AM02/src/main/java/org/embedded/server/JettyEmbeddedServer.java
+                    </file>\u000d\u000a        
+                </group>\u000d\u000a    
+            </open-files>\u000d\u000a    
+            <config-data xmlns="http://www.netbeans.org/ns/maven-config-data/1">\u000d\u000a        
+                <activated>%%DEFAULT%%</activated>\u000d\u000a    
+            </config-data>\u000d\u000a
+        </project-private>\u000d\u000a"/>
+</fileobject>    

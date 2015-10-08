@@ -21,7 +21,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.libraries.Library;
 import org.netbeans.api.project.libraries.LibraryChooser;
 import org.netbeans.api.project.libraries.LibraryManager;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.openide.filesystems.FileChooserBuilder;
@@ -120,7 +120,7 @@ public class LibrariesAction extends AbstractAction implements ContextAwareActio
         @Override
         public void actionPerformed(ActionEvent e) {
             RP.post(() -> {
-                String jettyHome = BaseUtils.getServerProperties(server.getLookup()).getHomeDir();
+                String jettyHome = BaseUtil.getServerProperties(server.getLookup()).getHomeDir();
 
                 File basePath = new File(jettyHome);
                 File fc = new FileChooserBuilder("jetty.home")

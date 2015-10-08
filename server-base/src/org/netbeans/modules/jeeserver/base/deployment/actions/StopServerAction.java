@@ -22,7 +22,7 @@ import javax.swing.Action;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import static org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction.RP;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -76,7 +76,7 @@ public final class StopServerAction extends AbstractAction implements ContextAwa
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
-            manager = BaseUtils.managerOf(context);
+            manager = BaseUtil.managerOf(context);
 
             boolean show = false;
             if (manager != null) {

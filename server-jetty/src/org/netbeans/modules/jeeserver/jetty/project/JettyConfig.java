@@ -20,14 +20,11 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.lc.LicenseWizard;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.StartIni;
-import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
 
 /**
  *
@@ -61,7 +58,7 @@ public class JettyConfig {
 
         if (config == null) {
             config = new JettyConfig(server);
-            config.libBuilder = new JettyLibBuilder(BaseUtils.managerOf(server.getLookup()));
+            config.libBuilder = new JettyLibBuilder(BaseUtil.managerOf(server.getLookup()));
             configs.put(server, config);
         }
 

@@ -1,4 +1,4 @@
-package org.embedded.server;
+package ${classpackage};
 
 import org.eclipse.jetty.server.Server;
 import org.netbeans.plugin.support.jetty.embedded.NbDeployHandler;

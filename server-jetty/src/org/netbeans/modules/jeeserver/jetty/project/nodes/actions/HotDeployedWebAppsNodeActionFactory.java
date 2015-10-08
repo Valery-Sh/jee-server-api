@@ -37,7 +37,7 @@ import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.DialogDescriptor;
@@ -243,7 +243,7 @@ public class HotDeployedWebAppsNodeActionFactory {
                 /**
                  * .war file inside a project
                  */
-                FileObject warFo = BaseUtils.getWar(webapp);
+                FileObject warFo = BaseUtil.getWar(webapp);
                 if (warFo == null) {
                     return;
                 }
@@ -275,9 +275,9 @@ public class HotDeployedWebAppsNodeActionFactory {
                 return;
             }
 
-            Properties html5props = BaseUtils.loadHtml5ProjectProperties(html5Dir.getPath());
-            String contextPath = BaseUtils.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5props);
-            String siteRootPath = BaseUtils.resolve(BaseConstants.HTML5_SITE_ROOT_PROP, html5props);
+            Properties html5props = BaseUtil.loadHtml5ProjectProperties(html5Dir.getPath());
+            String contextPath = BaseUtil.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5props);
+            String siteRootPath = BaseUtil.resolve(BaseConstants.HTML5_SITE_ROOT_PROP, html5props);
 
             final File siteRoot = new File(html5Dir.getPath() + "/" + siteRootPath);
             InputStream input = HotDeployedWebAppsNodeActionFactory.class.getResourceAsStream("/" + JETTY_WEB_CONTEXT);
@@ -302,7 +302,7 @@ public class HotDeployedWebAppsNodeActionFactory {
                 Copier.mkdirs(tmpPath);
                 Files.copy(is, tmpJettyxmlPath, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException ex) {
-                BaseUtils.out("createWarForHtml5: create jetty-web.xmlEXCEPTION " + ex.getMessage());
+                BaseUtil.out("createWarForHtml5: create jetty-web.xmlEXCEPTION " + ex.getMessage());
                 LOG.log(Level.INFO, ex.getMessage());
             }
 
@@ -313,7 +313,7 @@ public class HotDeployedWebAppsNodeActionFactory {
                 FileUtil.copyFile(FileUtil.toFileObject(tmpWar), targetFolder, fileName, "war");
                 targetFolder.refresh();
             } catch (Exception ex) {
-                BaseUtils.out("createWarForHtml5: EXCEPTION " + ex.getMessage());
+                BaseUtil.out("createWarForHtml5: EXCEPTION " + ex.getMessage());
                 LOG.log(Level.INFO, ex.getMessage());
             }
 
@@ -335,9 +335,9 @@ public class HotDeployedWebAppsNodeActionFactory {
                 return;
             }
 
-            Properties html5props = BaseUtils.loadHtml5ProjectProperties(html5Dir.getPath());
-            String cp = BaseUtils.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5props);
-            String war = BaseUtils.resolve(BaseConstants.HTML5_SITE_ROOT_PROP, html5props);
+            Properties html5props = BaseUtil.loadHtml5ProjectProperties(html5Dir.getPath());
+            String cp = BaseUtil.resolve(BaseConstants.HTML5_WEB_CONTEXT_ROOT_PROP, html5props);
+            String war = BaseUtil.resolve(BaseConstants.HTML5_SITE_ROOT_PROP, html5props);
 
             InputStream input = HotDeployedWebAppsNodeActionFactory.class.getResourceAsStream("/" + JETTY_WEB);
 
@@ -355,7 +355,7 @@ public class HotDeployedWebAppsNodeActionFactory {
                     Files.copy(is, toPath, StandardCopyOption.REPLACE_EXISTING);
                     targetFolder.refresh();
                 } catch (IOException ex) {
-                    BaseUtils.out("createJettyXmlForHtml5: EXCEPTION " + ex.getMessage());
+                    BaseUtil.out("createJettyXmlForHtml5: EXCEPTION " + ex.getMessage());
                     LOG.log(Level.INFO, ex.getMessage());
                 }
             });
@@ -378,12 +378,12 @@ public class HotDeployedWebAppsNodeActionFactory {
                         }
                     } catch (IOException ex) {
                         Exceptions.printStackTrace(ex);
-                        BaseUtils.out("COPY : EXCEPTION " + ex.getMessage());
+                        BaseUtil.out("COPY : EXCEPTION " + ex.getMessage());
                     }
                 });
                 target.refresh();
             } catch (Exception ex) {
-                BaseUtils.out("NEW FILE : EXCEPTION " + ex.getMessage());
+                BaseUtil.out("NEW FILE : EXCEPTION " + ex.getMessage());
                 LOG.log(Level.INFO, ex.getMessage());
             }
         }
@@ -402,7 +402,7 @@ public class HotDeployedWebAppsNodeActionFactory {
                             Copier.ZipUtil.unzip(zipFile, "/", targetFolder);
                         } catch (Exception ex) {
                             Exceptions.printStackTrace(ex);
-                            BaseUtils.out("tryCopyUnpackedWar : EXCEPTION " + ex.getMessage());
+                            BaseUtil.out("tryCopyUnpackedWar : EXCEPTION " + ex.getMessage());
                         }
                     }
                 });
@@ -410,7 +410,7 @@ public class HotDeployedWebAppsNodeActionFactory {
                 target.refresh();
 
             } catch (Exception ex) {
-                BaseUtils.out("NEW FILE : EXCEPTION " + ex.getMessage());
+                BaseUtil.out("NEW FILE : EXCEPTION " + ex.getMessage());
                 LOG.log(Level.INFO, ex.getMessage());
             }
         }

@@ -31,7 +31,7 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import static org.netbeans.modules.jeeserver.base.deployment.progress.BaseRunProgressObject.LOG;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
 import org.netbeans.modules.jeeserver.jetty.util.Utils;
 import org.openide.awt.DynamicMenuContent;
@@ -106,7 +106,7 @@ public final class CreateFilesAction extends AbstractAction implements ContextAw
         }
 
         private void loadManager() {
-            manager = BaseUtils.managerOf(project.getLookup());
+            manager = BaseUtil.managerOf(project.getLookup());
         }
 
         public @Override

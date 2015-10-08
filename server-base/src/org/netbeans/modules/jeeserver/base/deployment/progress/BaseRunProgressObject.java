@@ -18,12 +18,15 @@ package org.netbeans.modules.jeeserver.base.deployment.progress;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.shared.StateType;
 import org.apache.tools.ant.module.api.support.ActionUtils;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 
 import org.netbeans.modules.jeeserver.base.deployment.INFO;
@@ -31,7 +34,9 @@ import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.profiler.api.ProfilerSupport;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.spi.project.ProjectConfiguration;
+import org.netbeans.spi.project.ProjectConfigurationProvider;
 
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
@@ -114,14 +119,14 @@ public class BaseRunProgressObject extends AbstractProgressObject {
         File f = new File(serverDir);
         Project project = getManager().getServerProject();
 
-        StartServerPropertiesProvider pp = project.getLookup().lookup(StartServerPropertiesProvider.class);
+        //StartServerPropertiesProvider pp = project.getLookup().lookup(StartServerPropertiesProvider.class);
+        StartServerPropertiesProvider pp = getManager().getLookup().lookup(StartServerPropertiesProvider.class);
         FileObject buildXml = FileUtil.toFileObject(f).getFileObject("build.xml");
 
         Properties props = new Properties();
         String[] targets = new String[]{"run"};
-        
+
 //        Deployment.Mode currentMode = getManager().getCurrentDeploymentMode();
-        
         if (pp != null) {
             buildXml = pp.getBuildXml(project);
         }
@@ -129,7 +134,9 @@ public class BaseRunProgressObject extends AbstractProgressObject {
         if (getMode() == Deployment.Mode.RUN) {
             if (pp != null) {
                 props = pp.getStartProperties(project);
+                targets[0] = pp.getStartProperties(project).getProperty("target");
             }
+
         } else if (getMode() == Deployment.Mode.DEBUG) {
             if (pp != null) {
                 props = pp.getDebugProperties(project);
@@ -148,19 +155,33 @@ public class BaseRunProgressObject extends AbstractProgressObject {
             } else {
                 props = new Properties();
                 targets = new String[]{"profile-embedded-server"};
-                String args = BaseUtils.getProfileArgs(getManager());
+                String args = BaseUtil.getProfileArgs(getManager());
                 props.setProperty("profiler.args", args);
             }
         }
         INFO.log("!!!! runTarget buildXml=" + buildXml);
-        INFO.log("!!!! runTarget targets=" + targets);
+        INFO.log("!!!! runTarget targets=" + Arrays.toString(targets));
         for (String s : props.stringPropertyNames()) {
             INFO.log("!!!! runTarget props key=" + s + "; value=" + props.getProperty(s));
         }
+        ProjectConfigurationProvider  pcp = project.getLookup().lookup(ProjectConfigurationProvider.class);
+        if ( pcp != null ) {
+            BaseUtil.out("ProjectConfigurationProvider active displayName=" + pcp.getActiveConfiguration().getDisplayName() + "; hasCustomizer=" + pcp.hasCustomizer());
+            Collection cs = pcp.getConfigurations();
+            if ( cs != null && ! cs.isEmpty()) {
+                cs.forEach(o -> {
+                    if ( o instanceof ProjectConfiguration )
+                    BaseUtil.out("  --- display name==" + ((ProjectConfiguration)o).getDisplayName() );
+                });
+            }
+        }
+
+        
+//ProjectUtils.getPreferences(project, null, true).
         try {
             task = ActionUtils.runTarget(buildXml, targets, props);
-
         } catch (IOException | IllegalArgumentException ex) {
+//        } catch (Exception ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
 
@@ -171,12 +192,12 @@ public class BaseRunProgressObject extends AbstractProgressObject {
             while (true) {
                 int state = ProfilerSupport.getState();
                 INFO.log("** RUN Mode.PROFILE state=" + stateOf(state));
-                if (state == ProfilerSupport.STATE_BLOCKING || getManager().pingServer() ) {
+                if (state == ProfilerSupport.STATE_BLOCKING || getManager().pingServer()) {
                     getManager().setServerTask(task);
                     getManager().setWaiting(true);
                     result = StateType.COMPLETED;
                     break;
-                } 
+                }
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException ex) {

@@ -26,7 +26,7 @@ import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.JettyProjectLogicalView;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.Bundle.HotWebApplicationsNode_shortDescription;
 import static org.netbeans.modules.jeeserver.jetty.project.nodes.Bundle.HotWebApplicationsNode_webApps;

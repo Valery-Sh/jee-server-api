@@ -22,7 +22,7 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -69,7 +69,7 @@ public final class StartServerDebugAction extends AbstractAction implements Cont
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
-            manager = BaseUtils.managerOf(context);
+            manager = BaseUtil.managerOf(context);
             // TODO state for which projects action should be enabled
             
             setEnabled(manager != null && manager.isStopped());

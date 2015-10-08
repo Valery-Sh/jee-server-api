@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.deploy.LibPathFinder;
 import org.netbeans.modules.jeeserver.jetty.project.JettyConfig.IniHelper;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
@@ -311,7 +311,7 @@ public class JettyLibBuilder {
 
             for (String line : rawDependLines) {
                 String l = line.replace("${jetty.version}", libBuilder.jettyVersion);
-                l = line.replace("${java.version}", BaseUtils.getJavaVersion());
+                l = line.replace("${java.version}", BaseUtil.getJavaVersion());
                 Module mod = libBuilder.modulesMap.get(Paths.get(l).getFileName().toString());
                 if (mod != null) {
                     mod.addDependentModule(name);
@@ -334,7 +334,7 @@ public class JettyLibBuilder {
                 libBuilder.modulesMap.remove(name);
                 rawDependLines.forEach(line -> {
                     String l = line.replace("${jetty.version}", libBuilder.jettyVersion);
-                    l = line.replace("${java.version}", BaseUtils.getJavaVersion());
+                    l = line.replace("${java.version}", BaseUtil.getJavaVersion());
                     Module mod = libBuilder.modulesMap.get(Paths.get(l).getFileName().toString());
                     if (mod != null) {
                         mod.delete();
@@ -427,7 +427,7 @@ public class JettyLibBuilder {
             rawLibLines.forEach(line -> {
                 String l = line
                         .replace("${jetty.version}", libBuilder.jettyVersion)
-                        .replace("${java.version}", BaseUtils.getJavaVersion())
+                        .replace("${java.version}", BaseUtil.getJavaVersion())
                         .replace("\\", "/");
                 addJars(libBuilder.jettyHome, l);
                 addJars(libBuilder.jettyBase, l);

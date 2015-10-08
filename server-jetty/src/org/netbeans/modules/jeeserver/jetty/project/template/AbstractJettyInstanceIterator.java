@@ -43,7 +43,7 @@ import org.netbeans.api.project.ProjectManager;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationException;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.JettyProject;
 import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
 import org.netbeans.modules.jeeserver.jetty.util.StartdIniHelper;
@@ -94,7 +94,7 @@ public abstract class AbstractJettyInstanceIterator implements WizardDescriptor.
     protected InputStream getTemplateInputStream() {
 
         String s = (String) wiz.getProperty(BaseConstants.HOME_DIR_PROP);
-        BaseUtils.out("****** ZIP TEMPLATE=" + JettyProperties.getProjectZipPath(s));
+        BaseUtil.out("****** ZIP TEMPLATE=" + JettyProperties.getProjectZipPath(s));
         return getClass().getClassLoader().getResourceAsStream("/"
                 + JettyProperties.getProjectZipPath(s));
     }

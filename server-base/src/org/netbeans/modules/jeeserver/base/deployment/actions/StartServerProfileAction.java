@@ -22,7 +22,7 @@ import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -70,7 +70,7 @@ public final class StartServerProfileAction extends AbstractAction implements Co
         private BaseDeploymentManager manager;
 
         public ContextAction(Lookup context) {
-            manager = BaseUtils.managerOf(context);
+            manager = BaseUtil.managerOf(context);
             
             setEnabled(manager != null && manager.isStopped());
             // we need to hide when disabled putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);            

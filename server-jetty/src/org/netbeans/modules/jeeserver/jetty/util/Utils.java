@@ -44,8 +44,8 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils.getServerProperties;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil.getServerProperties;
 import org.netbeans.modules.jeeserver.jetty.project.JettyProjectFactory;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Exceptions;
@@ -112,7 +112,7 @@ public class Utils {
      * deployment manager
      */
     public static String getServerInstanceId(Project project) {
-        return BaseUtils.getServerProperties(project.getLookup()).getUri();
+        return BaseUtil.getServerProperties(project.getLookup()).getUri();
     }
     
     public static String getFullJettyVersion(String jettyHome) {
@@ -242,7 +242,7 @@ public class Utils {
         map.put(BaseConstants.SERVER_ID_PROP, Utils.getServerId());
         map.put(BaseConstants.URL_PROP, Utils.buildUri(projectDir));
         map.put(BaseConstants.HOST_PROP, "localhost");
-        ServerSpecifics spec = BaseUtils.getServerSpecifics(Utils.getServerId());
+        ServerSpecifics spec = BaseUtil.getServerSpecifics(Utils.getServerId());
         map.put(BaseConstants.DEBUG_PORT_PROP, String.valueOf(spec.getDefaultDebugPort()));
         map.put(BaseConstants.DISPLAY_NAME_PROP, projectDir.getNameExt());
         map.put(BaseConstants.SERVER_LOCATION_PROP, projectDir.getPath());
@@ -345,7 +345,7 @@ public class Utils {
         sb.append("cmd=");
         sb.append("getstatebycontextpath");
         sb.append("&cp=");
-        sb.append(BaseUtils.encode(contextPath));
+        sb.append(BaseUtil.encode(contextPath));
 
         
         return manager.getSpecifics().execCommand(manager, sb.toString()); 

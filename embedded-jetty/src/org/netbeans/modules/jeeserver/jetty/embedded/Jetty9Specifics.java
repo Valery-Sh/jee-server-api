@@ -36,8 +36,8 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
-import org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.EmbeddedInstanceBuilder;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.EmbeddedInstanceBuilder;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
@@ -61,45 +61,10 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     @StaticResource
     public static final String IMAGE2 = "org/netbeans/modules/jeeserver/jetty/embedded/resources/J-icon.png";
 
-    //private static final String HELPER_JAR = "nb-jetty-helper.jar";
     public static final String JETTY_SHUTDOWN_KEY = "netbeans";
-/*
-    @Override
-    public boolean pingServer(BaseDeploymentManager dm) {
-
-        String urlString = dm.buildUrl();
-        if (urlString == null) {
-            return false;
-        }
-        try {
-            URL url = new URL(urlString);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            if (connection == null) {
-                return false;
-            }
-            connection.setRequestMethod("POST");
-            Map<String, List<String>> headerFields = connection.getHeaderFields();
-            if (headerFields == null) {
-                return false;
-            }
-            for (Map.Entry<String, List<String>> e : headerFields.entrySet()) {
-                if (e.getKey() == null || !e.getKey().trim().toLowerCase().equals("server")) {
-                    continue;
-                }
-                for (String v : e.getValue()) {
-                    if (v != null && v.trim().toLowerCase().startsWith("jetty")) {
-                        return true;
-                    }
-                }
-            }
-        } catch (SocketException e) {
-        } catch (IOException e) {
-        }
-        return false;
-
-    }
-*/
-
+    
+    public static final String JETTY_JAR_POSTFIX = "-command-manager-2.0";
+    
 
     @Override
     public boolean shutdownCommand(BaseDeploymentManager dm) {
@@ -124,10 +89,10 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
             int code = connection.getResponseCode();
-            LOG.log(Level.FINE, "Server Internal Shutdown response code is " + code); //NOI18N
-            if (code == 404) {
-                result = true;
-            }
+            LOG.log(Level.FINE, "Server Internal Shutdown response code is {0}", code); //NOI18N
+//            if (code == 404) {
+//                result = true;
+//            }
         } catch (SocketException e) {
             LOG.log(Level.FINE, "The server is not running (SocketException)"); //NOI18N
         } catch (IOException e) {
@@ -167,13 +132,13 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         try {
             //String urlstr = "/jeeserver/manager?deploy=" + l + "&cp=" + c;
             String urlstr = "/jeeserver/manager?" + cmd;
-            BaseUtils.out("Jetty9Specifics: deployCommand urlStr=" + urlstr);
+            BaseUtil.out("Jetty9Specifics: deployCommand urlStr=" + urlstr);
             URL url = new URL(dm.buildUrl() + urlstr);
 
             connection = (HttpURLConnection) url.openConnection();
 
             connection.setRequestMethod("POST");
-            BaseUtils.out("JETTY: RESPONCE CODE = " + connection.getResponseCode());
+            BaseUtil.out("JETTY: RESPONCE CODE = " + connection.getResponseCode());
             if (connection.getResponseCode() == 200) {
                 result = getResponseData(connection, cmd);
             }
@@ -249,8 +214,8 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
     @Override
     public void projectCreated(FileObject projectDir, Map<String, Object> props) {
         String actualServerId = (String) props.get(SuiteConstants.SERVER_ACTUAL_ID_PROP);
-        String cmOut = actualServerId + "-command-manager";
-        String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + actualServerId + "-command-manager.jar";
+        String cmOut = actualServerId + JETTY_JAR_POSTFIX;
+        String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + cmOut;
 
         FileObject libExt = projectDir.getFileObject(SuiteConstants.SERVER_CONFIG_FOLDER + "/lib/ext");
         FileObject cmFo;// = null;
@@ -273,11 +238,11 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         Map<String, Object> templateParams = new HashMap<>(1);
         try {
             String src = SuiteConstants.SERVER_PROJECT_FOLDER + "/src/main/java";
-            BaseUtils.out("---------- src=" + src);
-            BaseUtils.out("---------- projDir=" + projectDir.getPath());
+            BaseUtil.out("---------- src=" + src);
+            BaseUtil.out("---------- projDir=" + projectDir.getPath());
 
             FileObject srcFo = projectDir.getFileObject(src);
-            BaseUtils.out("---------- srcfo=" + srcFo);
+            BaseUtil.out("---------- srcfo=" + srcFo);
 
             FileObject toDelete = srcFo.getFileObject("javaapplication0");
             if (toDelete != null) {
@@ -384,15 +349,21 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         InstanceBuilder ib = null;
 
         if ("ant".equals(props.getProperty("project.based.type"))) {
-            if ( options.equals(InstanceBuilder.Options.CUSTOMIZER)) {
-              ib = new JettyCustomizeInstanceBuilder(props, options);
+BaseUtil.out("Jetty9Specifics ANT.BASED");
+            if (options.equals(InstanceBuilder.Options.CUSTOMIZER)) {
+                ib = new JettyCustomizeInstanceBuilder(props, options);
             } else {
-              ib = new JettyInstanceBuilder(props, options);
+                ib = new JettyInstanceBuilder(props, options);
             }
             ((EmbeddedInstanceBuilder) ib).setMavenbased(false);
-            
+
         } else if ("maven".equals(props.getProperty("project.based.type"))) {
-            ib = new JettyInstanceBuilder(props, options);
+BaseUtil.out("Jetty9Specifics MAVEB.BASED");            
+            if (options.equals(InstanceBuilder.Options.CUSTOMIZER)) {
+                ib = new JettyCustomizeInstanceBuilder(props, options);
+            } else {
+                ib = new JettyMavenInstanceBuilder(props, options);
+            }
             ((EmbeddedInstanceBuilder) ib).setMavenbased(true);
         }
 

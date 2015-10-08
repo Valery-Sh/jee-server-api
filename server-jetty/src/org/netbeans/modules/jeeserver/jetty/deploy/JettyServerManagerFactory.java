@@ -24,6 +24,7 @@ import javax.enterprise.deploy.spi.factories.DeploymentFactory;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
 import org.netbeans.modules.jeeserver.base.deployment.FactoryDelegate;
+//import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 
 
 /**
@@ -133,4 +134,5 @@ public class JettyServerManagerFactory implements DeploymentFactory, ServerSpeci
     public String[] getSupportedServerIds() {
         return new String[] {"jetty-9-server"};
     }
+
 }
