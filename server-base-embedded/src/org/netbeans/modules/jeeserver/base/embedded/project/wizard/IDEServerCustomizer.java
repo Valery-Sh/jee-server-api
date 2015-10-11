@@ -12,18 +12,18 @@ import org.openide.util.Lookup;
  *
  * @author V. Shyshkin
  */
-public class ServerInstanceCustomizer extends ServerInstanceConnectorVisualPanel {
+public class IDEServerCustomizer extends ServerInstanceConnectorVisualPanel {
 
     private ServerInstanceConnectorWizardPanel panel;
     private Lookup context;
 
-    private ServerInstanceCustomizerWizardAction wizardAction;
+    private CustomizerWizardActionAsIterator wizardAction;
 
-    public ServerInstanceCustomizer(Lookup context) {
+    public IDEServerCustomizer(Lookup context) {
         this(new ServerInstanceConnectorWizardPanel(), context);
     }
 
-    public ServerInstanceCustomizer(ServerInstanceConnectorWizardPanel panel, Lookup context) {
+    public IDEServerCustomizer(ServerInstanceConnectorWizardPanel panel, Lookup context) {
         super(panel);
         this.panel = panel;
         this.context = context;
@@ -32,7 +32,7 @@ public class ServerInstanceCustomizer extends ServerInstanceConnectorVisualPanel
 
     private void init() {
         File instanceFile = FileUtil.toFile(context.lookup(FileObject.class));
-        wizardAction = new ServerInstanceCustomizerWizardAction(context, instanceFile);
+        wizardAction = new CustomizerWizardActionAsIterator(context, instanceFile);
         final WizardDescriptor wiz = wizardAction.initialize(panel);
         panel.setComponent(this);
         this.getSaveButton().setVisible(true);

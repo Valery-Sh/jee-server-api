@@ -69,7 +69,7 @@ public class JettyCustomizeInstanceBuilder extends EmbeddedInstanceBuilder {
     }
 
     @Override
-    protected String getCommandManagerJarName() {
+    protected String getCommandManagerJarTemplateName() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

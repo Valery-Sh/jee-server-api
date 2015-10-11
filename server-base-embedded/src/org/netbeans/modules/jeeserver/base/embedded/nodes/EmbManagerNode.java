@@ -5,7 +5,7 @@ import javax.swing.Action;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
-import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceCustomizer;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.IDEServerCustomizer;
 
 import org.openide.nodes.AbstractNode;
 import org.openide.nodes.Children;
@@ -51,7 +51,7 @@ public class EmbManagerNode extends AbstractNode {
     @Override
     public Component getCustomizer() {
         BaseDeploymentManager dm = getDeploymentManager();
-        return new ServerInstanceCustomizer(dm.getLookup());
+        return new IDEServerCustomizer(dm.getLookup());
     }
     public BaseDeploymentManager getDeploymentManager() {
         return lookup.lookup(BaseDeploymentManager.class);

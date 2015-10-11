@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.netbeans.modules.jeeserver.jetty.embedded;
 
 import java.io.File;
@@ -16,6 +11,7 @@ import java.util.logging.Logger;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Exceptions;
@@ -40,7 +36,6 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
 
     public JettyMavenInstanceBuilder(Properties configProps, Options options) {
         super(configProps, options);
-        BaseUtil.out("JettyMavenInstanceBuilder CONSTRACTOR");
     }
 
     @Override
@@ -50,7 +45,7 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
 
     @Override
     protected FileObject getLibDir(Project p) {
-        return p.getProjectDirectory().getFileObject("nbdevelopment/lib");
+        return p.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
     }
 
     @Override
@@ -69,7 +64,6 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
                 LOG.log(Level.INFO, ex.getMessage()); //NOI18N
             }
         }
-        BaseUtil.out("JettyMavenInstanceBuilder createLib libfo=" + libFo);
         return libFo;
     }
 
@@ -81,14 +75,14 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
     protected void modifyPomXml(Project project) {
         FileObject projDir = project.getProjectDirectory();
 
-        String jarPath = "nbdeployment/lib/" + getCommandManagerJarName() + ".jar";
+        String jarPath = SuiteConstants.MAVEN_REPO_LIB_PATH +"/" + getCommandManagerJarTemplateName() + ".jar";
         
         FileObject jarFo = projDir.getFileObject(jarPath);
         if (jarFo == null) {
             return;
         }
 
-        Properties pomProps = getPomProperties(projDir.getFileObject(jarPath));
+        Properties pomProps = BaseUtil.getPomProperties(projDir.getFileObject(jarPath));
         if (pomProps == null) {
             return;
         }
@@ -133,7 +127,6 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
         try (OutputStream out = projDir.getFileObject("pom.xml").getOutputStream()) {
             XMLUtil.write(doc,out, "UTF-8");
         } catch (IOException | DOMException ex) {
-            BaseUtil.out("EXCEPTION " + ex.getMessage());
             LOG.log(Level.INFO, ex.getMessage());
         }
 

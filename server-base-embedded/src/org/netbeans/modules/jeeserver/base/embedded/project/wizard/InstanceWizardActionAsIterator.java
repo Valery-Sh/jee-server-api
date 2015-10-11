@@ -22,9 +22,9 @@ import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Lookup;
 
-public abstract class InstanceWizardAction extends AbstractAction implements ActionListener {
+public abstract class InstanceWizardActionAsIterator extends AbstractAction implements ActionListener {
 
-    private static final Logger LOG = Logger.getLogger(InstanceWizardAction.class.getName());
+    private static final Logger LOG = Logger.getLogger(InstanceWizardActionAsIterator.class.getName());
 
 //    public static final boolean[] panelVisited = new boolean[]{false, false};
     
@@ -32,7 +32,7 @@ public abstract class InstanceWizardAction extends AbstractAction implements Act
 
     protected Lookup context;
 
-    public InstanceWizardAction(Lookup context) {
+    public InstanceWizardActionAsIterator(Lookup context) {
         this.context = context;
     }
 

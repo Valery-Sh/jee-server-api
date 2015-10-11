@@ -128,6 +128,7 @@ public class ServerInstanceAntBuildExtender extends ServerInstanceBuildExtender 
         }
     }
 
+    @Override
     public void updateNbDeploymentFile(FileObject nbDir) {
         FileObject propsFo = nbDir.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_FILE);
         Properties props = new Properties();

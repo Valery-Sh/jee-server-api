@@ -19,10 +19,10 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
-import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceCustomizerWizardAction;
-import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceAddExistingWizardAction;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.CustomizerWizardActionAsIterator;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.AddExistingProjectWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceAntBuildExtender;
-import org.netbeans.modules.jeeserver.base.embedded.project.wizard.InstanceWizardAction;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.InstanceWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.MainClassChooserPanelVisual;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceBuildExtender;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
@@ -60,7 +60,7 @@ public class ServerActions {
             return new NewMavenProjectAction.ContextAction(context);
         }
 
-        private static final class ContextAction extends InstanceWizardAction { //implements ProgressListener {
+        private static final class ContextAction extends InstanceWizardActionAsIterator { //implements ProgressListener {
 
             public ContextAction(Lookup context) {
                 super(context);
@@ -90,7 +90,7 @@ public class ServerActions {
             return new NewAntProjectAction.ContextAction(context);
         }
 
-        private static final class ContextAction extends InstanceWizardAction { //implements ProgressListener {
+        private static final class ContextAction extends InstanceWizardActionAsIterator { //implements ProgressListener {
 
             public ContextAction(Lookup context) {
                 super(context);
@@ -154,9 +154,9 @@ public class ServerActions {
                                 return;
                             }
 
-                            ServerInstanceAddExistingWizardAction action
-                                    = new ServerInstanceAddExistingWizardAction(context, selectedFile);
-                            action.actionPerformed(null);
+                            AddExistingProjectWizardActionAsIterator action
+                                    = new AddExistingProjectWizardActionAsIterator(context, selectedFile);
+                            action.doAction();
 
                         } else {
                             System.out.println("File access cancelled by user.");
@@ -254,8 +254,8 @@ public class ServerActions {
                     @Override
                     public void run() {
 
-                        ServerInstanceCustomizerWizardAction action
-                                = new ServerInstanceCustomizerWizardAction(context, FileUtil.toFile(context.lookup(FileObject.class)));
+                        CustomizerWizardActionAsIterator action
+                                = new CustomizerWizardActionAsIterator(context, FileUtil.toFile(context.lookup(FileObject.class)));
                         action.actionPerformed(null);
                     }
                 });
@@ -370,6 +370,7 @@ public class ServerActions {
                             classes = new String[]{NO_MAIN_CLASS_FOUND};
                             sb.setEnabled(false);
                         }
+                        
                         panel.getMainClassesList().setListData(classes);
                         String msg = "Select Main Class for Server Execution";
                         DialogDescriptor dd = new DialogDescriptor(panel, msg,

@@ -15,12 +15,24 @@ public class SuiteConstants extends BaseConstants {
         UNPACKED_WARS,
         WARS
     }
+    // ----------- CommandManager properties names ---------------------
+    public static String COMMAND_MANAGER_PROPERIES_PROP = "command.manager.pom.properties";    
+    public static final String COMMAND_MANAGER_GROUPID = "command.manager.groupId";
+    public static final String COMMAND_MANAGER_ARTIFACTID = "command.manager.artifactId";    
+    public static final String COMMAND_MANAGER_VERSION = "command.manager.version";    
+    public static final String NBDEPLOYMENT_FOLDER_NAME = "nbdeployment";    
+    public static final String MAVEN_REPO_LIB_PATH = NBDEPLOYMENT_FOLDER_NAME + "/lib";        
+    public static final String MAVEN_REPO_LIB_PATH_PROP = "maven.repo.lib.path";            
+    public static final String ANT_LIB_PATH = "lib";            
     
+    // ----------- END CommandManager properties names -------------------------------------------------
     public static final String PANEL_VISITED_PROP = "panel.visited";
     
     public static final String MAVEN_MAIN_CLASS_PROP = "maven.main.class";
     public static final String MAVEN_DEBUG_CLASSPATH_PROP = "maven.debug.classpath";
     public static final String MAVEN_RUN_CLASSPATH_PROP = "maven.run.classpath";
+    
+    
     
     public static final String MAVEN_WORK_DIR_PROP = "maven.work.dir";
     

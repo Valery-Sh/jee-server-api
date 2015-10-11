@@ -21,8 +21,6 @@ import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants.*;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
-import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions.InstancePropertiesAction;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions.RemoveInstanceAction;
@@ -31,7 +29,6 @@ import org.openide.filesystems.FileUtil;
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
-import org.openide.util.Lookup;
 import org.openide.util.lookup.AbstractLookup;
 import org.openide.util.lookup.InstanceContent;
 

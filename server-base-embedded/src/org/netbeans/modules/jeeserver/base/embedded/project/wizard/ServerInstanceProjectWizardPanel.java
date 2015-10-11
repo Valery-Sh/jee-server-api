@@ -5,8 +5,6 @@ import javax.swing.event.ChangeEvent;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 
 public class ServerInstanceProjectWizardPanel  extends InstanceWizardPanel {
-
-    
     
     protected final boolean ismavenbased;
     

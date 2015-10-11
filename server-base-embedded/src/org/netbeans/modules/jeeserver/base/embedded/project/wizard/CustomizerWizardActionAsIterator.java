@@ -20,9 +20,9 @@ import org.openide.util.Lookup;
  *
  * @author Valery
  */
-public class ServerInstanceCustomizerWizardAction extends ServerInstanceAddExistingWizardAction {
+public class CustomizerWizardActionAsIterator extends AddExistingProjectWizardActionAsIterator {
 
-    public ServerInstanceCustomizerWizardAction(Lookup context, File instanceProjectDir) {
+    public CustomizerWizardActionAsIterator(Lookup context, File instanceProjectDir) {
         super(context, instanceProjectDir);
     }
 
@@ -45,11 +45,6 @@ public class ServerInstanceCustomizerWizardAction extends ServerInstanceAddExist
         suiteNotifier.settingsChanged(uri);
 
     }
-    /*        LogicalViewNotifier lvn = context.lookup(LogicalViewNotifier.class);
-     if( lvn != null ) {
-     lvn.displayNameChange(uri, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP)); 
-     }
-     */
 
     @Override
     protected InstanceBuilder getBuilder(ServerSpecifics specifics, Properties props) {
@@ -64,8 +59,7 @@ public class ServerInstanceCustomizerWizardAction extends ServerInstanceAddExist
 
     @Override
     protected void fillWizardDescriptor(WizardDescriptor wiz) {
-
-//        wiz.setButtonListener(new ButtonListener(this));
+        
         String uri = context.lookup(ServerInstanceProperties.class).getUri();
         InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
         wiz.putProperty(BaseConstants.URL_PROP, uri);

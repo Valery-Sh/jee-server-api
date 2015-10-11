@@ -68,7 +68,7 @@ public class ServerSuiteProject implements Project {
             //serverProperties.setLayerProjectFolderPath(this.getLayerProjectFolderPath());
 
             ProjectOpenedHook openHook = new ServerSuiteProjectOpenHook(projectDir);
-            SuiteNotifier suiteModel = new SuiteNotifier();
+            SuiteNotifier suiteNotifier = new SuiteNotifier();
             lookup = Lookups.fixed(new Object[]{
                 this,
                 getProjectInformation(),
@@ -76,9 +76,7 @@ public class ServerSuiteProject implements Project {
                 getProjectActionProvider(),
                 new ProjectOperations(this),
                 openHook,
-                suiteModel
-                
-                //serverProperties,
+                suiteNotifier                //serverProperties,
             //getStartServerPropertiesProvider(),
 //                new ServerInstanceAvailableModules<>(this)
             });

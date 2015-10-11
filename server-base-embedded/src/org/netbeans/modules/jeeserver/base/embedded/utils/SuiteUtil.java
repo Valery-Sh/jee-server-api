@@ -27,6 +27,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.ServerSuiteProjectFactory;
+import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
@@ -39,7 +40,35 @@ public class SuiteUtil extends BaseUtil {
 
     private static final Logger LOG = Logger.getLogger(SuiteUtil.class.getName());
 
-
+    
+    public static FileObject getCommandManagerJar(Project server) {
+        FileObject lib; 
+        if ( BaseUtil.isAntProject(server)) {
+            lib = server.getProjectDirectory().getFileObject(SuiteConstants.ANT_LIB_PATH + "/ext");
+        } else {
+            lib = server.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
+        }
+        
+        if ( lib == null ) {
+            return null;
+        }
+        FileObject[] childs = lib.getChildren();
+        FileObject result = null;
+        String aid = SuiteManager.getManager(server).getInstanceProperties()
+                .getProperty(BaseConstants.SERVER_ACTUAL_ID_PROP);
+        
+        String jarPrefix = aid + SuiteConstants.COMMAND_MANAGER_JAR_POSTFIX;
+        for ( FileObject fo : childs) {
+            if ( ! fo.isFolder() && "jar".equals(fo.getExt()) ) {
+                if ( fo.getName().startsWith(jarPrefix)) {
+                    result = fo;
+                    break;
+                }
+            }
+        }
+        
+        return result;
+    }
 
     public static boolean isEmbeddedServer(Project proj) {
         return new ServerSuiteProjectFactory().isProject(proj.getProjectDirectory());
@@ -447,4 +476,6 @@ public class SuiteUtil extends BaseUtil {
 
         return sb.toString();
     }
+    
+    
 }

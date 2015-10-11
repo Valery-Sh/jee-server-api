@@ -8,7 +8,6 @@ package org.netbeans.modules.jeeserver.base.embedded.project.wizard;
 import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.event.ListSelectionEvent;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 
 /**
  *

@@ -92,8 +92,8 @@ public interface EmbeddedServerSpecifics extends ServerSpecifics {
                 if (!ProjectManager.getDefault().isProject(source)) {
                     Project suite = SuiteManager.getServerSuiteProject(dm.getUri());
 
-                    SuiteNotifier model = suite.getLookup().lookup(SuiteNotifier.class);
-                    model.instancesChanged();
+                    SuiteNotifier suiteNotifier = suite.getLookup().lookup(SuiteNotifier.class);
+                    suiteNotifier.instancesChanged();
 
                     source.removeFileChangeListener(this);
                     InstanceProperties.removeInstance(dm.getUri());

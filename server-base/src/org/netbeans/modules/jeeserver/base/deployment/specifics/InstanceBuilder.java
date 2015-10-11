@@ -99,7 +99,7 @@ public abstract class InstanceBuilder {
         this.wiz = wiz;
     }
     
-    protected abstract String getCommandManagerJarName();
+    protected abstract String getCommandManagerJarTemplateName();
 
     protected void runInstantiateProjectDir(Set result) throws IOException {
 
@@ -176,18 +176,18 @@ public abstract class InstanceBuilder {
         Map<String, String> ip = new HashMap<>();
         FileObject projectDir = FileUtil.toFileObject(FileUtil.normalizeFile((File) wiz.getProperty("projdir")));
         String serverId = (String) wiz.getProperty(BaseConstants.SERVER_ID_PROP);
+        String actualServerId = (String) wiz.getProperty(BaseConstants.SERVER_ACTUAL_ID_PROP);        
         String url = buildURL(serverId, projectDir);
         wiz.putProperty(BaseConstants.URL_PROP, url);
-        BaseUtil.out("getPropertyMap url=" + url);
+
         String jettyHome = (String) wiz.getProperty(BaseConstants.HOME_DIR_PROP);
-//        String jettyVersion = Utils.getJettyVersion(jettyHome);
 
         ip.put(BaseConstants.SERVER_ID_PROP, serverId);
         ip.put(BaseConstants.DISPLAY_NAME_PROP, (String) wiz.getProperty(BaseConstants.DISPLAY_NAME_PROP));
+        ip.put(BaseConstants.SERVER_ACTUAL_ID_PROP,(String) wiz.getProperty(BaseConstants.SERVER_ACTUAL_ID_PROP));        
 
         ip.put(BaseConstants.HOST_PROP, (String) wiz.getProperty(BaseConstants.HOST_PROP));
         ip.put(BaseConstants.HTTP_PORT_PROP, (String) wiz.getProperty(BaseConstants.HTTP_PORT_PROP));
-        BaseUtil.out("getPropertyMap PORT=" + ip.get(BaseConstants.HTTP_PORT_PROP));
         ip.put(BaseConstants.DEBUG_PORT_PROP, (String) wiz.getProperty(BaseConstants.DEBUG_PORT_PROP));
         ip.put(BaseConstants.SHUTDOWN_PORT_PROP, (String) wiz.getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
         
@@ -305,14 +305,11 @@ public abstract class InstanceBuilder {
             //---------------------------------------------------------------------
             Document doc = XMLUtil.parse(new InputSource(new ByteArrayInputStream(baos.toByteArray())), false, true, null, null);
             Element pel = doc.getDocumentElement();
-            BaseUtil.out("1 Element pel=" + pel.getAttribute(name));
             pel.setAttribute("name", name);
-            BaseUtil.out("2 Element pel=" + pel.getAttribute(name));
             try (OutputStream out = fo.getOutputStream()) {
                 XMLUtil.write(doc, out, "UTF-8");
             }
         } catch (IOException | DOMException | SAXException ex) {
-            BaseUtil.out("EXCEPTION " + ex.getMessage());
             LOG.log(Level.INFO, ex.getMessage());
             writeFile(str, fo);
         }
@@ -333,15 +330,12 @@ public abstract class InstanceBuilder {
             //---------------------------------------------------------------------
             Document doc = XMLUtil.parse(new InputSource(new ByteArrayInputStream(baos.toByteArray())), false, true, null, null);
             String value = (String) getWizardDescriptor().getProperty("groupId");
-            BaseUtil.out("1 %%% groupId = " + value);
             setMavenElValue(doc, "groupId", value);
 
             value = (String) getWizardDescriptor().getProperty("artifactId");
-            BaseUtil.out("2 %%% artifactId = " + value);
             setMavenElValue(doc, "artifactId", value);
 
             value = (String) getWizardDescriptor().getProperty("artifactVersion");
-            BaseUtil.out("3 %%% artifactVersion = " + value);
             
             value = (String) getWizardDescriptor().getProperty("artifactVersion");
             
@@ -354,7 +348,6 @@ public abstract class InstanceBuilder {
                 XMLUtil.write(doc, out, "UTF-8");
             }
         } catch (IOException | DOMException | SAXException ex) {
-            BaseUtil.out("EXCEPTION " + ex.getMessage());
             LOG.log(Level.INFO, ex.getMessage());
             writeFile(str, fo);
         }
@@ -376,22 +369,6 @@ public abstract class InstanceBuilder {
             }
         }
 
-    }
-    protected Properties getPomProperties(FileObject pomFo) {
-        Properties props = new Properties();
-        String s = Copier.ZipUtil.extractEntry(FileUtil.toFile(pomFo), "pom.properties", "META-INF/maven");
-
-        if (s == null) {
-            return null;
-        }
-
-        try (InputStream is = new ByteArrayInputStream(s.getBytes())) {
-            InputStreamReader isr = new InputStreamReader(is);
-            props.load(isr);
-        } catch (Exception ex) {
-            LOG.log(Level.WARNING, ex.getMessage());
-        }
-        return props;
     }
 
     protected void setMavenCommandManagerPropertyValue(Document doc, String elName, String elValue) {

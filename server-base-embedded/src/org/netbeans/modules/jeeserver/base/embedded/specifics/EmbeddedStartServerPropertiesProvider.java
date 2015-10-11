@@ -1,22 +1,25 @@
 package org.netbeans.modules.jeeserver.base.embedded.specifics;
 
 import java.util.Properties;
+import java.util.logging.Logger;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.MavenMainClassCustomizer;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
-import org.netbeans.spi.project.AuxiliaryConfiguration;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.filesystems.FileObject;
-import org.w3c.dom.Element;
 
 /**
  *
  * @author Valery
  */
 public class EmbeddedStartServerPropertiesProvider implements StartServerPropertiesProvider {
+
+    private static final Logger LOG = Logger.getLogger(BaseDeploymentManager.class.getName());
 
     private Properties startProperties;
     private Properties stopProperties;
@@ -30,10 +33,10 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
 
     @Override
     public FileObject getBuildXml(Project serverProject) {
-        //return serverProject.getProjectDirectory().getFileObject("nbdeploymant/build.xml");
+
         FileObject fo = serverProject.getProjectDirectory().getFileObject("build.xml");
-        if ( ! BaseUtil.isAntProject(serverProject)) {
-            if ( fo == null ) {
+        if (!BaseUtil.isAntProject(serverProject)) {
+            if (fo == null) {
                 fo = serverProject.getProjectDirectory().getFileObject("nbdeployment/build.xml");
             }
         }
@@ -52,40 +55,111 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
 
     @Override
     public Properties getStartProperties(Project serverProject) {
-        AuxiliaryConfiguration ac = serverProject.getLookup().lookup(AuxiliaryConfiguration.class);
-//        Element el = ac.getConfigurationFragment("config-data","http://www.netbeans.org/ns/maven-config-data/1", true);
-//                 config.getConfigurationFragment("config-data","http://www.netbeans.org/ns/maven-config-data/1", false);
-        //BaseUtil.out("Shared Element = " + el);
-        Element el = ac.getConfigurationFragment("config-data","http://www.netbeans.org/ns/maven-config-data/1", false);
-        BaseUtil.out("2 NOT Shared Element = " + el);
-        
 
         if (startProperties == null) {
             startProperties = getProps(serverProject);
             startProperties.setProperty("target", "run");
         }
+
         if (!BaseUtil.isAntProject(serverProject)) {
-            String cp = BaseUtil.getMavenClassPath(manager);
-
-            FileObject fo = serverProject.getProjectDirectory().getFileObject("target");
-            if (fo != null) {
-                fo = fo.getFileObject("classes");
-            }
-
-            if (fo != null) {
-                cp += ":" + fo.getPath();
-            }
-            startProperties.setProperty("target", "run-embedded-server");
-
-            startProperties.setProperty(SuiteConstants.MAVEN_RUN_CLASSPATH_PROP, cp);
-            startProperties.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, serverProject.getProjectDirectory().getPath());
-            startProperties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, InstanceProperties.getInstanceProperties(manager.getUri()).getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP));
+            setMavenProperies(serverProject, startProperties, "run-embedded-server");
         }
         return startProperties;
     }
 
+    protected void setMavenProperies(Project serverProject, Properties properties, String target) {
+        String cp = BaseUtil.getMavenClassPath(manager);
+        
+        properties.remove("do.build");
+        properties.remove("do.deploy-file");        
+        
+        FileObject fo = serverProject.getProjectDirectory().getFileObject("target");
+        if (fo != null) {
+            fo = fo.getFileObject("classes");
+        }
+
+/*        if (fo != null) {
+            cp += ":" + fo.getPath();
+        } 
+*/
+        if (fo == null) {
+            properties.setProperty("do.build", "yes");
+        }   
+        
+        FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
+        
+        Properties pomProperties = BaseUtil.getPomProperties(cmJar);
+        if (pomProperties != null) {
+            
+            String str = pomProperties.getProperty("groupId");
+            str = str.replace(".", "/");
+            str +=  "/"
+                    + pomProperties.getProperty("artifactId") 
+                    + "/" 
+                    + pomProperties.getProperty("version")
+                    + "/"
+                    + cmJar.getNameExt();
+            if ( cmJar.getParent().getFileObject(str) == null ) {
+                properties.setProperty("do.deploy-file", "yes");
+            }
+                    
+            properties.setProperty(SuiteConstants.COMMAND_MANAGER_GROUPID,
+                    pomProperties.getProperty("groupId"));
+
+            properties.setProperty(SuiteConstants.COMMAND_MANAGER_ARTIFACTID,
+                    pomProperties.getProperty("artifactId"));
+            properties.setProperty(SuiteConstants.COMMAND_MANAGER_VERSION,
+                    pomProperties.getProperty("version"));
+            properties.setProperty(BaseConstants.COMMAND_MANAGER_JAR_NAME_PROP,
+                    pomProperties.getProperty("artifactId") + "-"
+                    + pomProperties.getProperty("version")
+                    + ".jar"
+            );
+        }
+        //properties.setProperty("target.project.classes",
+        //            "target/classes");
+        
+        properties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
+                SuiteConstants.MAVEN_REPO_LIB_PATH);
+
+        properties.setProperty("target", target);
+
+        properties.setProperty(SuiteConstants.MAVEN_RUN_CLASSPATH_PROP, cp);
+        //
+        // We set MAVEN_DEBUG_CLASSPATH_PROP. In future this approach may change
+        //
+        properties.setProperty(SuiteConstants.MAVEN_DEBUG_CLASSPATH_PROP, cp);        
+        properties.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, serverProject.getProjectDirectory().getPath());
+        String mainClass = getMainClass(serverProject);
+        if (mainClass != null) {
+            properties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, mainClass);
+        }
+
+    }
+
+    protected String getMainClass(Project project) {
+        BaseDeploymentManager dm = SuiteManager.getManager(project);
+        String mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
+        if (mainClass != null) {
+            return mainClass;
+        }
+
+        String[] classes = BaseUtil.getMavenMainClasses(project);
+        if (classes.length == 0) {
+            return null;
+        }
+        if (classes.length == 0 || classes.length > 1) {
+            MavenMainClassCustomizer.customize(project);
+            mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
+        } else {
+            mainClass = classes[0];
+        }
+        return mainClass;
+    }
+
     @Override
-    public Properties getStopProperties(Project serverProject) {
+    public Properties getStopProperties(Project serverProject
+    ) {
         if (stopProperties == null) {
             stopProperties = new Properties();
             stopProperties.setProperty("target", "stop");
@@ -96,7 +170,8 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
     }
 
     @Override
-    public Properties getDebugProperties(Project serverProject) {
+    public Properties getDebugProperties(Project serverProject
+    ) {
         if (debugProperties == null) {
             debugProperties = getProps(serverProject);
             debugProperties.setProperty("target", "debug-embedded-server");
@@ -107,28 +182,30 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
         debugProperties.setProperty("debug.args.line", "-Xdebug");
 
         if (!BaseUtil.isAntProject(serverProject)) {
-            String cp = BaseUtil.getMavenClassPath(manager);
+            setMavenProperies(serverProject, debugProperties, "debug-embedded-server");
+            /*            String cp = BaseUtil.getMavenClassPath(manager);
 
-            FileObject fo = serverProject.getProjectDirectory().getFileObject("target");
-            if (fo != null) {
-                fo = fo.getFileObject("classes");
-            }
+             FileObject fo = serverProject.getProjectDirectory().getFileObject("target");
+             if (fo != null) {
+             fo = fo.getFileObject("classes");
+             }
 
-            if (fo != null) {
-                cp += ":" + fo.getPath();
-            }
-            // debugProperties.setProperty("target", "debug-embedded-server");
+             if (fo != null) {
+             cp += ":" + fo.getPath();
+             }
+             // debugProperties.setProperty("target", "debug-embedded-server");
 
-            debugProperties.setProperty(SuiteConstants.MAVEN_DEBUG_CLASSPATH_PROP, cp);
-            debugProperties.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, serverProject.getProjectDirectory().getPath());
-            debugProperties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, InstanceProperties.getInstanceProperties(manager.getUri()).getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP));
-
+             debugProperties.setProperty(SuiteConstants.MAVEN_DEBUG_CLASSPATH_PROP, cp);
+             debugProperties.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, serverProject.getProjectDirectory().getPath());
+             debugProperties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, InstanceProperties.getInstanceProperties(manager.getUri()).getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP));
+             */
         }
         return debugProperties;
     }
 
     @Override
-    public Properties getProfileProperties(Project serverProject) {
+    public Properties getProfileProperties(Project serverProject
+    ) {
         profileProperties = new Properties();
         profileProperties.setProperty("target", "profile");
         String profile_args = BaseUtil.getProfileArgs(manager);

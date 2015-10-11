@@ -97,21 +97,6 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
         return this.childKeys;
     }
 
-    /**
-     * Creates an instance of class {@link FileChangeHandler} and adds it as a
-     * listener of the {@literal FileEvent } to the {@literal FileObject}
-     * associated with a {@literal server-instance-config} folder.
-     *
-     * @param uri
-     * @param newValue
-     * @param serverSuite
-     */
-    /*    protected final void init(Project serverSuite) {
-     serverSuite.getLookup().lookup(SuiteNotifier.class).setModel(this);
-
-     setShortDescription(ServerInstanciesRootNode_shortDescription());
-     }
-     */
     @Override
     public void iconChange(String uri, boolean newValue) {
         if (childKeys != null) {
@@ -124,26 +109,7 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
         if (childKeys != null) {
             childKeys.displayNameChange(uri, newValue);
         }
-        
     }
-
-/*    
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-
-        if (childKeys != null) {
-
-            if (null != evt.getPropertyName()) {
-                switch (evt.getPropertyName()) {
-                    case "server-running":
-                    case BaseConstants.DISPLAY_NAME_PROP:
-                        childKeys.propertyChange(evt);
-                        break;
-                }
-            }
-        }
-    }
-*/
     /**
      * Returns the logical name of the node.
      *

@@ -154,6 +154,10 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
 
     ServerSpecifics getSpecifics() {
         String serverId = BaseUtil.getServerIdByAcualId(getActualServerId());
+        BaseUtil.out("SERVER INSTANCE CONNECTOR:  serverId=" + serverId);
+        ServerSpecifics ss = BaseUtil.getServerSpecifics(serverId);
+        BaseUtil.out("SERVER INSTANCE CONNECTOR:  specifics=" + ss);
+        
         return BaseUtil.getServerSpecifics(serverId);
     }
 
@@ -297,7 +301,7 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
 */        
         hostTextField.setText("localhost");
         readDefaultPortSettings(wiz);
-
+        stateChanged(null);
     }
 
     void readDefaultPortSettings(WizardDescriptor settings) {
@@ -462,6 +466,12 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
         horSeparator = new javax.swing.JSeparator();
         saveButton = new javax.swing.JButton();
 
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentShown(java.awt.event.ComponentEvent evt) {
+                formComponentShown(evt);
+            }
+        });
+
         org.openide.awt.Mnemonics.setLocalizedText(hostLabel, org.openide.util.NbBundle.getMessage(ServerInstanceConnectorVisualPanel.class, "ServerInstanceConnectorVisualPanel.hostLabel.text")); // NOI18N
 
         hostTextField.setEditable(false);
@@ -612,6 +622,13 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
                 .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void formComponentShown(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentShown
+        if ( wiz != null ) {
+BaseUtil.out("********************* wiz != null");
+            valid(wiz);
+        }
+    }//GEN-LAST:event_formComponentShown
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

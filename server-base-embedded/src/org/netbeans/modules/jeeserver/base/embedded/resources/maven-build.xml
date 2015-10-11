@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project name="JettyMavenServerInstance" default="run" basedir="..">
     <property name="pre-run" value="true" />
     <!-- 
@@ -75,7 +74,7 @@
             <attribute name="exec.executable" default="maven" />            
             <attribute name="options" default="-e -U" />
             <attribute name="goal" />
-            <attribute name="maven.project.basedir" />
+            <attribute name="maven.project.basedir" default="${basedir}" />
             <attribute name="resultproperty" default="maven.result" />
             <!--element name="args" implicit="true" optional="true" /-->
             <sequential>
@@ -114,49 +113,46 @@
     
     <!-- ==============  TARGET: INSTALL-REPO-FILE ================= -->
     
-    <target name="install-repo-file" depends="-macro-install-repo" >
+    <target if="${do.deploy-file}" name="install-repo-file" depends="-macro-install-repo" >
         <property name ="maven.home" location="${netbeans.home}/../java/maven" />
         <property name="root.dir" location=".."/>
    
         <echo message="basedir = ${basedir}" />
         <property name="maven.project.dir" location="${basedir}"/>        
-        <property name="prop.deploy.file" value="${basedir}/nbdeployment/lib/jetty-embedded-command-manager-2.0.jar"/>        
-        <property name="prop.deploy.url" value="file://${basedir}/nbdeployment/lib"/>        
-        <property name="prop.deploy.groupId" value="org.netbeans.plugin.support.jetty.embedded"/>  
-                                                    
-        <property name="prop.deploy.artifactId" value="jetty-embedded-command-manager"/>        
-        <property name="prop.deploy.version" value="2.0"/>        
+        <property name="prop.deploy.file" value="${basedir}/${maven.repo.lib.path}/${command.manager.jar.name}"/>        
+        <property name="prop.deploy.url" value="file://${basedir}/${maven.repo.lib.path}"/>        
+        <property name="prop.deploy.groupId" value="${command.manager.groupId}"/>  
+          <echo message="AAAAAAAAAA ${comand.manager.artifactId}" />
+        <property name="prop.deploy.artifactId" value="${command.manager.artifactId}"/>        
+        <property name="prop.deploy.version" value="${command.manager.version}"/>        
         
         <!--property name="maven.goal" value="deploy:deploy-file"/-->        
         <echo message="DEPLOY:DEPLOY-FILE GOAL" />
         <macro-install-repo maven.project.basedir="${maven.project.dir}"
                       goal="deploy:deploy-file"
                       resultproperty="maven.build.result"         
-        
+                
         />
         <echo message="DEPLOY:INSTALL-FILE GOAL" />
   
+        
         <macro-install-repo maven.project.basedir="${maven.project.dir}"
                       goal="initialize install:install-file"
                       resultproperty="maven.build.result"         
         
         />
         
+        
     </target>
 
     <!-- ==============  TARGET: -PRE-RUN ================= -->
         
-    <target name="-pre-run" depends="-macro-install-repo" >
+    <target if="${do.build}"  name="-pre-run" depends="-macro-install-repo" >
+
         <property name ="maven.home" location="${netbeans.home}/../java/maven" />
-        <property name="root.dir" location=".."/>
-   
-        <echo message="basedir = ${basedir}" />
         <property name="maven.project.dir" location="${basedir}"/>        
-        
-        <!--property name="maven.goal" value="deploy:deploy-file"/-->        
-        <echo message="MAVEN:ANT:PACKAGE GOAL" />
   
-        <maacro-install-repo maven.project.basedir="${maven.project.dir}"
+        <macro-install-repo 
                       goal="package"
                       resultproperty="maven.build.result"         
         />
@@ -165,12 +161,12 @@
     <!-- ============================================================  
                 TARGET: RUN-EMBEDDED-SERVER 
          ============================================================ -->          
-    <target name="run-embedded-server" if="netbeans.home" depends="install-repo-file,-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE.">
+    <target name="run-embedded-server" if="netbeans.home" depends="-pre-run,install-repo-file,-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE.">
         
         <property name="main.class" value="${maven.main.class}"/>                
-        
+        <property name="compiled.classes" value="${basedir}/target/classes" />
         <property name="work.dir" value="${maven.work.dir}"/>
-        <property name="run.classpath" value="${maven.run.classpath}" />                
+        <property name="run.classpath" value="${maven.run.classpath}:${compiled.classes}" />                
         <property name="endorsed.classpath.cmd.line.arg" value=""/>
         <server-embedded-run  />
     </target>
@@ -186,13 +182,13 @@
         <echo message="classpath ${classpath}" />
         <echo message="debug-args-line ${debug-args-line}" />
         <echo message="netbeans.mainclass ${netbeans.mainclass}" />        
-        <echo message="maven.mainclass ${maven.main.class}" />                
-        <property name="debug-args-line" value="-Xdebug"/>
+        <echo message="maven.main.class ${maven.main.class}" />                
         
+        <property name="debug-args-line" value="-Xdebug"/>
         <property name="main.class" value="${maven.main.class}"/>                
         
         <property name="work.dir" value="${maven.work.dir}"/>
-        <property name="debug.classpath" value="${maven.debug.classpath}" />                
+        <property name="debug.classpath" value="${maven.run.classpath}" />                
         <property name="endorsed.classpath.cmd.line.arg" value=""/>
         <property name="server-debug-transport" value="${server.debug.transport}"/>
         <property name="server-debug-port" value="${server.debug.port}"/>
@@ -208,4 +204,8 @@
             <arg line="STOP.KEY=${stop.key}"/>
         </java>
     </target>
+
+        
+            
+                    
 </project>

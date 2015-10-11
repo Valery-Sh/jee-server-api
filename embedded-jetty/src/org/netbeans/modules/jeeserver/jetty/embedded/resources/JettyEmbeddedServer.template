@@ -1,65 +1,47 @@
 package ${classpackage};
 
+import java.util.ServiceLoader;
 import org.eclipse.jetty.server.Server;
-import org.netbeans.plugin.support.jetty.embedded.NbDeployHandler;
+import org.eclipse.jetty.util.component.LifeCycle;
+
+//import org.netbeans.plugin.support.jetty.embedded.NbDeployHandler;
 
 /**
  *
  * @author ${user}
  */
 public class JettyEmbeddedServer {
-
+    private static LifeCycle.Listener getListener() {
+        ServiceLoader<LifeCycle.Listener> loader
+                = ServiceLoader.load(LifeCycle.Listener.class);        
+        
+        LifeCycle.Listener result = null;
+        
+        for (LifeCycle.Listener listener : loader) {
+            if (listener.getClass().getName().endsWith("NbDeployHandler")) {
+                result = listener;
+                break;
+            }
+        }
+        return result;
+    }
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws Exception {
         Server server = new Server(${port});
-        server.addLifeCycleListener(new NbDeployHandler());
+        if ( getListener() != null ) {
+            server.addLifeCycleListener(getListener());
+        }
+
+        //
+        //server.addLifeCycleListener(new NbDeployHandler());
         //------------------------------------------------------------
         // Of course, you can use a line of code, as shown below:
         //
         //  Server server =  new Server(${port});
         //
         //------------------------------------------------------------
-        //
-        // The next line is required if you create a server manually for example:
-        // Server server = new Server(8080);
-        // It may appear anywhere in the code, but before the line
-        // server.start() and after the Server definition;
-        //
-        //CommandManager cm = CommandManager.getInstance(server);
-        
-        // ------------------------------------------------------------        // If you wish to shut down the server progranmatically the you vust
-        // specify a "shutdown token":
-        //
-        //      cm.setRuntimeShutdownToken("netbeans");
-        //
-        //-------------------------------------------------------------
-        // ========================= SAMPLE CODE ==========================
-
-        // ContextHandlerCollection chc = new ContextHandlerCollection();
-
-        // WebAppContext ctx1 = new WebAppContext("WebApp01", "/WebApp01");
-
-        // WebAppContext ctx2 = new WebAppContext("HTML5Application01", "/HTML5Application01");
-
-        // WebAppContext ctx3 = new WebAppContext("d:\\NetBeans802Plugins\\TestWebApps\\WebApp02\\build\\web", "/WebApp02");
-        
-        // WebAppContext ctx4 = new WebAppContext("WebAppMaven02", "/WebAppMaven02");
-
-        // WebAppContext ctx5 = new WebAppContext("BackboneWineCellar", "/BackboneWineCellar");
-
-        
-        // chc.addHandler(ctx1);
-        // chc.addHandler(ctx2);
-        // chc.addHandler(ctx3);
-        // chc.addHandler(ctx4);
-        // chc.addHandler(ctx5);
-        
-        // HandlerCollection hc = new HandlerCollection();
-        // hc.addHandler(chc);
-        // server.setHandler(hc);
-
         server.start();
         server.join();
 

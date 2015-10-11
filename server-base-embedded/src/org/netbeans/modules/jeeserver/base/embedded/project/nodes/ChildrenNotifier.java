@@ -1,7 +1,5 @@
 package org.netbeans.modules.jeeserver.base.embedded.project.nodes;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.LogicalViewNotifier;
 
 /**
@@ -18,6 +16,5 @@ public interface ChildrenNotifier extends LogicalViewNotifier{
     void iconChange(String uri,boolean newValue);
     @Override
     void displayNameChange(String uri,String newValue);
-    
     
 }

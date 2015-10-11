@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -98,6 +99,8 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     
     private ServerInstanceProperties serverProperties;
 
+//    private Properties commandManagerProperties;
+    
     private LogicalViewNotifier logicalViewNotifier;
     
 
@@ -307,7 +310,6 @@ public class BaseDeploymentManager implements DeploymentManager2 {
             if (sia != null) {
                 sia.serverStateChanged();
             }
-            BaseUtil.out("updateServerIconAnnotator propertyChange  old=" + oldValue + "; new=" + newValue);
             getSpecifics().iconChange(getUri(),newValue);
         }, 0, Thread.NORM_PRIORITY);
 

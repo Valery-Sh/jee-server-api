@@ -106,6 +106,4 @@ public abstract class InstanceWizardPanel  implements WizardDescriptor.Panel,
     public HelpCtx getHelp() {
         return HelpCtx.DEFAULT_HELP;
     }
-    
-
 }

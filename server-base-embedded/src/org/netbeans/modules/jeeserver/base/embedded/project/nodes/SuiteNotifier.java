@@ -11,11 +11,11 @@ import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanc
 public class SuiteNotifier { //implements ChildrenNotifier {
 
     private ChildrenNotifier rootNodeNotifier;
-
-    public ChildrenNotifier getModel() {
-        return rootNodeNotifier;
-    }
-
+    /**
+     * Invoked when server instance configurations have been changed during customization.
+     * 
+     * @param uri a server instance id as specified by the class {@literal Deployment}.
+     */
     public void settingsChanged(String uri) {
         Project p = SuiteManager.getManager(uri).getServerProject();
         
@@ -48,63 +48,8 @@ public class SuiteNotifier { //implements ChildrenNotifier {
         
         rootNodeNotifier.displayNameChange(uri,newValue);
     }
-
-/*    public void propertyChange(PropertyChangeEvent evt) {
-        if (rootNodeNotifier == null) {
-            return;
-        }
-        rootNodeNotifier.propertyChange(evt);
-    }
-*/    
-/*    private ChildrenNotifier getRootNodeNotifier() {
-        if ( rootNodeNotifier == null ) {
-            return null;
-        }
-        if ( rootNodeNotifier instanceof ServerInstancesRootNode ) {
-            return rootNodeNotifier;
-        } else if ( rootNodeNotifier instanceof InstanceNode ) {
-            BaseUtils.out("NodeModel. InstanceNode.Parent=" + 
-                    ((InstanceNode)rootNodeNotifier).getParentNode());
-        }
-        return null;
-    }
-*/    
     
     final void setNotifier(ChildrenNotifier childrenKeysModel) {
         this.rootNodeNotifier = childrenKeysModel;
     }
-    
-/*    public Lookup getServerInstancesLookup() {
-        ChildrenNotifier km = getRootNodeNotifier();
-        if ( km == null ) {
-            return null;
-        }
-        return ((ServerInstancesRootNode)km).getLookup();
-    }
-*/
-/*    public Lookup getServerInstanceLookup(String uri) {
-        ChildrenNotifier km = getRootNodeNotifier();
-        if ( km == null ) {
-            return null;
-        }
-        
-        Node[] nodes = ((ServerInstancesRootNode)km).getChildKeys().getNodes();
-        if ( nodes == null || nodes.length == 0 ) {
-            return null;
-        }
-        Lookup result = null;
-        for ( Node node : nodes ) {
-            InstanceNode inode = null;
-            if ( node instanceof InstanceNode) {
-                inode = (InstanceNode) node;
-            }
-            if ( inode != null && uri.equals(inode.getKey()) ) {
-                result = inode.getLookup();
-                break;
-            }
-        }
-        return result;
-    }
-*/    
-    
 }

@@ -54,7 +54,6 @@ public interface ServerSpecifics extends LicensesAcceptor {
     default public boolean pingServer(BaseDeploymentManager dm, int timeout) {
 
         boolean result = false;
-        long t1 = 0;
         String urlString = dm.buildUrl();
 
         if (urlString == null) {
@@ -81,7 +80,6 @@ public interface ServerSpecifics extends LicensesAcceptor {
             t.start();
             t.join(timeout);
 
-            t1 = System.currentTimeMillis();
             Map<String, List<String>> headerFields = connection.getHeaderFields();
             result = isConnected(headerFields);
         } catch (InterruptedException | IOException ex) {
@@ -132,7 +130,9 @@ public interface ServerSpecifics extends LicensesAcceptor {
      * @param projDir
      * @param props
      */
-    void projectCreated(FileObject projDir, Map<String, Object> props);
+    default void projectCreated(FileObject projDir, Map<String, Object> props) {
+        
+    }
 
     boolean needsShutdownPort();
 

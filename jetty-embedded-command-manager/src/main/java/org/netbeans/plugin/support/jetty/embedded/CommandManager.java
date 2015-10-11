@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -42,16 +41,14 @@ import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.webapp.WebAppContext;
 import static org.netbeans.plugin.support.jetty.embedded.Utils.INSTANCE_PROPERTIES_PATH;
-import static org.netbeans.plugin.support.jetty.embedded.Utils.SERVER_CONFIG_FOLDER;
 import static org.netbeans.plugin.support.jetty.embedded.Utils.DEVELOPMENT_MODE_XML_FILE;
-import static org.netbeans.plugin.support.jetty.embedded.Utils.getUserDir;
 import static org.netbeans.plugin.support.jetty.embedded.Utils.isBuildOfMavenProject;
 
 /**
  *
  * @author V. Shyshkin
  */
-public class CommandManager extends AbstractHandler implements LifeCycle.Listener {
+class CommandManager extends AbstractHandler implements LifeCycle.Listener {
 
     private static final Logger LOG = Logger.getLogger(Utils.class.getName());
 

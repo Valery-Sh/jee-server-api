@@ -40,6 +40,7 @@ import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.LibrariesFileLocator;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.Utilities;
@@ -99,17 +100,10 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
         }
 
         FileObject instancesDir = FileUtil.toFileObject(new File(configProps.getProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP)));
-        String projName = (String) getWizardDescriptor().getProperty("name");
 
-        //String instDirName = FileUtil.findFreeFolderName(instancesDir, projName);
         Project suite = FileOwnerQuery.getOwner(instancesDir);
-        //ip.setProperty(SuiteConstants.SERVER_INSTANCE_NAME_PROP, instDirName);
-        BaseUtil.out("SUITE project = " + suite + "ip=" + ip);
 
         ip.setProperty(SuiteConstants.SUITE_PROJECT_LOCATION, suite.getProjectDirectory().getPath());
-
-//        suite.getLookup().lookup(InstanceLookups.class)
-//                .put(ip.getProperty(BaseConstants.URL_PROP));
     }
 
     @Override
@@ -127,7 +121,6 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
     }
 
     public void modifyClasspath(Set result) {
-
         Project p = findProject(result);
 
         FileObject libExt = getLibDir(p);
@@ -135,9 +128,13 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
             return;
         }
 
-        String jarName = getCommandManagerJarName() + ".jar";
-        final File jar = new File(libExt.getPath() + "/" + jarName);
-        if (jar == null || !jar.exists()) {
+        FileObject jarFo = SuiteUtil.getCommandManagerJar(p);
+        
+        if ( jarFo == null ) {
+            return;
+        }
+        final File jar = FileUtil.toFile(jarFo);
+        if (! jar.exists()) {
             return;
         }
 
@@ -149,9 +146,11 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
         // Now check if there is allredy the jar in the classpath of the project
         //
         ClassPath cp = ClassPath.getClassPath(root, ClassPath.COMPILE);
+        
         if (cp == null) {
             return;
         }
+        
         for (ClassPath.Entry e : cp.entries()) {
             File entryJar = LibrariesFileLocator.getFile(e.getURL());
             if (jar.equals(entryJar)) {
@@ -202,8 +201,8 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
                 fo.delete();
             }
             props.setProperty(BaseConstants.HTTP_PORT_PROP, port);
-
-            BaseUtil.storeProperties(props, fo.getParent(), "server-instance.properties");
+            fo = project.getProjectDirectory().getFileObject("nbdeployment");            
+            BaseUtil.storeProperties(props, fo, "server-instance.properties");
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N
         }

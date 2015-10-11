@@ -23,7 +23,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
@@ -44,7 +43,6 @@ import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ImageUtilities;
-import org.openide.util.Lookup;
 import org.openide.windows.InputOutput;
 
 /**
@@ -241,9 +239,6 @@ public class JettyServerSpecifics implements ServerSpecifics {
         return ImageUtilities.loadImage(IMAGE);
     }
 
-    @Override
-    public void projectCreated(FileObject projectDir, Map<String, Object> props) {
-    }
 
     @Override
     public boolean needsShutdownPort() {

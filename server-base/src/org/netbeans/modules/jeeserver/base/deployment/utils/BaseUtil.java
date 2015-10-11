@@ -18,6 +18,7 @@ package org.netbeans.modules.jeeserver.base.deployment.utils;
 
 import java.awt.Image;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -125,9 +126,8 @@ public class BaseUtil {
             LOG.log(Level.INFO, ex.getMessage());
 
         }
-        BaseUtil.out("!!! BaseJ2eePlatformimpl getClasspath=" + sb);
         return sb.toString();
-    }    
+    }
 
     public static String getMavenClassPath(BaseDeploymentManager manager) {
         StringBuilder sb = new StringBuilder();
@@ -160,10 +160,9 @@ public class BaseUtil {
             LOG.log(Level.INFO, ex.getMessage());
 
         }
-        BaseUtil.out("!!! BaseJ2eePlatformimpl getClasspath=" + sb);
         return sb.toString();
-    }    
-    
+    }
+
     public static FileObject getSourceRoot(BaseDeploymentManager dm) {
         Sources sources = ProjectUtils.getSources(dm.getServerProject());
         SourceGroup[] sourceGroups = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
@@ -231,9 +230,7 @@ public class BaseUtil {
 
         return result;
     }
-    
-    
-    
+
     public static String stringOf(InputStream is) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(is));
         StringBuilder sb = new StringBuilder();
@@ -614,7 +611,7 @@ public class BaseUtil {
 
         for (String uri : deployment.getServerInstanceIDs()) {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
-            if ( ip == null ) {
+            if (ip == null) {
                 continue;
             }
             String foundServerLocation = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
@@ -622,23 +619,22 @@ public class BaseUtil {
                 // May be not a native plugin server
                 continue;
             }
-            
+
             FileObject foundServerFo = FileUtil.toFileObject(new File(foundServerLocation));
-            
-            
+
             if (!ProjectManager.getDefault().isProject(foundServerFo)) {
                 return null;
             }
-            
+
             Project serverProj = FileOwnerQuery.getOwner(foundServerFo);
 
             if (serverProj == null) {
                 continue;
             }
-            
+
             Path foundServerPath = Paths.get(foundServerLocation);
-                    
-            if (sourceProjectPath.equals(foundServerPath) ) {
+
+            if (sourceProjectPath.equals(foundServerPath)) {
                 try {
                     dm = (BaseDeploymentManager) DeploymentFactoryManager.getInstance().getDisconnectedDeploymentManager(uri);
                 } catch (DeploymentManagerCreationException ex) {
@@ -692,7 +688,6 @@ public class BaseUtil {
                 }
             }
         }
-        BaseUtil.out("getServerImage = " + image);
         return image;
     }
 
@@ -924,6 +919,22 @@ public class BaseUtil {
         return result;
     }
 
+    public static Properties getPomProperties(FileObject jarFo) {
+        Properties props = new Properties();
+        String s = Copier.ZipUtil.extractEntry(FileUtil.toFile(jarFo), "pom.properties", "META-INF/maven");
+
+        if (s == null) {
+            return null;
+        }
+
+        try (InputStream is = new ByteArrayInputStream(s.getBytes())) {
+            InputStreamReader isr = new InputStreamReader(is);
+            props.load(isr);
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, ex.getMessage());
+        }
+        return props;
+    }
 
     /*    public static String getAntBasedProjectType(Project proj) {
      FileObject fo = proj.getProjectDirectory().getFileObject("nbproject/project.xml");

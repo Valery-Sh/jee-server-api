@@ -34,9 +34,9 @@ import org.openide.util.Lookup;
 // @ActionID(category="...", id="org.netbeans.modules.jeeserver.base.embedded.server.project.wizards.ServerInstanceWizardAction")
 // @ActionRegistration(displayName="Open ServerInstance Wizard")
 // @ActionReference(path="Menu/Tools", position=...)
-public class ServerInstanceAddExistingWizardAction extends AbstractAction implements ActionListener {
+public class AddExistingProjectWizardActionAsIterator extends AbstractAction implements ActionListener {
 
-    private static final Logger LOG = Logger.getLogger(ServerInstanceAddExistingWizardAction.class.getName());
+    private static final Logger LOG = Logger.getLogger(AddExistingProjectWizardActionAsIterator.class.getName());
 
     public static final boolean[] panelVisited = new boolean[]{false, false};
 
@@ -45,19 +45,23 @@ public class ServerInstanceAddExistingWizardAction extends AbstractAction implem
     protected List<WizardDescriptor.Panel<WizardDescriptor>> panels;
     protected WizardDescriptor wiz;        
     
-    public ServerInstanceAddExistingWizardAction(Lookup context, File instanceProjectDir) {
+    public AddExistingProjectWizardActionAsIterator(Lookup context, File instanceProjectDir) {
         this.context = context;
         this.instanceProjectDir = instanceProjectDir;
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
+    public void doAction() {
         
         wiz = initialize(new ServerInstanceConnectorWizardPanel());
 
         if (DialogDisplayer.getDefault().notify(wiz) == WizardDescriptor.FINISH_OPTION) {
             save();
         }
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        doAction();
     }
     
     public  WizardDescriptor getWizardDescriptor() {

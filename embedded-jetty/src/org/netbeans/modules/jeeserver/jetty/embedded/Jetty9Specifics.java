@@ -36,6 +36,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.EmbeddedInstanceBuilder;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
@@ -63,7 +64,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
 
     public static final String JETTY_SHUTDOWN_KEY = "netbeans";
     
-    public static final String JETTY_JAR_POSTFIX = "-command-manager-2.0";
+//    public static final String JETTY_JAR_POSTFIX = "-command-manager";
     
 
     @Override
@@ -211,10 +212,10 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         return ImageUtilities.loadImage(IMAGE2);
     }
 
-    @Override
+/*    @Override
     public void projectCreated(FileObject projectDir, Map<String, Object> props) {
         String actualServerId = (String) props.get(SuiteConstants.SERVER_ACTUAL_ID_PROP);
-        String cmOut = actualServerId + JETTY_JAR_POSTFIX;
+        String cmOut = actualServerId + BaseConstants.COMMAND_MANAGER_JAR_POSTFIX;
         String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + cmOut;
 
         FileObject libExt = projectDir.getFileObject(SuiteConstants.SERVER_CONFIG_FOLDER + "/lib/ext");
@@ -228,7 +229,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N
         }
-
+        
         //
         // Plugin jar => we can create a class from template
         //
@@ -267,7 +268,7 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
             Logger.getLogger("global").log(Level.INFO, null, e);
         }
     }
-
+*/
     /*    protected void addJarToServerClassPath(File jar, FileObject projectDir) throws IOException {
 
      if (projectDir == null || jar == null || !jar.exists()) {
