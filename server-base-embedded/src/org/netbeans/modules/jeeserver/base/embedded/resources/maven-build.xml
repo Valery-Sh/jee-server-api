@@ -65,12 +65,12 @@
         </macrodef>
     </target>
     
-    <!-- ***************  MACRODEF: -MACRO-INSTALL-REPO ****************** -->
+    <!-- ***************  MACRODEF: -MACRO-REBUILD-ALL ****************** -->
     
-    <target name="-macro-install-repo"  >
+    <target name="-macro-rebuild-all"  >
         <echo message="(-maven-common) DEPLOY GOAL:  = ${maven.goal}" />
         
-        <macrodef name="macro-install-repo">
+        <macrodef name="macro-rebuild-all">
             <attribute name="exec.executable" default="maven" />            
             <attribute name="options" default="-e -U" />
             <attribute name="goal" />
@@ -110,10 +110,43 @@
             </sequential>
         </macrodef>
     </target>  
+
     
-    <!-- ==============  TARGET: INSTALL-REPO-FILE ================= -->
+    <target name="-macro-build"  >
+        <echo message="MACRO-BUILD" />
+        
+        <macrodef name="macro-build">
+            <attribute name="exec.executable" default="maven" />            
+            <attribute name="options" default="-e -U" />
+            <attribute name="goal" />
+            <attribute name="maven.project.basedir" default="${basedir}" />
+            <attribute name="resultproperty" default="maven.result" />
+            <!--element name="args" implicit="true" optional="true" /-->
+            <sequential>
+                <java classname="org.codehaus.classworlds.Launcher" fork="true"
+                      dir="@{maven.project.basedir}" resultproperty="@{resultproperty}">
+                    <jvmarg value="-Xmx512m"/>
+                    <classpath>
+                        <fileset dir="${maven.home}/boot">
+                            <include name="*.jar" />
+                        </fileset>
+                        <fileset dir="${maven.home}/lib">
+                            <include name="*.jar" />
+                        </fileset>
+                    </classpath>
+                    <sysproperty key="classworlds.conf" value="${maven.home}/bin/m2.conf" />
+                    <sysproperty key="maven.home" value="${maven.home}" />
+                    <arg line="--batch-mode @{options} @{goal} " />
+                </java>
+            </sequential>
+        </macrodef>
+    </target>  
+        
+                
+    <!-- ==============  TARGET: MAVEN-REBUILD-ALL  ================= -->
     
-    <target if="${do.deploy-file}" name="install-repo-file" depends="-macro-install-repo" >
+    <target name="maven-rebuild-all" depends="-macro-rebuild-all" >
+                                               
         <property name ="maven.home" location="${netbeans.home}/../java/maven" />
         <property name="root.dir" location=".."/>
    
@@ -122,46 +155,40 @@
         <property name="prop.deploy.file" value="${basedir}/${maven.repo.lib.path}/${command.manager.jar.name}"/>        
         <property name="prop.deploy.url" value="file://${basedir}/${maven.repo.lib.path}"/>        
         <property name="prop.deploy.groupId" value="${command.manager.groupId}"/>  
-          <echo message="AAAAAAAAAA ${comand.manager.artifactId}" />
         <property name="prop.deploy.artifactId" value="${command.manager.artifactId}"/>        
         <property name="prop.deploy.version" value="${command.manager.version}"/>        
+     
+        <echo message="GOALS= ${goals}" />
         
-        <!--property name="maven.goal" value="deploy:deploy-file"/-->        
-        <echo message="DEPLOY:DEPLOY-FILE GOAL" />
-        <macro-install-repo maven.project.basedir="${maven.project.dir}"
-                      goal="deploy:deploy-file"
-                      resultproperty="maven.build.result"         
-                
-        />
-        <echo message="DEPLOY:INSTALL-FILE GOAL" />
-  
-        
-        <macro-install-repo maven.project.basedir="${maven.project.dir}"
-                      goal="initialize install:install-file"
-                      resultproperty="maven.build.result"         
-        
-        />
-        
-        
-    </target>
-
-    <!-- ==============  TARGET: -PRE-RUN ================= -->
-        
-    <target if="${do.build}"  name="-pre-run" depends="-macro-install-repo" >
-
-        <property name ="maven.home" location="${netbeans.home}/../java/maven" />
-        <property name="maven.project.dir" location="${basedir}"/>        
-  
-        <macro-install-repo 
-                      goal="package"
+        <macro-rebuild-all maven.project.basedir="${maven.project.dir}"
+                      goal="${goals}"
                       resultproperty="maven.build.result"         
         />
     </target>
     
+    <!-- ==============  TARGET: MAVEN-BUILD-GOALS  ================= -->
+
+    <target name="maven-build-goals" depends="-macro-build" >
+        <property name ="maven.home" location="${netbeans.home}/../java/maven" />
+        <property name="root.dir" location=".."/>
+   
+        <echo message="basedir = ${basedir}" />
+        <property name="maven.project.dir" location="${basedir}"/>        
+        <!--property name="maven.goal" value="deploy:deploy-file"/-->        
+        <echo message="GOALS: ${goals}" />
+        
+        <macro-build maven.project.basedir="${maven.project.dir}"
+                      goal="${goals}"
+                      resultproperty="maven.build.result"         
+        />
+        
+    </target>
+
     <!-- ============================================================  
                 TARGET: RUN-EMBEDDED-SERVER 
          ============================================================ -->          
-    <target name="run-embedded-server" if="netbeans.home" depends="-pre-run,install-repo-file,-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE.">
+    <!--target name="run-embedded-server" if="netbeans.home" depends="-pre-run,install-repo-file,-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE."-->
+    <target name="run-embedded-server" if="netbeans.home" depends="-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE.">
         
         <property name="main.class" value="${maven.main.class}"/>                
         <property name="compiled.classes" value="${basedir}/target/classes" />
@@ -176,12 +203,6 @@
                 TARGET: DEBUG-EMBEDDED-SERVER 
          ============================================================ -->              
     <target name="debug-embedded-server" if="netbeans.home" depends="-server-embedded-macrodef-debug" description="Debug Embedded Server project in IDE.">
-        <echo message="run.jvmargs ${run.jvmargs}" />
-        <echo message="run.jvmargs.ide ${run.jvmargs.ide}" />
-        <echo message="debug.classpath ${debug.classpath}" />
-        <echo message="classpath ${classpath}" />
-        <echo message="debug-args-line ${debug-args-line}" />
-        <echo message="netbeans.mainclass ${netbeans.mainclass}" />        
         <echo message="maven.main.class ${maven.main.class}" />                
         
         <property name="debug-args-line" value="-Xdebug"/>

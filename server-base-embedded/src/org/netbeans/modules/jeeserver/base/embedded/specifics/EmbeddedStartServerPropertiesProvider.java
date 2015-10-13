@@ -70,21 +70,15 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
     protected void setMavenProperies(Project serverProject, Properties properties, String target) {
         String cp = BaseUtil.getMavenClassPath(manager);
         
-        properties.remove("do.build");
-        properties.remove("do.deploy-file");        
-        
         FileObject fo = serverProject.getProjectDirectory().getFileObject("target");
         if (fo != null) {
             fo = fo.getFileObject("classes");
         }
 
-/*        if (fo != null) {
+        if (fo != null) {
             cp += ":" + fo.getPath();
         } 
-*/
-        if (fo == null) {
-            properties.setProperty("do.build", "yes");
-        }   
+
         
         FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
         

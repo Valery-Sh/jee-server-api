@@ -19,9 +19,10 @@
         </dependency>
         
         <dependency>
-            <groupId>org.eclipse.jetty</groupId>
+            <groupId>org.eclipse.jetty.aggregate</groupId>
             <artifactId>jetty-all</artifactId>
-            <version>9.3.2.v20150730</version>
+            <version>9.3.3.v20150827</version>
+            <type>jar</type>
         </dependency>
         
         <!--       cdi.mod   -->
@@ -35,12 +36,14 @@
             <groupId>org.eclipse.jetty.cdi</groupId>
             <artifactId>cdi-core</artifactId>
             <version>9.3.2.v20150730</version>
+            <scope>provided</scope>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty.cdi</groupId>
             <artifactId>cdi-servlet</artifactId>
             <version>9.3.2.v20150730</version>
+            <scope>provided</scope>
         </dependency>
         
     </dependencies>

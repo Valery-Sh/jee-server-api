@@ -17,6 +17,7 @@
 package org.netbeans.modules.jeeserver.base.deployment.actions;
 
 import java.awt.event.ActionEvent;
+import java.util.Properties;
 import javax.enterprise.deploy.spi.status.ProgressObject;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -47,7 +48,9 @@ import org.openide.util.RequestProcessor;
 @ActionReference(path = "Projects/Actions", position = 0)
 @NbBundle.Messages("CTL_StartServerAction=Start Server")
 public final class StartServerAction extends AbstractAction implements ContextAwareAction {
-
+    
+    public static final String ACTION_ENABLED_PROP = "set.disabled";
+    
     public StartServerAction() {
     }
 
@@ -79,15 +82,20 @@ public final class StartServerAction extends AbstractAction implements ContextAw
         return new ContextAction(context);
     }
 
+    public Action createContextAwareInstance(Lookup context, Properties actionProperties) {
+        return new ContextAction(context,actionProperties);
+    }
+    
     protected static final RequestProcessor RP = new RequestProcessor(BaseDeploymentManager.class);
 
     private static final class ContextAction extends AbstractAction {
 
         private final BaseDeploymentManager manager;
-
-        public ContextAction(Lookup context) {
+        private final Properties actionProperties;
+                
+        public ContextAction(Lookup context, Properties actionProperties) {
             manager = BaseUtil.managerOf(context);
-
+            this.actionProperties = actionProperties;
             boolean show = false;
             if (manager != null) {
                 show = !manager.isServerRunning();
@@ -95,11 +103,15 @@ public final class StartServerAction extends AbstractAction implements ContextAw
                 putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
 
             }
-            setEnabled(show);
+            setEnabled( isActionEnabled() && show);
             putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, manager == null);
             
             putValue(NAME, "&Start Server");
-
+            
+        }
+        
+        public ContextAction(Lookup context) {
+            this(context, null);
         }
 
         public @Override
@@ -110,5 +122,16 @@ public final class StartServerAction extends AbstractAction implements ContextAw
         public ProgressObject perform() {
             return manager.startServer();
         }
+        
+        protected boolean isActionEnabled() {
+            boolean b = false;
+            if ( actionProperties == null  ) {
+                b = true;
+            } else if ( actionProperties.getProperty(ACTION_ENABLED_PROP) == null) {
+                b = true;
+            }
+            return b;
+        }
+        
     }//class
 }//class

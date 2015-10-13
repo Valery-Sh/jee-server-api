@@ -24,7 +24,6 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseTargetModuleID;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.ServerProgress;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.actions.WebAppOpenInnerProjectAction;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
@@ -134,8 +133,7 @@ public abstract class AbstractProgressObject extends ServerProgress implements R
      * Set the value of the the deployment mode, 
      * in which the process is running.
      * 
-     * @param an object of type {@code Deployment.Mode}. May be one of
-     * {@code RUN, DEBUG, PROFILE}
+     * @param mode
      * 
      */
     public void setMode(Deployment.Mode mode) {
