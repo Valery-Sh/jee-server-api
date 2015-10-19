@@ -207,11 +207,17 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         return new JettyFindJspServlet((BaseDeploymentManager) dm);
     }
 
-    @Override
+/*    @Override
     public Image getProjectImage(Project serverProject) {
         return ImageUtilities.loadImage(IMAGE2);
     }
+*/    
+    @Override
+    public Image getServerImage(Project serverProject) {
+        return ImageUtilities.loadImage(IMAGE2);
+    }
 
+    
 /*    @Override
     public void projectCreated(FileObject projectDir, Map<String, Object> props) {
         String actualServerId = (String) props.get(SuiteConstants.SERVER_ACTUAL_ID_PROP);

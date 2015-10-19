@@ -2,7 +2,11 @@ package org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.io.IOException;
+import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
+import javax.lang.model.SourceVersion;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
@@ -10,27 +14,34 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectManager;
+import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
-import org.netbeans.modules.jeeserver.base.deployment.progress.AbstractProgressObject;
+import org.netbeans.modules.jeeserver.base.deployment.maven.MavenAuxConfig;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseActionProviderExecutor;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseAntTaskProgressObject;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import static org.netbeans.modules.jeeserver.base.deployment.maven.MavenAuxConfig.AUX_ATTR;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.CustomizerWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.AddExistingProjectWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceAntBuildExtender;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.InstanceWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.MainClassChooserPanelVisual;
-import org.netbeans.modules.jeeserver.base.embedded.project.wizard.MavenMainClassCustomizer;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceBuildExtender;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
-import org.netbeans.spi.project.ActionProvider;
+import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
+import org.netbeans.spi.project.AuxiliaryConfiguration;
+import org.netbeans.spi.project.ProjectConfiguration;
+import org.netbeans.spi.project.ProjectConfigurationProvider;
+import org.netbeans.spi.project.ui.CustomizerProvider;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
@@ -39,8 +50,10 @@ import org.openide.awt.DynamicMenuContent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ContextAwareAction;
+import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -54,12 +67,12 @@ public class ServerActions {
             FileObject fo = context.lookup(FileObject.class);
             Project serverProject = FileOwnerQuery.getOwner(fo);
             Properties props = null;
-            if ( ! BaseUtil.isAntProject(serverProject) && (needsBuildProject(serverProject) || needsBuildRepo(serverProject)) ) {
+            if (!BaseUtil.isAntProject(serverProject) && (needsBuildProject(serverProject) || needsBuildRepo(serverProject))) {
                 props = new Properties();
                 props.setProperty(StartServerAction.ACTION_ENABLED_PROP, "true");
             }
             if ("start".equals(type)) {
-                return new StartServerAction().createContextAwareInstance(context,props);
+                return new StartServerAction().createContextAwareInstance(context, props);
             } else {
                 return new StopServerAction().createContextAwareInstance(context);
             }
@@ -106,111 +119,245 @@ public class ServerActions {
 
         @Override
         public Action createContextAwareInstance(Lookup context) {
-            return new BuildProjectActions.ContextAction(context);
+            return getContextAwareInstance("build", context);
         }
 
-        public static Action getContextAwareInstance(String type,Lookup context) {
+        public static Action getContextAwareInstance(String type, Lookup context) {
             FileObject fo = context.lookup(FileObject.class);
-            if ( BaseUtil.isAntProject(FileOwnerQuery.getOwner(fo) ) ) {
+            if (BaseUtil.isAntProject(FileOwnerQuery.getOwner(fo))) {
                 return getAntContextAwareInstance(type, context);
+            } else {
+                return getMavenContextAwareInstance(type, context);
             }
-
-            Action result = null;
-            if ( null != type) switch (type) {
-                case "rebuild-all":
-                    result =  new BuildProjectActions.ContextAction(context);
-                    break;
-                case "build":
-                    result =  new BuildProjectActions.BuildContextAction(context);
-                    break;
-                case "clean":
-                    result =  new BuildProjectActions.CleanContextAction(context);
-                    break;
-                case "rebuild":
-                    result =  new BuildProjectActions.CleanAndBuildContextAction(context);
-                    break;
-            }
-            return result;
         }
 
-        public static Action getAntContextAwareInstance(String command,Lookup context) {
-            if ( AntContextAction.getName(command) == null ) {
+        public static Action getAntContextAwareInstance(String command, Lookup context) {
+            if (!AntContextAction.isCommandSupported(command)) {
                 return null;
             }
             return new AntContextAction(command, context);
         }
-        
-        
-        
-        protected static final class BuildContextAction extends ContextAction { 
 
-            public BuildContextAction(Lookup context) {
-                super(context);
+        public static Action getMavenContextAwareInstance(String command, Lookup context) {
+            if (!MavenContextAction.isCommandSupported(command)) {
+                return null;
             }
-            @Override
-            protected String getName() {
-                return "Build";
-            }
-            protected String getAntTarget() {
-                return "maven-build-goals";
-            }         
-            
-            @Override
-            protected String getMavenGoals() {
-                return "package";
-            }         
-        }        
-        
-        protected static final class CleanContextAction extends ContextAction { 
+            return new MavenContextAction(command, context);
+        }
 
-            public CleanContextAction(Lookup context) {
-                super(context);
-            }
-            @Override
-            protected String getName() {
-                return "Clean";
-            }
-            protected String getAntTarget() {
-                return "maven-build-goals";
-            }         
-            
-            @Override
-            protected String getMavenGoals() {
-                return "clean";
-            }         
-        }        
+        /*        protected static final class BuildContextAction extends ContextAction {
 
-        protected static final class CleanAndBuildContextAction extends ContextAction { 
+         public BuildContextAction(Lookup context) {
+         super(context);
+         }
 
-            public CleanAndBuildContextAction(Lookup context) {
-                super(context);
-            }
+         @Override
+         protected String getName() {
+         return "Build";
+         }
 
-            @Override
-            protected String getName() {
-                return "Clean and Build";
-            }
-            protected String getAntTarget() {
-                return "maven-build-goals";
-            }         
-            
-            @Override
-            protected String getMavenGoals() {
-                return "clean package";
-            }         
-            
-        }        
-        
-        protected static class ContextAction extends AbstractAction { //implements ProgressListener {
+         protected String getAntTarget() {
+         return "maven-build-goals";
+         }
 
+         @Override
+         protected String getMavenGoals() {
+         return "package";
+         }
+         }
+
+         protected static final class CleanContextAction extends ContextAction {
+
+         public CleanContextAction(Lookup context) {
+         super(context);
+         }
+
+         @Override
+         protected String getName() {
+         return "Clean";
+         }
+
+         protected String getAntTarget() {
+         return "maven-build-goals";
+         }
+
+         @Override
+         protected String getMavenGoals() {
+         return "clean";
+         }
+         }
+
+         protected static final class CleanAndBuildContextAction extends ContextAction {
+
+         public CleanAndBuildContextAction(Lookup context) {
+         super(context);
+         }
+
+         @Override
+         protected String getName() {
+         return "Clean and Build";
+         }
+
+         protected String getAntTarget() {
+         return "maven-build-goals";
+         }
+
+         @Override
+         protected String getMavenGoals() {
+         return "clean package";
+         }
+
+         }
+
+         protected static class ContextAction extends AbstractAction { //implements ProgressListener {
+
+         final private Lookup context;
+         final Project serverProject;
+
+         public ContextAction(Lookup context) {
+         this.context = context;
+         FileObject fo = context.lookup(FileObject.class);
+         serverProject = FileOwnerQuery.getOwner(fo);
+
+         if (BaseUtil.isAntProject(serverProject)) {
+         setEnabled(false);
+         } else {
+         setEnabled(true);
+         }
+
+         putValue(NAME, getName());
+         }
+
+         protected String getName() {
+         return "Rebuild All ( project and it's repo)";
+         }
+
+         protected String getAntTarget() {
+         return "maven-rebuild-all";
+         }
+
+         protected String getMavenGoals() {
+         return "clean deploy:deploy-file install:install-file package";
+         }
+
+         protected void setCommonProperties(Properties props) {
+         props.setProperty(BaseAntTaskProgressObject.ANT_TARGET, getAntTarget());
+         props.setProperty(BaseAntTaskProgressObject.WAIT_TIMEOUT, "0");
+         props.setProperty("goals", getMavenGoals());
+         }
+
+         @Override
+         public void actionPerformed(ActionEvent e) {
+
+         Properties props = setStartProperties(serverProject);
+         setCommonProperties(props);
+
+         new BaseAntTaskProgressObject(null, props).execute();
+
+         }
+
+         public Properties setStartProperties(Project serverProject) {
+
+         if (!BaseUtil.isAntProject(serverProject)) {
+         return setMavenProperies(serverProject);
+         } else {
+         return null;
+         }
+
+         }
+
+         protected Properties setMavenProperies(Project serverProject) {
+         //String cp = BaseUtil.getMavenClassPath(manager);
+         Properties startProperties = new Properties();
+
+         FileObject fo = serverProject.getProjectDirectory().getFileObject("nbdeployment/build.xml");
+         startProperties.setProperty(BaseAntTaskProgressObject.BUILD_XML, fo.getPath());
+
+         FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
+
+         Properties pomProperties = BaseUtil.getPomProperties(cmJar);
+         if (pomProperties != null) {
+
+         String str = pomProperties.getProperty("groupId");
+         str = str.replace(".", "/");
+         str += "/"
+         + pomProperties.getProperty("artifactId")
+         + "/"
+         + pomProperties.getProperty("version")
+         + "/"
+         + cmJar.getNameExt();
+
+         if (cmJar.getParent().getFileObject(str) == null) {
+         startProperties.setProperty("do.deploy-file", "yes");
+         }
+
+         startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_GROUPID,
+         pomProperties.getProperty("groupId"));
+
+         startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_ARTIFACTID,
+         pomProperties.getProperty("artifactId"));
+         startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_VERSION,
+         pomProperties.getProperty("version"));
+         startProperties.setProperty(BaseConstants.COMMAND_MANAGER_JAR_NAME_PROP,
+         pomProperties.getProperty("artifactId") + "-"
+         + pomProperties.getProperty("version")
+         + ".jar"
+         );
+         }
+         //properties.setProperty("target.project.classes",
+         //            "target/classes");
+
+         startProperties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
+         SuiteConstants.MAVEN_REPO_LIB_PATH);
+
+         //                startProperties.setProperty(SuiteConstants.MAVEN_RUN_CLASSPATH_PROP, cp);
+         //
+         // We set MAVEN_DEBUG_CLASSPATH_PROP. In future this approach may change
+         //
+         //                properties.setProperty(SuiteConstants.MAVEN_DEBUG_CLASSPATH_PROP, cp);
+         startProperties.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, serverProject.getProjectDirectory().getPath());
+         String mainClass = getMavenMainClass(serverProject);
+         if (mainClass != null) {
+         startProperties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, mainClass);
+         }
+         return startProperties;
+         }
+
+         protected String getMavenMainClass(Project project) {
+         BaseDeploymentManager dm = SuiteManager.getManager(project);
+         String mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
+         if (mainClass != null) {
+         return mainClass;
+         }
+
+         String[] classes = BaseUtil.getMavenMainClasses(project);
+         if (classes.length == 0) {
+         return null;
+         }
+         if (classes.length == 0 || classes.length > 1) {
+         MavenMainClassCustomizer.customize(project);
+         mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
+         } else {
+         mainClass = classes[0];
+         }
+         return mainClass;
+         }
+
+         }//class
+         */
+        protected static final class MavenContextAction extends AbstractAction { //implements ProgressListener {
+
+            final String command;
             final private Lookup context;
             final Project serverProject;
+            final Properties startProperties = new Properties();
 
-            public ContextAction(Lookup context) {
+            public MavenContextAction(String command, Lookup context) {
                 this.context = context;
+                this.command = command;
                 FileObject fo = context.lookup(FileObject.class);
                 serverProject = FileOwnerQuery.getOwner(fo);
-        
+
                 if (BaseUtil.isAntProject(serverProject)) {
                     setEnabled(false);
                 } else {
@@ -218,47 +365,230 @@ public class ServerActions {
                 }
 
                 putValue(NAME, getName());
+
             }
-            protected String getName() {
-                return "Rebuild All ( project and it's repo)";
+
+            public static boolean isCommandSupported(String command) {
+                boolean result = true;
+                switch (command) {
+                    case "developer":
+                    case "rebuild-all":
+                    case "clean":
+                    case "build":
+                    case "rebuild":
+                        break;
+                    default:
+                        result = false;
+
+                }
+                return result;
             }
-            protected String getAntTarget() {
-                return "maven-rebuild-all";
-            }         
-            protected String getMavenGoals() {
-                return "clean deploy:deploy-file install:install-file package";
-            }         
-            protected void setCommonProperties(Properties props) {
-                props.setProperty(BaseAntTaskProgressObject.ANT_TARGET, getAntTarget());
-                props.setProperty(BaseAntTaskProgressObject.WAIT_TIMEOUT, "0");
-                props.setProperty("goals", getMavenGoals());
+
+            private String getName() {
+                String name = null;
+                switch (command) {
+                    case "developer":
+                        name = "DEVELOPER_ACTION";
+                        break;
+
+                    case "rebuild-all":
+                        name = "Rebuild All ( project and it's repo)";
+                        break;
+
+                    case "clean":
+                        name = "Clean";
+                        break;
+                    case "build":
+                        name = "Build";
+                        break;
+                    case "rebuild":
+                        name = "Clean and Build";
+                        break;
+                }
+                return name;
             }
-            
+
+            protected boolean isDummyAction() {
+                return command.equals("developer");
+            }
+
+            protected void setCommonProperties() {
+                if (isDummyAction()) {
+                    return;
+                }
+                String target = "maven-build-goals";
+                String goals = "unknown";
+
+                switch (command) {
+                    case "rebuild-all":
+                        target = "maven-rebuild-all";
+                        goals = "clean deploy:deploy-file install:install-file package";
+                        break;
+
+                    case "clean":
+                        goals = "clean";
+                        break;
+                    case "build":
+                        goals = "package";
+                        break;
+                    case "rebuild":
+                        goals = "clean package";
+                        break;
+                }
+
+                startProperties.setProperty(BaseAntTaskProgressObject.ANT_TARGET, target);
+                startProperties.setProperty(BaseAntTaskProgressObject.WAIT_TIMEOUT, "0");
+                startProperties.setProperty("goals", goals);
+                setStartProperies();
+            }
+
+            protected void xml(Project p) {
+
+
+                /*                FileObject buildimplFo = p.getProjectDirectory().getFileObject(BUILD_IMPL_XML);
+
+                 try (InputStream is = buildimplFo.getInputStream();) {
+                 //---------------------------------------------------------------------
+                 // Pay attension tht third parameter. It's true to correctly 
+                 // work with namespaces. If false then all namespaces will be lost
+                 // For example:
+                 // <j2seproject3:javac gensrcdir="${build.generated.sources.dir}"/>
+                 // will be modified as follows:
+                 // <javac gensrcdir="${build.generated.sources.dir}"/>
+                 //---------------------------------------------------------------------
+                 Document doc = XMLUtil.parse(new InputSource(is), false, true, null, null);
+                 NodeList nl = doc.getDocumentElement().getElementsByTagName("import");
+                 if (nl != null) {
+                 for (int i = 0; i < nl.getLength(); i++) {
+                 Element el = (Element) nl.item(i);
+                 String fileAttr = el.getAttribute("file");
+                 if (fileAttr == null) {
+                 continue;
+                 }
+                 if (SERVER_BUILDXML_NAME.equals(el.getAttributeNode("file").getValue())) {
+                 valid = true;
+                 break;
+                 }
+                 }
+                 }
+
+                 } catch (IOException | DOMException | SAXException ex) {
+                 LOG.log(Level.INFO, ex.getMessage());
+                 }
+                 return valid;
+                 */
+            }
+
+            public void attr(Project p) {
+                
+                Project suite = SuiteManager.getServerSuiteProject(SuiteManager.getManager(p).getUri());
+                SuiteNotifier notif = suite.getLookup().lookup(SuiteNotifier.class);
+                DistributedWebAppManager man = DistributedWebAppManager.getInstance(p);
+                notif.childrenChanged(man, null);
+                
+/*                FileObject pfo = p.getProjectDirectory();
+
+                try {
+                    Enumeration<String> en = p.getProjectDirectory().getAttributes();
+                    while ( en.hasMoreElements()) {
+                        String s = en.nextElement();
+                        BaseUtil.out("ServerActions.attr attributeName=" + s);                        
+                    }
+                } catch (Exception ex) {
+                    Exceptions.printStackTrace(ex);
+                    BaseUtil.out("ServerActions.attr EXCEPTION " + ex.getMessage());
+                }
+                Enumeration<String> en = pfo.getAttributes();
+                while (en.hasMoreElements()) {
+                    String nm = en.nextElement();
+                    BaseUtil.out("attrname = " + nm + "; attr value)=" + pfo.getAttribute(nm));
+                }
+
+                MavenAuxConfig auxConfig = MavenAuxConfig.getInstance(p);
+                BaseUtil.out("auxConfig.getAuxAttributeValue()=" + auxConfig.getAuxAttributeValue());
+                BaseUtil.out("auxConfig.getActivatedProfile()=" + auxConfig.getActivatedProfile());
+                BaseUtil.out("auxConfig.getNbactionCurrentPath()=" + auxConfig.getNbactionsActivatedPath());
+
+                List<String> paths = auxConfig.getNbactionsPaths();
+                paths.forEach(path -> {
+                    BaseUtil.out("auxConfig.path=" + path);
+                });
+                List<String> args = auxConfig.getAllExecArgs();
+                args.forEach(arg -> {
+                    BaseUtil.out("SeverActions: arg=" + arg);
+                });
+                auxConfig.getJvmArgs().forEach(arg -> {
+                    BaseUtil.out("SeverActions: jvm arg=" + arg);
+                });
+                auxConfig.getProgramArgs().forEach(arg -> {
+                    BaseUtil.out("SeverActions: -D  arg =" + arg);
+                });
+                BaseUtil.out("MAIN CLASS " + auxConfig.getMainClass());
+
+                BaseUtil.out("SourceVersion.isName(a.b.c.MyClass).isName=" + SourceVersion.isName("a.b.c.MyClass"));
+                BaseUtil.out("SourceVersion.isName(a).isName=" + SourceVersion.isName("a"));
+                BaseUtil.out("SourceVersion.isName(a-b).isName=" + SourceVersion.isName("a-b"));
+                BaseUtil.out("SourceVersion.isName(${a}).isName=" + SourceVersion.isName("${a}"));
+                BaseUtil.out("SourceVersion.isName(A$B).isName=" + SourceVersion.isName("A$B"));
+                SourceVersion.isName("a.b.c.MyClass");
+                //JavaPlatform.getDefault().
+                //AuxiliaryConfiguration ac = (AuxiliaryConfiguration) pfo.getAttribute("AuxilaryConfiguration");
+                AuxiliaryConfiguration ac = null;
+                if (ac == null) {
+                    return;
+                }
+                BaseUtil.out("AuxiliaryConfiguration toString= " + toString());
+
+                Element el = ac.getConfigurationFragment(
+                        "config-data", "http://www.netbeans.org/ns/maven-config-data/1", false);
+
+                BaseUtil.out("attr NOT Shared Element = " + el);
+                el = ac.getConfigurationFragment(
+                        "config-data", "http://www.netbeans.org/ns/maven-config-data/1", true);
+
+                BaseUtil.out("attr Shared Element = " + el);
+
+                el = ac.getConfigurationFragment(
+                        "config-data", "http://www.netbeans.org/ns/maven-config-data/1", false);
+                BaseUtil.out("1) NOT Shared Element = " + el);
+*/                        
+            }
+                        
             @Override
             public void actionPerformed(ActionEvent e) {
-                
-                Properties props = setStartProperties(serverProject);
-                setCommonProperties(props);                
-                
-                new BaseAntTaskProgressObject(null, props).execute();
+                if (isDummyAction()) {
+                    FileObject fo = serverProject.getProjectDirectory();
+                    Project p = FileOwnerQuery.getOwner(fo);
+                    ProjectUtils.getAuxiliaryConfiguration(p);
+                    try {
+                        p = ProjectManager.getDefault().findProject(fo);
+                        BaseUtil.out("DUMMY ACION isModified()=" + ProjectManager.getDefault().isModified(p));
+                        BaseUtil.out("DUMMY ACION = isValid()" + ProjectManager.getDefault().isValid(p));
+                        ProjectManager.getDefault().saveProject(p);
+                        attr(p);
+                    } catch (IOException ex) {
+                        BaseUtil.out("DUMMY ACION EXCEPTION ex=" + ex.getMessage());
+                    } catch (IllegalArgumentException ex) {
+                        BaseUtil.out("1 DUMMY ACION EXCEPTION ex=" + ex.getMessage());
+                        Exceptions.printStackTrace(ex);
+                    }
 
-            }
+                    BaseUtil.out("DUMMY ACION project=" + p);
 
-            public Properties setStartProperties(Project serverProject) {
-
-                if (!BaseUtil.isAntProject(serverProject)) {
-                    return setMavenProperies(serverProject);
-                } else {
-                    return null;
+                    return;
                 }
-                
+                setCommonProperties();
+                setStartProperies();
+
+                new BaseAntTaskProgressObject(null, startProperties).execute();
+
             }
 
-            protected Properties setMavenProperies(Project serverProject) {
-                //String cp = BaseUtil.getMavenClassPath(manager);
-                Properties startProperties = new Properties();
-                
-                FileObject fo = serverProject.getProjectDirectory().getFileObject("nbdeployment/build.xml");
+            protected void setStartProperies() {
+                if (isDummyAction()) {
+                    return;
+                }
+                FileObject fo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER + "/build.xml");
                 startProperties.setProperty(BaseAntTaskProgressObject.BUILD_XML, fo.getPath());
 
                 FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
@@ -292,54 +622,57 @@ public class ServerActions {
                             + ".jar"
                     );
                 }
-                //properties.setProperty("target.project.classes",
-                //            "target/classes");
 
                 startProperties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
                         SuiteConstants.MAVEN_REPO_LIB_PATH);
 
-//                startProperties.setProperty(SuiteConstants.MAVEN_RUN_CLASSPATH_PROP, cp);
                 //
                 // We set MAVEN_DEBUG_CLASSPATH_PROP. In future this approach may change
                 //
 //                properties.setProperty(SuiteConstants.MAVEN_DEBUG_CLASSPATH_PROP, cp);
                 startProperties.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, serverProject.getProjectDirectory().getPath());
-                String mainClass = getMainClass(serverProject);
-                if (mainClass != null) {
-                    startProperties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, mainClass);
-                }
-                return startProperties;
+                /*                String mainClass = BaseUtil.getMavenMainClass(serverProject);
+                 if ( mainClass == null ) {
+                 MavenAuxConfig_OLD mac = SuiteUtil.customizedMavenProject(serverProject);
+                 mainClass = mac.getMainClass();
+                 }
+                 BaseUtil.out("ServerActions mainClass=" + mainClass);
+                 if (mainClass != null) {
+                 startProperties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, mainClass);
+                 }
+                 */
             }
 
-            protected String getMainClass(Project project) {
-                BaseDeploymentManager dm = SuiteManager.getManager(project);
-                String mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
-                if (mainClass != null) {
-                    return mainClass;
-                }
+            /*            protected String getMavenMainClass() {
+             BaseDeploymentManager dm = SuiteManager.getManager(serverProject);
+             String mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
+             if (mainClass != null) {
+             return mainClass;
+             }
 
-                String[] classes = BaseUtil.getMavenMainClasses(project);
-                if (classes.length == 0) {
-                    return null;
-                }
-                if (classes.length == 0 || classes.length > 1) {
-                    MavenMainClassCustomizer.customize(project);
-                    mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
-                } else {
-                    mainClass = classes[0];
-                }
-                return mainClass;
-            }
-
+             String[] classes = BaseUtil.getMavenMainClasses(serverProject);
+             if (classes.length == 0) {
+             return null;
+             }
+             if (classes.length == 0 || classes.length > 1) {
+             //                BaseDeploymentManager dm = SuiteManager.getManager(serverProject);
+                    
+             MavenMainClassCustomizer.customize(serverProject);
+             mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
+             } else {
+             mainClass = classes[0];
+             }
+             return mainClass;
+             }
+             */
         }//class
-        
-        
+
         protected static final class AntContextAction extends AbstractAction { //implements ProgressListener {
 
             final private Lookup context;
             final Project serverProject;
             final String command;
-            
+
             public AntContextAction(String command, Lookup context) {
                 this.context = context;
                 FileObject fo = context.lookup(FileObject.class);
@@ -351,31 +684,51 @@ public class ServerActions {
                     setEnabled(false);
                 }
 
-                putValue(NAME,getName(command));
+                putValue(NAME, getName());
             }
+
             @Override
             public void actionPerformed(ActionEvent e) {
-                
+
                 new BaseActionProviderExecutor().execute(command, serverProject);
             }
-            public static String getName(String command) {
-                String result = null;
-                if ( null != command) switch (command) {
+
+            public static boolean isCommandSupported(String command) {
+                if (null == command) {
+                    return false;
+                }
+                boolean result = true;
+
+                switch (command) {
                     case "clean":
-                        result = "Clean";
-                        break;
                     case "build":
-                        result = "Build";
-                        break;
                     case "rebuild":
-                        result = "Clean and Build";
-                        break;
+                    default:
+                        result = false;
+                }
+                return result;
+            }
+
+            private String getName() {
+                String result = null;
+                if (null != command) {
+                    switch (command) {
+                        case "clean":
+                            result = "Clean";
+                            break;
+                        case "build":
+                            result = "Build";
+                            break;
+                        case "rebuild":
+                            result = "Clean and Build";
+                            break;
+                    }
                 }
                 return result;
             }
 
         }//class
-        
+
     }//class
 
     public static class NewMavenProjectAction extends AbstractAction implements ContextAwareAction {
@@ -626,14 +979,14 @@ public class ServerActions {
                 return "The selected project is an Html5 Project ";
             }
             /*
-            if (fo != null && SuiteUtil.projectTypeByProjectXml(fo).equals(SuiteConstants.WEB_PROJECTTYPE)) {
-                return "The selected project is an Web Application";
-            }
+             if (fo != null && SuiteUtil.projectTypeByProjectXml(fo).equals(SuiteConstants.WEB_PROJECTTYPE)) {
+             return "The selected project is an Web Application";
+             }
             
-            if (BaseUtil.isMavenWebProject(proj)) {
-                return "The selected project is a Maven  Web Application";
-            }
-            */
+             if (BaseUtil.isMavenWebProject(proj)) {
+             return "The selected project is a Maven  Web Application";
+             }
+             */
             if (SuiteManager.getManager(proj) != null) {
                 return "The selected project allready registered as a Server Instance";
             }
@@ -692,7 +1045,7 @@ public class ServerActions {
 
                 putValue(NAME, "&Assign Main Class");
                 putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, BaseUtil.isAntProject(instanceProject));
-                
+
                 task = new RequestProcessor("AddBody").create(new Runnable() { // NOI18N
                     @Override
                     public void run() {
@@ -701,7 +1054,7 @@ public class ServerActions {
 
                         // MainClassChooserPanelVisual panel = new MainClassChooserPanelVisual(sb,cb);
                         MainClassChooserPanelVisual panel = new MainClassChooserPanelVisual(sb, cb);
-
+                        panel.setServerProject(instanceProject);
                         String[] classes = BaseUtil.getMavenMainClasses(instanceProject);
 
                         if (classes.length == 0) {

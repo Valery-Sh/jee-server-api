@@ -110,7 +110,7 @@ public class BaseRunProgressObject extends AbstractProgressObject {
 
         ExecutorTask task = null;
 
-        String serverDir = getManager().getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
+        String serverDir = getManager().getServerProjectDirectory().getPath();
         File f = new File(serverDir);
         Project project = getManager().getServerProject();
 
@@ -125,7 +125,8 @@ public class BaseRunProgressObject extends AbstractProgressObject {
         if (getMode() == Deployment.Mode.RUN) {
             if (propProvider != null) {
                 props = propProvider.getStartProperties(project);
-                targets[0] = propProvider.getStartProperties(project).getProperty("target");
+                targets[0] = props.getProperty("target");
+                //targets[0] = propProvider.getStartProperties(project).getProperty("target");
             }
 
         } else if (getMode() == Deployment.Mode.DEBUG) {

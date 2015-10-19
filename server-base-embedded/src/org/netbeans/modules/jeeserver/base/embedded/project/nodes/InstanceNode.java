@@ -6,12 +6,13 @@
 package org.netbeans.modules.jeeserver.base.embedded.project.nodes;
 
 import java.awt.Image;
-import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.Action;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
@@ -20,13 +21,17 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants.*;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions.BuildProjectActions;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions.InstancePropertiesAction;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions.RemoveInstanceAction;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions.StartStopAction;
+import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.FilterNode;
 import org.openide.nodes.Node;
 import org.openide.util.ImageUtilities;
@@ -39,6 +44,8 @@ import org.openide.util.lookup.InstanceContent;
  */
 public class InstanceNode extends FilterNode implements ChildrenNotifier {
 
+    private static final Logger LOG = Logger.getLogger(InstanceNode.class.getName());
+
     private final InstanceContent lookupContents;
     private InstanceNodeChildrenKeys childKeys;
     private final String key;
@@ -49,7 +56,7 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
     }
 
     public InstanceNode(Node original, String key, InstanceContent content, InstanceNodeChildrenKeys childKeys) {
-        super(original, new InstanceNodeChildrenKeys(key), new AbstractLookup(content));
+        super(original, childKeys, new AbstractLookup(content));
         this.key = key;
         lookupContents = content;
         lookupContents.add(original.getLookup().lookup(FileObject.class));
@@ -126,8 +133,10 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
                     ServerActions.DefineMainClassAction.getContextAwareInstance(getLookup()),
                     null,
                     InstancePropertiesAction
-                    .getContextAwareInstance(getLookup())
-                };
+                    .getContextAwareInstance(getLookup()),
+                    null,
+                    BuildProjectActions.getContextAwareInstance("developer", getLookup()),
+                    null,};
         List<Action> alist = Arrays.asList(actions);
         List<Action> list = new ArrayList<>(alist);
         if (list.get(0) == null) {
@@ -152,15 +161,13 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
     private static final String RUNNING_IMAGE = "org/netbeans/modules/jeeserver/base/embedded/resources/running.png";
 
     @Override
-    public Image
-            getIcon(int type) {
+    public Image getIcon(int type) {
 
         ServerInstanceProperties sp = getLookup().lookup(ServerInstanceProperties.class
         );
-        Image image = sp
-                .getManager()
+        Image image = sp.getManager()
                 .getSpecifics()
-                .getProjectImage(null);
+                .getServerImage(null);
 
         if (isServerRunning()) {
             image = ImageUtilities.mergeImages(image, ImageUtilities.loadImage(RUNNING_IMAGE), 16, 8);
@@ -179,11 +186,13 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
         return serverRunning;
     }
 
+    @Override
     public void iconChange(String uri, boolean newValue) {
         serverRunning = newValue;
         fireIconChange();
     }
 
+    @Override
     public void displayNameChange(String uri, String newName) {
         String newValue = newName;
         String oldValue = displayName;
@@ -191,25 +200,25 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
         fireDisplayNameChange(oldValue, newValue);
     }
 
-    /*    @Override
-     public void propertyChange(PropertyChangeEvent evt) {
-     if ("server-running".equals(evt.getPropertyName())) {
-     serverRunning = (Boolean) evt.getNewValue();
-     fireIconChange();
-     } else if (BaseConstants.DISPLAY_NAME_PROP.equals(evt.getPropertyName())) {
-     String newValue = (String) evt.getNewValue();
-     String oldValue = displayName;
-     displayName = newValue;
-     fireDisplayNameChange(oldValue, newValue);
-     } else if (childKeys != null) {
-     childKeys.propertyChange(evt);
-     }
-     }
-     */
     @Override
     public void childrenChanged() {
         childKeys.addNotify();
 
+    }
+
+    @Override
+    public void childrenChanged(Object source, Object... params) {
+        if (childKeys == null) {
+            return;
+        }
+
+        if (source instanceof DistributedWebAppManager) {
+            BaseUtil.out("InstanceNode childrenChanged");            
+            DistributedWebAppRootNode  distNode = childKeys.getDistributedWebAppRootNode(); 
+            if ( distNode != null ) {
+                distNode.childrenChanged(source, params);
+            }
+        }
     }
 
     /**
@@ -243,15 +252,33 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
         @Override
         protected Node[] createNodes(String key) {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(key);
-
-            String projDir = ip.getProperty(SERVER_LOCATION_PROP);
+            Project serverSuite = SuiteManager.getServerSuiteProject(uri);
+            String projDir = BaseUtil.getServerLocation(ip);
             Project instProj = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(projDir)));
             Node instProjView = InstanceChildNode.InstanceProjectLogicalView.create(instProj);
-            return new Node[]{instProjView};
+            Node distNode = null;
+            try {
+                distNode = new DistributedWebAppRootNode(serverSuite, instProj);
+            } catch (DataObjectNotFoundException ex) {
+                LOG.log(Level.INFO, ex.getMessage());
+
+            }
+//            return new Node[]{distNode};
+            return new Node[]{distNode, instProjView};
 
             //return new Node[]{};
         }
-
+        public DistributedWebAppRootNode getDistributedWebAppRootNode() {
+            Node[] nodes = getNodes();
+            if ( nodes != null && nodes.length > 0 ) {
+                for ( Node node : nodes ) {
+                    if ( node instanceof DistributedWebAppRootNode ) {
+                        return (DistributedWebAppRootNode) node;
+                    }
+                }
+            }
+            return null;
+        }
         /**
          * Called when children of the {@code Web Applications} are first asked
          * for nodes. For each child node of the folder named
@@ -280,9 +307,6 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
 
         @Override
         protected void destroyNodes(Node[] destroyed) {
-        }
-
-        public void propertyChange(PropertyChangeEvent evt) {
         }
 
     }//class

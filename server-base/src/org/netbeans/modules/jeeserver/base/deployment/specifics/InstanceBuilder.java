@@ -193,7 +193,11 @@ public abstract class InstanceBuilder {
         
         ip.put(BaseConstants.URL_PROP, url);
 //        ip.put(BaseConstants.HOME_DIR_PROP, jettyHome);
-        ip.put(BaseConstants.SERVER_LOCATION_PROP, projectDir.getPath());
+        //
+        // Use BaseUtil to have all changinf of the llocation property in a singlePlace
+        //
+        BaseUtil.setServerLocation(ip, projectDir.getPath());
+//        ip.put(BaseConstants.SERVER_LOCATION_PROP, projectDir.getPath());
         
 //        ip.put(BaseConstants.SERVER_VERSION_PROP, jettyVersion);
 //        modifyPropertymap(ip);

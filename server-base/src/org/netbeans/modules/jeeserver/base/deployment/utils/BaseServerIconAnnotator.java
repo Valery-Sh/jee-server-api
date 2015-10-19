@@ -55,19 +55,12 @@ public class BaseServerIconAnnotator implements ProjectIconAnnotator {
     @Override
     public Image annotateIcon(Project p, Image orig, boolean openedNode) {
         if ("AServerSuite01".equals(p.getProjectDirectory().getNameExt())) {
-//            BaseUtils.out("!!!!!!!!!!! AServerSuite01");
         }
-        //     Lookup lk = p.getLookup().lookup(InstanceContexts.class);
         BaseDeploymentManager dm = BaseUtil.managerOf(p);
         if (dm == null) {
             return orig;
         }
-        /*if (ServerSuiteManager.createServerLookup(dm.getUri()) == null) {
-            // it's a global context and does it's work earlier 
-            return orig;
-        }*/
-        //ServerInstanceProperties sp = dm.getServerLookup().lookup(ServerInstanceProperties.class);
-        Image projImage = dm.getSpecifics().getProjectImage(null);
+        Image projImage = dm.getSpecifics().getProjectImage(p);
 
         if (projImage == null) {
             return orig;
@@ -76,12 +69,10 @@ public class BaseServerIconAnnotator implements ProjectIconAnnotator {
         /**
          * We don't ping a server as we can by calling dm.getServerRunning
          */
-
         if (dm.isActuallyRunning()) {
             runImage = ImageUtilities.mergeImages(projImage, ImageUtilities.loadImage(RUNNING_IMAGE), 16, 8);
         }
         long t1 = System.currentTimeMillis();
-//        BaseUtils.out("TIME 1 = " + t1);
         RP.post(
                 new Runnable() {
 

@@ -50,6 +50,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.spi.DeploymentManager2;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.LogicalViewNotifier;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.web.api.webmodule.WebModule;
 import org.openide.execution.ExecutorTask;
 import org.openide.filesystems.FileObject;
@@ -211,7 +212,7 @@ public class BaseDeploymentManager implements DeploymentManager2 {
     
     public FileObject getServerProjectDirectory() {
 //        return serverProjectDirectory;
-        String s = getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
+        String s = BaseUtil.getServerLocation(getInstanceProperties());
         return FileUtil.toFileObject(new File(s));
         
     }

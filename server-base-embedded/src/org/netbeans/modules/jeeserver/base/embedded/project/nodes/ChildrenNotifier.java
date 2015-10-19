@@ -12,6 +12,9 @@ public interface ChildrenNotifier extends LogicalViewNotifier{
      * of the {@literal FilterNode.Children.Keys } instance.
      */
     void childrenChanged();
+
+    void childrenChanged(Object source, Object... params);
+    
     @Override
     void iconChange(String uri,boolean newValue);
     @Override

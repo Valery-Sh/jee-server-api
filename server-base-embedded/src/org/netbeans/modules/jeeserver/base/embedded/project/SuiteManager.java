@@ -15,12 +15,11 @@ import org.netbeans.modules.j2ee.deployment.devmodules.api.Deployment;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
-import org.netbeans.modules.jeeserver.base.embedded.project.nodes.ChildrenNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Lookup;
 
 /**
  *
@@ -62,7 +61,7 @@ public class SuiteManager {
         for (String uri : d.getServerInstanceIDs()) {
             InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
 
-            String foundSuiteLocation = ip.getProperty(SuiteConstants.SUITE_PROJECT_LOCATION);
+            String foundSuiteLocation = SuiteUtil.getSuiteProjectLocation(ip);
             if (foundSuiteLocation == null || !new File(foundSuiteLocation).exists()) {
                 // May be not a native plugin server
                 continue;
@@ -95,7 +94,7 @@ public class SuiteManager {
         InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
         String suiteLocation;
         if (ip != null) {
-            suiteLocation = ip.getProperty(SuiteConstants.SUITE_PROJECT_LOCATION);
+            suiteLocation = SuiteUtil.getSuiteProjectLocation(ip);
         } else {
             // extract from url
             String s = SuiteConstants.SUITE_URL_ID; //":server:suite:project:";
@@ -110,6 +109,7 @@ public class SuiteManager {
         return FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(suiteLocation)));
 
     }
+
     
     public static void removeInstance(String uri) {
 

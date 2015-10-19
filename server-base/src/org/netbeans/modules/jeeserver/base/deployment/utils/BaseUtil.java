@@ -16,6 +16,7 @@
  */
 package org.netbeans.modules.jeeserver.base.deployment.utils;
 
+import org.netbeans.modules.jeeserver.base.deployment.maven.MavenAuxConfig;
 import java.awt.Image;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
@@ -33,8 +34,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.StringTokenizer;
 import java.util.logging.Level;
@@ -43,6 +46,7 @@ import javax.enterprise.deploy.shared.factories.DeploymentFactoryManager;
 import javax.enterprise.deploy.spi.exceptions.DeploymentManagerCreationException;
 import javax.enterprise.deploy.spi.factories.DeploymentFactory;
 import javax.lang.model.element.TypeElement;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.extexecution.startup.StartupExtender;
 import org.netbeans.api.java.classpath.ClassPath;
 import org.netbeans.api.java.project.JavaProjectConstants;
@@ -50,6 +54,7 @@ import org.netbeans.api.java.source.ElementHandle;
 import org.netbeans.api.java.source.SourceUtils;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectInformation;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
@@ -70,6 +75,7 @@ import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileSystem;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.EditableProperties;
+import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.lookup.Lookups;
@@ -90,7 +96,31 @@ import org.xml.sax.SAXException;
 public class BaseUtil {
 
     private static final Logger LOG = Logger.getLogger(BaseUtil.class.getName());
+    
+    @StaticResource
+    public static final String MAVEN2_ICON = "org/netbeans/modules/jeeserver/base/deployment/resources/maven2-icon.gif";
+    @StaticResource
+    public static final String J2SE_ICON = "org/netbeans/modules/jeeserver/base/deployment/resources/j2seproject-icon.png";
 
+    public static Image getProjectImage(Project serverProject) {
+        Image img = null;
+        if ( isAntProject(serverProject) || isMavenProject(serverProject)) {
+            ProjectInformation p = serverProject.getLookup().lookup(ProjectInformation.class); 
+            img = ImageUtilities.icon2Image(p.getIcon());
+            p.getIcon();
+        }
+        
+/*        
+        if ( isAntProject(serverProject)) {
+            img = ImageUtilities.loadImage(J2SE_ICON);
+        } else {
+            img = ImageUtilities.loadImage(MAVEN2_ICON);
+        }
+*/        
+        return img;
+    }   
+
+    
     public static String getClassPath(BaseDeploymentManager manager) {
         StringBuilder sb = new StringBuilder();
 
@@ -210,7 +240,25 @@ public class BaseUtil {
 
         return result;
     }
+/*    public static String getMavenMainClass(Project project) {
+        
+        String mainClass = null;
 
+        String[] classes = BaseUtil.getMavenMainClasses(project);
+        if (classes.length == 1 ) {
+            mainClass = classes[0];
+        }
+        return mainClass;
+        
+    }
+*/    
+    public static boolean isMavenMainClass(Project project, String className) {
+        String[] classes = BaseUtil.getMavenMainClasses(project);
+        return Arrays.asList(classes).contains(className);
+        
+    }
+
+    
     public static String[] getMavenMainClasses(Project project) {
         String[] result = new String[0];
         FileObject[] sourceRoots = getMavenSourceRoots(project);
@@ -589,6 +637,14 @@ public class BaseUtil {
         return null;
     }
 
+    public static  String getServerLocation(InstanceProperties ip) {
+        return ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
+    }    
+    
+    public static  void setServerLocation(Map<String,String> ip, String location) {
+        ip.put(BaseConstants.SERVER_LOCATION_PROP, location);
+    }    
+    
     public static BaseDeploymentManager managerOf(Project p) {
 
         BaseDeploymentManager dm = null;
@@ -614,7 +670,7 @@ public class BaseUtil {
             if (ip == null) {
                 continue;
             }
-            String foundServerLocation = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
+            String foundServerLocation = getServerLocation(ip);
             if (foundServerLocation == null || !new File(foundServerLocation).exists()) {
                 // May be not a native plugin server
                 continue;
@@ -673,7 +729,7 @@ public class BaseUtil {
      *   {@link ServerSpecificsProvider }
      * @return an {@literal Image} instance for the specified server id.
      */
-    public static Image getServerImage(String serverId) {
+/*    public static Image getServerImage(String serverId) {
         if (serverId == null) {
             return null;
         }
@@ -690,7 +746,7 @@ public class BaseUtil {
         }
         return image;
     }
-
+*/
     public static boolean isMavenProject(String projDir) {
         Project proj = FileOwnerQuery.getOwner(FileUtil.toFileObject(new File(projDir)));
         //return new File(projDir + "/pom.xml").exists();
@@ -784,7 +840,11 @@ public class BaseUtil {
     }
 
     public static Properties loadProperties(FileObject propFile) {
+        if ( propFile == null ) {
+            return null;
+        }
         final Properties props = new Properties();
+        
         try (FileInputStream fis = new FileInputStream(propFile.getPath());) {
             props.load(fis);
             fis.close();

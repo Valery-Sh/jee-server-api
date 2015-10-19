@@ -1,3 +1,4 @@
+
 /**
  * This file is part of Base JEE Server support in NetBeans IDE.
  *
@@ -14,22 +15,23 @@
  * You should see the GNU General Public License here:
  * <http://www.gnu.org/licenses/>.
  */
-package org.netbeans.modules.jeeserver.jetty.project.nodes.actions;
+package org.netbeans.modules.jeeserver.base.embedded.webapp.actions;
 
 import java.awt.event.ActionEvent;
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.api.project.ProjectInformation;
+import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
-import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
-import org.netbeans.modules.jeeserver.jetty.util.JettyConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
 import org.openide.awt.ActionRegistration;
@@ -37,41 +39,44 @@ import org.openide.awt.DynamicMenuContent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.util.ContextAwareAction;
+import org.openide.util.ImageUtilities;
 import org.openide.util.Lookup;
 import org.openide.util.NbBundle;
 import org.openide.util.RequestProcessor;
 
 /**
- * The class provides implementations of the context aware action to be
- * performed to start the server in debug mode from the server project's pop up
- * menu.
- *
+ * The class provides implementations of the  context aware action 
+ * to be performed to start the server in debug mode from the server 
+ * project's pop up menu.
+ * 
  * @author V. Shyshkin
  */
 @ActionID(
         category = "Project",
-        id = "org.netbeans.modules.jeeserver.jetty.project.nodes.actions.AddListenerAction")
+        id = "org.netbeans.modules.jeeserver.base.embedded.webapp.actions.RemoveDistWebAppAction" )
 @ActionRegistration(
-        displayName = "#CTL_AddListenerAction",
-        lazy = false)
-@ActionReference(path = "Projects/Actions", position = 30, separatorAfter = 31)
-@NbBundle.Messages("CTL_AddListenerAction=Add listener  to web.xml")
-public final class AddListenerAction extends AbstractAction implements ContextAwareAction {
+        iconInMenu = true,
+        displayName = "#CTL_RemoveDistWebAppAction",
+        lazy=false)
+@ActionReference(path = "Projects/Actions",  position = 20)
+@NbBundle.Messages("CTL_RemoveDistWebAppAction=Remove Web Application from Distributed List")
+public final class RemoveDistWebAppAction extends AbstractAction implements ContextAwareAction {
 
-    private static final Logger LOG = Logger.getLogger(AddListenerAction.class.getName());
+    private static final Logger LOG = Logger.getLogger(RemoveDistWebAppAction.class.getName());
 
-    private static final RequestProcessor RP = new RequestProcessor(AddListenerAction.class);
-
+    private static final RequestProcessor RP = new RequestProcessor(RemoveDistWebAppAction.class);
+    
+    @StaticResource
+    private final static String ICON = "org/netbeans/modules/jeeserver/base/embedded/resources/remove.png"; 
+    
     @Override
     public void actionPerformed(ActionEvent e) {
         assert false;
     }
-
     /**
      * Creates an action for the given context.
-     *
      * @param context a lookup that contains the server project instance of type
-     * {@literal Project}.
+     *  {@literal Project}.
      * @return a new instance of type {@link #ContextAction}
      */
     @Override
@@ -83,40 +88,42 @@ public final class AddListenerAction extends AbstractAction implements ContextAw
 
         private final Project serverProject;
         private final Project webProject;
+        DistributedWebAppManager distManager = null;        
 
         public ContextAction(final Lookup webapplookup) {
-
+            
+            
             webProject = webapplookup.lookup(Project.class);
+
             J2eeModuleProvider p = BaseUtil.getJ2eeModuleProvider(webProject);
             String id = "";
-            if (p != null) {
+            if ( p != null) {
                 id = p.getServerInstanceID();
             }
-            if (p != null && id.startsWith("jettystandalone:deploy:server") && p.getInstanceProperties() != null) {
-                File file = new File(BaseUtil.getServerLocation(p.getInstanceProperties()));
+            distManager = null;
+            if ( p != null && p.getInstanceProperties() != null && p.getInstanceProperties().getProperty(SuiteConstants.SUITE_PROJECT_LOCATION) != null) {
+                File file = new File( BaseUtil.getServerLocation(p.getInstanceProperties()));
                 FileObject fo = FileUtil.toFileObject(file);
-                serverProject = FileOwnerQuery.getOwner(fo);
+                serverProject = FileOwnerQuery.getOwner(fo);            
+                distManager = DistributedWebAppManager.getInstance(serverProject);
+                
             } else {
                 serverProject = null;
             }
+            
+            enabled = (serverProject == null || ! distManager.isRegistered(webProject)) ? false : true;
 
-            boolean enabled = serverProject == null ? false : true;
-
-            if (enabled) {
-
-                File f = Paths.get(serverProject.getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER).toFile();                
-                String jsfListener = JettyConfig.getInstance(serverProject).getJsfListener();
-BaseUtil.out("@@@@@@@@@@@@@@@@@ AddListenerAction listener=" + jsfListener);
-                String jsfModule = JettyConfig.getInstance(serverProject).getJSFModuleName();
-                
-                enabled = jsfModule != null && ! DDHelper.hasJsfListener(serverProject, webProject);
-                setEnabled(enabled);
-
-                String s = isEnabled() ? "(" + jsfModule + ") " : "";
-                putValue(NAME, "Add Listener " + s + " to web.xml ");
-            }
-
+            
+            setEnabled(enabled);
+            
             putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);
+            
+            String name = webProject.getProjectDirectory().getNameExt();
+            
+            putValue(SMALL_ICON, ImageUtilities.loadImage(ICON, false));
+            //putValue("iconBase", ICON);            
+                    
+            putValue(NAME, "Remove " + name + " from Distributed List");
 
         }
 
@@ -125,7 +132,7 @@ BaseUtil.out("@@@@@@@@@@@@@@@@@ AddListenerAction listener=" + jsfListener);
             RP.post(new Runnable() {
                 @Override
                 public void run() {
-                    DDHelper.addJsfListener(serverProject, webProject);
+                    distManager.unregister(webProject);
                 }
             });
         }//class

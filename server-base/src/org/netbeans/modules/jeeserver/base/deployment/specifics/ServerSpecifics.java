@@ -27,6 +27,7 @@ import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.filesystems.FileObject;
 
 /**
@@ -122,7 +123,14 @@ public interface ServerSpecifics extends LicensesAcceptor {
      */
     FindJSPServlet getFindJSPServlet(DeploymentManager dm);
 
-    Image getProjectImage(Project serverProject);
+
+    default Image getServerImage(Project serverProject) {
+        return BaseUtil.getProjectImage(serverProject);
+    }
+    
+    default Image getProjectImage(Project serverProject) {
+        return BaseUtil.getProjectImage(serverProject);
+    }
 
     StartServerPropertiesProvider getStartServerPropertiesProvider(BaseDeploymentManager dm);
     /**

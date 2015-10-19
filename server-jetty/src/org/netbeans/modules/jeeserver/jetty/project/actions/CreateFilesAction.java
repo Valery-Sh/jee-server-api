@@ -129,7 +129,7 @@ public final class CreateFilesAction extends AbstractAction implements ContextAw
 
             @Override
             public void run() {
-                String serverDir = manager.getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
+                String serverDir = BaseUtil.getServerLocation(manager.getInstanceProperties());
                 File f = new File(serverDir);
                 Project project = manager.getServerProject();
 

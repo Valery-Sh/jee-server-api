@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.spi.DeploymentManager;
@@ -40,33 +42,33 @@ public class SuiteUtil extends BaseUtil {
 
     private static final Logger LOG = Logger.getLogger(SuiteUtil.class.getName());
 
-    
+
     public static FileObject getCommandManagerJar(Project server) {
-        FileObject lib; 
-        if ( BaseUtil.isAntProject(server)) {
+        FileObject lib;
+        if (BaseUtil.isAntProject(server)) {
             lib = server.getProjectDirectory().getFileObject(SuiteConstants.ANT_LIB_PATH + "/ext");
         } else {
             lib = server.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
         }
-        
-        if ( lib == null ) {
+
+        if (lib == null) {
             return null;
         }
         FileObject[] childs = lib.getChildren();
         FileObject result = null;
         String aid = SuiteManager.getManager(server).getInstanceProperties()
                 .getProperty(BaseConstants.SERVER_ACTUAL_ID_PROP);
-        
+
         String jarPrefix = aid + SuiteConstants.COMMAND_MANAGER_JAR_POSTFIX;
-        for ( FileObject fo : childs) {
-            if ( ! fo.isFolder() && "jar".equals(fo.getExt()) ) {
-                if ( fo.getName().startsWith(jarPrefix)) {
+        for (FileObject fo : childs) {
+            if (!fo.isFolder() && "jar".equals(fo.getExt())) {
+                if (fo.getName().startsWith(jarPrefix)) {
                     result = fo;
                     break;
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -90,7 +92,7 @@ public class SuiteUtil extends BaseUtil {
             if (ip == null) {
                 continue;
             }
-            String l = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
+            String l = BaseUtil.getServerLocation(ip);
             if (l == null) {
                 continue;
             }
@@ -168,6 +170,7 @@ public class SuiteUtil extends BaseUtil {
     public static boolean isHttpPortBusy_OLD(int port, Lookup exclude) {
         return isPortBusy_OLD(port, BaseConstants.HTTP_PORT_PROP, exclude);
     }
+
     /**
      * Checks whether the specified port is already in use. The method doesn't
      * make something like "ping". It simply looks at all the registered Server
@@ -209,10 +212,11 @@ public class SuiteUtil extends BaseUtil {
     public static boolean isDebugPortBusy(int port, String uri) {
         return isPortBusy(port, BaseConstants.DEBUG_PORT_PROP, uri);
     }
-    
+
     public static boolean isShutdownPortBusy_OLD(int port, Lookup exclude) {
         return isPortBusy_OLD(port, BaseConstants.SHUTDOWN_PORT_PROP, exclude);
     }
+
     public static boolean isShutdownPortBusy(int port, String uri) {
         return isPortBusy(port, BaseConstants.SHUTDOWN_PORT_PROP, uri);
     }
@@ -231,7 +235,7 @@ public class SuiteUtil extends BaseUtil {
     public static boolean isPortBusy(int port, String portPropName, String exclude) {
         boolean result = false;
         String[] uris = Deployment.getDefault().getServerInstanceIDs();
-        
+
         for (String uri : uris) {
             if (uri.equals(exclude)) {
                 continue;
@@ -267,7 +271,7 @@ public class SuiteUtil extends BaseUtil {
         boolean result = false;
         String[] uris = Deployment.getDefault().getServerInstanceIDs();
         String excludeUri = null;
-        if ( exclude != null ) {
+        if (exclude != null) {
             excludeUri = managerOf(exclude).getUri();
         }
         for (String uri : uris) {
@@ -289,7 +293,7 @@ public class SuiteUtil extends BaseUtil {
         }
         return result;
     }
-    
+
     /**
      *
      * @param webProject
@@ -311,6 +315,19 @@ public class SuiteUtil extends BaseUtil {
         return getJ2eeModuleProvider(webProject).getJ2eeModule();
     }
 
+    public static String getSuiteProjectLocation(InstanceProperties ip) {
+        return ip.getProperty(SuiteConstants.SUITE_PROJECT_LOCATION);
+    }
+
+    public static void setSuiteProjectLocation(Map<String, String> ip, String location) {
+        ip.put(SuiteConstants.SUITE_PROJECT_LOCATION, location);
+    }
+
+    public static void setSuiteProjectLocation(InstanceProperties ip, String location) {
+        ip.setProperty(SuiteConstants.SUITE_PROJECT_LOCATION, location);        
+        //ip.setProperty(SuiteConstants.SUITE_PROJECT_LOCATION, location.replaceAll("\\", "/"));
+    }
+
     /**
      * Checks whether the specified project is actually an embedded server
      * project. Every embedded server project has an object of type
@@ -330,7 +347,7 @@ public class SuiteUtil extends BaseUtil {
             if (ip == null) {
                 continue;
             }
-            String l = ip.getProperty(BaseConstants.SERVER_LOCATION_PROP);
+            String l = BaseUtil.getServerLocation(ip);;
             if (l == null) {
                 continue;
             }
@@ -380,6 +397,17 @@ public class SuiteUtil extends BaseUtil {
     public static Set<Profile> getJavaEEProfiles(Lookup context) {
         DeploymentManager manager = managerOf(context);
         return getJ2eePlatform(manager).getSupportedProfiles();
+    }
+
+    public static String getSuiteUID(FileObject suite) {
+        String uid = null;
+        FileObject suitePropsFo = suite.getFileObject(SuiteConstants.SUITE_PROPERTIES_LOCATION);
+        Properties suiteProps = new Properties();
+        if (suitePropsFo != null) {
+            suiteProps = BaseUtil.loadProperties(suite.getFileObject(SuiteConstants.SUITE_PROPERTIES_LOCATION));
+            uid = suiteProps.getProperty(SuiteConstants.UID_PROPERTY_NAME);
+        }
+        return uid;
     }
 
     /**
@@ -476,6 +504,5 @@ public class SuiteUtil extends BaseUtil {
 
         return sb.toString();
     }
-    
-    
+
 }

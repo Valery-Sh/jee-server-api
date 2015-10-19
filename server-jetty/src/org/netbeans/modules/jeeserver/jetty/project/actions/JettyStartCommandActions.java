@@ -118,7 +118,7 @@ public final class JettyStartCommandActions extends AbstractAction implements Co
 
             @Override
             public void run() {
-                String serverDir = manager.getInstanceProperties().getProperty(BaseConstants.SERVER_LOCATION_PROP);
+                String serverDir = BaseUtil.getServerLocation(manager.getInstanceProperties());
                 File f = new File(serverDir);
                 Project project = manager.getServerProject();
 

@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.java.classpath.ClassPath;
@@ -43,6 +44,7 @@ import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
+import org.openide.util.Exceptions;
 import org.openide.util.Utilities;
 
 /**
@@ -55,7 +57,7 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
     private boolean mavenbased;
 
     protected abstract FileObject getLibDir(Project project);
-    
+
     public EmbeddedInstanceBuilder(Properties props, InstanceBuilder.Options opt) {
         super(props, opt);
     }
@@ -70,11 +72,11 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
         }
         String xmlTmpl = "/org/netbeans/modules/jeeserver/base/embedded/resources/maven-build.xml";
         FileObject buildXml = targetFolder.getParent().getFileObject("build.xml");
-        
-        if (buildXml != null ) {
+
+        if (buildXml != null) {
             return;
         }
-        
+
         FileObject xml = targetFolder.getParent().createData("build", "xml");
 
         try (OutputStream os = xml.getOutputStream(); InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(xmlTmpl)) {
@@ -103,15 +105,46 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
 
         Project suite = FileOwnerQuery.getOwner(instancesDir);
 
-        ip.setProperty(SuiteConstants.SUITE_PROJECT_LOCATION, suite.getProjectDirectory().getPath());
+        SuiteUtil.setSuiteProjectLocation(ip, suite.getProjectDirectory().getPath());
     }
 
     @Override
     protected String buildURL(String serverId, FileObject projectDir) {
         String serverInstancesFolder = configProps.getProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP);
         String suite = new File(serverInstancesFolder).getParent();
-        return serverId + ":" + BaseConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath()
-                + ":server:suite:project:" + suite;
+        String uid = getSuiteUID();
+        
+        
+        String uri = serverId + ":" + BaseConstants.URIPREFIX_NO_ID + ":" + projectDir.getPath()
+                + ":server:suite:project:" + suite + "/uid" + uid;
+        return uri;
+    }
+
+    protected String getSuiteUID() {
+        String uid = null;
+        String serverInstancesFolder = configProps.getProperty(SuiteConstants.SERVER_INSTANCES_DIR_PROP);
+        FileObject suite = FileUtil.toFileObject(new File(serverInstancesFolder)).getParent();
+        FileObject suitePropsFo = suite.getFileObject(SuiteConstants.SUITE_PROPERTIES_LOCATION);
+        Properties suiteProps = new Properties();
+        try {
+            if (suitePropsFo != null) {
+                suiteProps = BaseUtil.loadProperties(suite.getFileObject(SuiteConstants.SUITE_PROPERTIES_LOCATION));
+                uid = suiteProps.getProperty(SuiteConstants.UID_PROPERTY_NAME);
+                if (uid != null) {
+                    return uid;
+                }
+                suitePropsFo.delete();
+                uid = UUID.randomUUID().toString();
+            } else {
+                uid = UUID.randomUUID().toString();
+            }
+            suiteProps.setProperty(SuiteConstants.UID_PROPERTY_NAME, uid);
+            BaseUtil.storeProperties(suiteProps, suite.getFileObject(SuiteConstants.SUITE_CONFIG_FOLDER),
+                    SuiteConstants.UID_PROPERTY_NAME);
+        } catch (IOException ex) {
+            LOG.log(Level.INFO, "EmbeddedInstanceBuilder. {0}", ex.getMessage());
+        }
+        return uid;
     }
 
     @Override
@@ -129,12 +162,12 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
         }
 
         FileObject jarFo = SuiteUtil.getCommandManagerJar(p);
-        
-        if ( jarFo == null ) {
+
+        if (jarFo == null) {
             return;
         }
         final File jar = FileUtil.toFile(jarFo);
-        if (! jar.exists()) {
+        if (!jar.exists()) {
             return;
         }
 
@@ -146,11 +179,11 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
         // Now check if there is allredy the jar in the classpath of the project
         //
         ClassPath cp = ClassPath.getClassPath(root, ClassPath.COMPILE);
-        
+
         if (cp == null) {
             return;
         }
-        
+
         for (ClassPath.Entry e : cp.entries()) {
             File entryJar = LibrariesFileLocator.getFile(e.getURL());
             if (jar.equals(entryJar)) {
@@ -184,6 +217,7 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
         }
         return root;
     }
+
     protected void updateServerInstanceProperties(Project project) {
 
         FileObject fo = project.getProjectDirectory().getFileObject("nbdeployment/server-instance.properties");
@@ -201,11 +235,11 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
                 fo.delete();
             }
             props.setProperty(BaseConstants.HTTP_PORT_PROP, port);
-            fo = project.getProjectDirectory().getFileObject("nbdeployment");            
+            fo = project.getProjectDirectory().getFileObject("nbdeployment");
             BaseUtil.storeProperties(props, fo, "server-instance.properties");
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N
         }
     }
-    
+
 }

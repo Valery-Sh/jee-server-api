@@ -87,7 +87,7 @@ public class JettyServerCustomizer extends JettyServerInstancePanelVisual implem
         wiz.putProperty(BaseConstants.DEBUG_PORT_PROP, ip.getProperty(BaseConstants.DEBUG_PORT_PROP));
         wiz.putProperty(BaseConstants.SHUTDOWN_PORT_PROP, ip.getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
         wiz.putProperty(BaseConstants.SERVER_ID_PROP, ip.getProperty(BaseConstants.SERVER_ID_PROP));
-        wiz.putProperty("projdir", new File(ip.getProperty(BaseConstants.SERVER_LOCATION_PROP)));
+        wiz.putProperty("projdir", new File(BaseUtil.getServerLocation(ip)));
 
         FileObject fo = manager.getServerProject().getProjectDirectory().getFileObject(JettyConstants.JETTY_HTTP_INI);
 

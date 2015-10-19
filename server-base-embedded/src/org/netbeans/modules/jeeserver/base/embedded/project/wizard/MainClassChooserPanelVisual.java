@@ -8,6 +8,8 @@ package org.netbeans.modules.jeeserver.base.embedded.project.wizard;
 import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.event.ListSelectionEvent;
+import org.netbeans.api.project.Project;
+import org.netbeans.spi.project.ui.CustomizerProvider;
 
 /**
  *
@@ -19,6 +21,7 @@ public class MainClassChooserPanelVisual extends javax.swing.JPanel {
     
     private final JButton selectedButton;
     private final JButton cancelButton;
+    private Project serverProject;
     /**
      * Creates new form MainClassChooserPanelVisual
      * @param selectedButton
@@ -29,6 +32,7 @@ public class MainClassChooserPanelVisual extends javax.swing.JPanel {
         initComponents();
         this.selectedButton = selectedButton;
         this.cancelButton = cancelButton;
+        
         
         this.mainClassesList.addListSelectionListener((ListSelectionEvent e) -> {
             if ( mainClassesList.getSelectedIndex() < 0 )  {
@@ -41,6 +45,14 @@ public class MainClassChooserPanelVisual extends javax.swing.JPanel {
             
         });
         
+    }
+
+    public Project getServerProject() {
+        return serverProject;
+    }
+
+    public void setServerProject(Project serverProject) {
+        this.serverProject = serverProject;
     }
     
     public JList getMainClassesList() {
@@ -58,6 +70,7 @@ public class MainClassChooserPanelVisual extends javax.swing.JPanel {
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         mainClassesList = new javax.swing.JList();
+        customizeButton = new javax.swing.JButton();
 
         org.openide.awt.Mnemonics.setLocalizedText(jLabel2, "Available Main Classes:"); // NOI18N
 
@@ -70,6 +83,13 @@ public class MainClassChooserPanelVisual extends javax.swing.JPanel {
         mainClassesList.setToolTipText(org.openide.util.NbBundle.getMessage(MainClassChooserPanelVisual.class, "MainClassChooserPanelVisual.mainClassesList.toolTipText")); // NOI18N
         jScrollPane1.setViewportView(mainClassesList);
 
+        org.openide.awt.Mnemonics.setLocalizedText(customizeButton, "Customize"); // NOI18N
+        customizeButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                customizeButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -78,11 +98,15 @@ public class MainClassChooserPanelVisual extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel2)
-                        .addGap(67, 221, Short.MAX_VALUE))))
+                        .addGap(67, 221, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(customizeButton, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE)))
+                        .addContainerGap())))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -90,13 +114,24 @@ public class MainClassChooserPanelVisual extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(jLabel2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 235, Short.MAX_VALUE)
-                .addContainerGap())
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 145, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(27, 27, 27)
+                .addComponent(customizeButton)
+                .addContainerGap(72, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void customizeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_customizeButtonActionPerformed
+        CustomizerProvider cp = serverProject.getLookup().lookup(CustomizerProvider.class);
+        if ( cp != null ) {
+            cp.showCustomizer();
+        }
+
+    }//GEN-LAST:event_customizeButtonActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton customizeButton;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JList mainClassesList;

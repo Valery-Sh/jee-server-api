@@ -245,7 +245,8 @@ public class Utils {
         ServerSpecifics spec = BaseUtil.getServerSpecifics(Utils.getServerId());
         map.put(BaseConstants.DEBUG_PORT_PROP, String.valueOf(spec.getDefaultDebugPort()));
         map.put(BaseConstants.DISPLAY_NAME_PROP, projectDir.getNameExt());
-        map.put(BaseConstants.SERVER_LOCATION_PROP, projectDir.getPath());
+        BaseUtil.setServerLocation(map, projectDir.getPath());
+        //map.put(BaseConstants.SERVER_LOCATION_PROP, projectDir.getPath());
         return map;
     }
 

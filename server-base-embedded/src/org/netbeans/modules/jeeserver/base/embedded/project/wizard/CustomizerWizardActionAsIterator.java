@@ -9,9 +9,11 @@ import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.LogicalViewNotifier;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
 import org.openide.util.Lookup;
@@ -70,8 +72,9 @@ public class CustomizerWizardActionAsIterator extends AddExistingProjectWizardAc
         wiz.putProperty(BaseConstants.DEBUG_PORT_PROP, ip.getProperty(BaseConstants.DEBUG_PORT_PROP));
         wiz.putProperty(BaseConstants.SHUTDOWN_PORT_PROP, ip.getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
         wiz.putProperty(BaseConstants.SERVER_ID_PROP, ip.getProperty(BaseConstants.SERVER_ID_PROP));
-        wiz.putProperty("projdir", new File(ip.getProperty(BaseConstants.SERVER_LOCATION_PROP)));
-        wiz.putProperty(SuiteConstants.SUITE_PROJECT_LOCATION, new File(ip.getProperty(SuiteConstants.SUITE_PROJECT_LOCATION)));
+        wiz.putProperty("projdir", new File(BaseUtil.getServerLocation(ip)));
+        wiz.putProperty(SuiteConstants.SUITE_PROJECT_LOCATION, new File(SuiteUtil.getSuiteProjectLocation(ip)));
+        
 
     }
 

@@ -17,20 +17,28 @@
 package org.netbeans.modules.jeeserver.base.embedded.project.nodes;
 
 import java.awt.Image;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Action;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
-import org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions.ServerActions;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
+import org.netbeans.modules.jeeserver.base.embedded.webapp.actions.AddDistWebAppAction;
+import org.netbeans.spi.project.ui.LogicalViewProvider;
 import org.openide.actions.PropertiesAction;
 import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
+import org.openide.loaders.DataFolder;
 import org.openide.loaders.DataObject;
 import org.openide.loaders.DataObjectNotFoundException;
 import org.openide.nodes.FilterNode;
@@ -52,13 +60,13 @@ import org.openide.util.lookup.InstanceContent;
  "ServerInstanciesRootNode.availableWebApps=Available Web Applications"
  })
  */
-public class ServerInstancesRootNode extends FilterNode implements ChildrenNotifier {
+public class DistributedWebAppRootNode extends FilterNode implements ChildrenNotifier {
 
-    private static final Logger LOG = Logger.getLogger(ServerInstancesRootNode.class.getName());
+    private static final Logger LOG = Logger.getLogger(DistributedWebAppRootNode.class.getName());
 
     private final InstanceContent lookupContents;
 
-    private RootChildrenKeys childKeys;
+    private DistRootChildrenKeys childKeys;
 //    private ModulesChangeListener modulesChangeListener;
 
     /**
@@ -68,47 +76,43 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
      * the class.
      * @throws DataObjectNotFoundException
      */
-    public ServerInstancesRootNode(Project serverProj) throws DataObjectNotFoundException {
-        this(DataObject.find(serverProj.getProjectDirectory().
-                getFileObject(SuiteConstants.SERVER_INSTANCES_FOLDER)).getNodeDelegate(),
-                new RootChildrenKeys(serverProj), new InstanceContent());
+    public DistributedWebAppRootNode(Project suiteProj, Project serverProj) throws DataObjectNotFoundException {
+        this(DataObject.find(serverProj.getProjectDirectory()).getNodeDelegate(),
+                new DistRootChildrenKeys(serverProj), new InstanceContent());
+
     }
 
-    public ServerInstancesRootNode(Node node, RootChildrenKeys childKeys, InstanceContent instanceContent) throws DataObjectNotFoundException {
+    public DistributedWebAppRootNode(Node node, DistRootChildrenKeys childKeys, InstanceContent instanceContent) throws DataObjectNotFoundException {
         super(node, childKeys, new AbstractLookup(instanceContent));
         this.childKeys = childKeys;
         this.lookupContents = instanceContent;
 
         FileObject instanciesDir = node.getLookup().lookup(FileObject.class);
         lookupContents.add(instanciesDir);
+        lookupContents.add(childKeys.getServerProj());
 
         lookupContents.add(childKeys);
-        init(instanciesDir);
+        init();
     }
 
-    private void init(FileObject instanciesDir) {
+    private void init() {
+BaseUtil.out("DistributedWebAppRootNode children.class" + this.getChildren().getClass().getName());
+        String uri = SuiteManager.getManager(childKeys.getServerProj()).getUri();
+        InstanceProperties props = InstanceProperties.getInstanceProperties(uri);
+        ServerInstanceProperties sip = new ServerInstanceProperties();
+        sip.setServerId(props.getProperty(BaseConstants.SERVER_ID_PROP));
+        sip.setUri(props.getProperty(BaseConstants.URL_PROP));
+
+        lookupContents.add(sip);
         lookupContents.add(this);
-        FileOwnerQuery.getOwner(instanciesDir).getLookup()
-                .lookup(SuiteNotifier.class)
-                .setNotifier(this);
     }
 
-    public RootChildrenKeys getChildKeys() {
+    public DistRootChildrenKeys getChildKeys() {
         return this.childKeys;
     }
 
-    @Override
-    public void iconChange(String uri, boolean newValue) {
-        if (childKeys != null) {
-            childKeys.iconChange(uri, newValue);
-        }
-    }
-
-    @Override
-    public void displayNameChange(String uri, String newValue) {
-        if (childKeys != null) {
-            childKeys.displayNameChange(uri, newValue);
-        }
+    public Project getServerProject() {
+        return childKeys.getServerProj();
     }
 
     /**
@@ -118,7 +122,7 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
      */
     @Override
     public String getDisplayName() {
-        return "Server Instances";
+        return "WebApplications to Distribute";
     }
 
     /**
@@ -145,12 +149,10 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
     public Action[] getActions(boolean ctx) {
 
         List<Action> actions = new ArrayList<>(2);
-
-        Action newAntProjectAction = ServerActions.NewAntProjectAction.getContextAwareInstance(getLookup());
-        Action newMavenProjectAction = ServerActions.NewMavenProjectAction.getContextAwareInstance(getLookup());
-
-        Action addExistingProject = ServerActions.AddExistingProjectAction.getContextAwareInstance(getLookup());
-
+        Action addDistWebAppAction = AddDistWebAppAction.getAddDistWebAppAction(getLookup());
+        //Action newAntProjectAction = ServerActions.NewAntProjectAction.getContextAwareInstance(getLookup());
+        //Action newMavenProjectAction = ServerActions.NewMavenProjectAction.getContextAwareInstance(getLookup());
+        //Action addExistingProject = ServerActions.AddExistingProjectAction.getContextAwareInstance(getLookup());
         Action propAction = null;
 
         for (Action a : super.getActions(ctx)) {
@@ -159,14 +161,14 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
                 break;
             }
         }
-
-        actions.add(newAntProjectAction);
-        actions.add(newMavenProjectAction);
-        actions.add(null);
-        actions.add(addExistingProject);
-        actions.add(null);
-
-//        Project server = ((RootChildrenKeys) getChildren()).getServerProj();
+        actions.add(addDistWebAppAction);
+        /*        actions.add(newAntProjectAction);
+         actions.add(newMavenProjectAction);
+         actions.add(null);
+         actions.add(addExistingProject);
+         actions.add(null);
+         */
+//        Project server = ((DistRootChildrenKeys) getChildren()).getServerProj();
         if (propAction != null) {
             actions.add(propAction);
         }
@@ -175,27 +177,20 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
 
     }
 
-    //Next, we add icons, for the default state, which is
-    //closed, and the opened state; we will make them the same. 
-    //
-    //Icons in suiteProj logical views are
-    //based on combinations--you can combine the node's own icon
-    //with a distinguishing badge that is merged with it. Here we
-    //first obtain the icon from a data folder, then we add our
-    //badge to it by merging it via a NetBeans API utility method:
     @Override
     public Image getIcon(int type) {
-        /*        DataFolder root = DataFolder.findFolder(FileUtil.getConfigRoot());
-         Image original = root.getNodeDelegate().getIcon(type);
-         return Icons.mergeImages(original,
-         ImageUtilities.loadImage(IMAGE), 7, 7);
-         */
-        return ImageUtilities.loadImage(SuiteConstants.SERVER_INSTANCES_ICON);
+        DataFolder root = DataFolder.findFolder(FileUtil.getConfigRoot());
+        Image original = root.getNodeDelegate().getIcon(type);
+        return ImageUtilities.mergeImages(original,
+                ImageUtilities.loadImage(SuiteConstants.DIST_WEB_APPS_BADGE_ICON), 7, 7);
     }
 
     @Override
     public Image getOpenedIcon(int type) {
-        return ImageUtilities.loadImage(SuiteConstants.SERVER_INSTANCES_ICON);
+        DataFolder root = DataFolder.findFolder(FileUtil.getConfigRoot());
+        Image original = root.getNodeDelegate().getIcon(type);
+        return ImageUtilities.mergeImages(original,
+                ImageUtilities.loadImage(SuiteConstants.DIST_WEB_APPS_BADGE_ICON), 7, 7);
     }
 
     @Override
@@ -212,31 +207,37 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
         }
 
         if (source instanceof DistributedWebAppManager) {
-        BaseUtil.out("ServerInstanceRootNode childrenChanged");            
             childKeys.childrenChanged(source, params);
-            //DistributedWebAppManager distManager = (DistributedWebAppManager) source;
         }
+    }
+
+    @Override
+    public void iconChange(String uri, boolean newValue) {
+    }
+
+    @Override
+    public void displayNameChange(String uri, String newValue) {
     }
 
     /**
      * The implementation of the Children.Key of the {@literal Server Libraries}
      * node.
      *
-     * @param <T>
      */
-    public static class RootChildrenKeys extends FilterNode.Children.Keys<String> {
+    public static class DistRootChildrenKeys extends FilterNode.Children.Keys<String> {
 
-        private final Project suiteProj;
+        private final Project instanceProj;
 
         /**
          * Created a new instance of the class for the specified server
          * serverProject.
          *
-         * @param suiteProj the serverProject which is used to create an
+         * @param instanceProj the serverProject which is used to create an
          * instance for.
          */
-        public RootChildrenKeys(Project suiteProj) {
-            this.suiteProj = suiteProj;
+        public DistRootChildrenKeys(Project instanceProj) {
+            
+            this.instanceProj = instanceProj;
 
         }
 
@@ -249,11 +250,20 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
          */
         @Override
         protected Node[] createNodes(String key) {
-            return new Node[]{InstanceNodeFactory.getNode(key, suiteProj)};
+            Node node = null;
+            FileObject fo = FileUtil.toFileObject(new File(key));
+            Project webProj = FileOwnerQuery.getOwner(fo);
+            
+            try {
+                LogicalViewProvider lvp = webProj.getLookup().lookup(LogicalViewProvider.class);
+                node = lvp.createLogicalView();
+            } catch (Exception ex) {
+                LOG.log(Level.INFO, ex.getMessage());
+            }
 
-            //return new Node[]{};
+            return new Node[]{node};
         }
-
+        
         /**
          * Called when children of the {@code Web Applications} are first asked
          * for nodes. For each child node of the folder named
@@ -263,26 +273,23 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
          */
         @Override
         public void addNotify() {
-            List<String> uris = SuiteManager.getServerInstanceIds(suiteProj);
-            this.setKeys(uris);
+            
+            DistributedWebAppManager distManager = DistributedWebAppManager.getInstance(instanceProj);
+            List<FileObject> list = distManager.getWebAppFileObjects();
+            List<String> keys = new ArrayList<>();
+            list.forEach(fo -> {
+                keys.add(fo.getPath());
+            });
+
+            this.setKeys(keys);
         }
 
         public void childrenChanged(Object source, Object... params) {
             if (source instanceof DistributedWebAppManager) {
-                DistributedWebAppManager distManager = (DistributedWebAppManager) source;
-                Project instance = distManager.getProject();
-                String uri = SuiteManager.getManager(instance).getUri();
-                InstanceNode instanceNode = findInstanceNode(uri);
-                if ( instanceNode == null ) {
-                    return;
-                }
-                BaseUtil.out("ServerInstanceRootNode.RootChildKeys childrenChanged");            
-                
-                instanceNode.childrenChanged(source, params);
-                
+                addNotify();
             }
-
         }
+
         /**
          * Called when all the children Nodes are freed from memory. The
          * implementation just invokes 
@@ -293,13 +300,10 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
             this.setKeys(Collections.EMPTY_LIST);
         }
 
-        @Override
+/*        @Override
         protected void destroyNodes(Node[] destroyed) {
-            for (Node node : destroyed) {
-                BaseUtil.out("destroyNodes  node.name = node.getName=" + node.getName());
-            }
         }
-
+*/
         public void iconChange(String uri, boolean newValue) {
             InstanceNode node = findInstanceNode(uri);
             if (node == null) {
@@ -341,35 +345,8 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
 
         }
 
-        /*     public void propertyChange(PropertyChangeEvent evt) {
-         Node[] nodes = this.getNodes();
-
-         if (nodes == null || nodes.length == 0) {
-         return;
-         }
-
-         int i = 0;
-         for (Node node : nodes) {
-         if (node instanceof InstanceNode) {
-
-         String key = ((InstanceNode) node).getKey();
-
-         Object o = evt.getSource();
-         if (o != null && (o instanceof BaseDeploymentManager)) {
-         String uri = ((BaseDeploymentManager) o).getUri();
-         if (uri.equals(key)) {
-         ((InstanceNode) node).propertyChange(evt);
-         }
-         }
-         }
-         }
-         }
-         */
-        /**
-         * @return the serverProject
-         */
         public Project getServerProj() {
-            return suiteProj;
+            return instanceProj;
         }
 
     }//class

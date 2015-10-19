@@ -23,7 +23,6 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.SocketException;
 import java.net.URL;
-import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -235,6 +234,10 @@ public class JettyServerSpecifics implements ServerSpecifics {
     }
 
     @Override
+    public Image getServerImage(Project serverProject) {
+        return ImageUtilities.loadImage(IMAGE);
+    }
+    @Override
     public Image getProjectImage(Project serverProject) {
         return ImageUtilities.loadImage(IMAGE);
     }
@@ -304,4 +307,6 @@ public class JettyServerSpecifics implements ServerSpecifics {
     public StartServerPropertiesProvider getStartServerPropertiesProvider(BaseDeploymentManager dm) {
         return dm.getServerProject().getLookup().lookup(StartServerPropertiesProvider.class);
     }
+
+
 }

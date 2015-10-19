@@ -20,8 +20,9 @@ public class SuiteConstants extends BaseConstants {
     public static final String COMMAND_MANAGER_GROUPID = "command.manager.groupId";
     public static final String COMMAND_MANAGER_ARTIFACTID = "command.manager.artifactId";    
     public static final String COMMAND_MANAGER_VERSION = "command.manager.version";    
-    public static final String NBDEPLOYMENT_FOLDER_NAME = "nbdeployment";    
-    public static final String MAVEN_REPO_LIB_PATH = NBDEPLOYMENT_FOLDER_NAME + "/lib";        
+    public static final String INSTANCE_NBDEPLOYMENT_FOLDER = "nbdeployment"; 
+    
+    public static final String MAVEN_REPO_LIB_PATH = INSTANCE_NBDEPLOYMENT_FOLDER + "/lib";        
     public static final String MAVEN_REPO_LIB_PATH_PROP = "maven.repo.lib.path";            
     public static final String ANT_LIB_PATH = "lib";            
     
@@ -36,19 +37,32 @@ public class SuiteConstants extends BaseConstants {
     
     public static final String MAVEN_WORK_DIR_PROP = "maven.work.dir";
     
-    
+    public static String TMP_DIST_WEB_APPS = "embedded_suite_server_instance";
+    public static String SERVER_INSTANCE_WEB_APPS_PROPS = "server-instance-web-apps.properties";    
     
     public static final String SERVER_INSTANCE_NAME_PROP = "server-instance-display-name";     
     public static final String SERVER_INSTANCES_DIR_PROP = "server-instances-dir"; 
     public static final String SUITE_PROJECT_LOCATION = "embedded-suite-project-location"; 
-    public static final String SUITE_URL_ID = ":server:suite:project:";; 
-    public static final String INSTANCE_NBDEPLOYMENT_FOLDER = "nbdeployment"; 
+    public static final String SUITE_URL_ID = ":server:suite:project:";
+    public static final String SUITE_CONFIG_FOLDER = "nbconfig"; 
+    public static final String SUITE_PROPERTIES = "suite.properties"; 
+    public static final String UID_PROPERTY_NAME = "uid";    
+    
+    public static final String SUITE_PROPERTIES_LOCATION = SUITE_CONFIG_FOLDER + "/" + SUITE_PROPERTIES; 
     
     public static final String SERVER_INSTANCES_FOLDER = "server-instances";
     public static final String SERVER_NBCONFIG_FOLDER = "nbconfig";
+
+    public static final String  DIST_WEB_APPS = "dist-web-apps";
+
+    public static final String  DIST_WEB_APPS_LOCATION = INSTANCE_NBDEPLOYMENT_FOLDER + "/" + DIST_WEB_APPS;
     
     @StaticResource
     public static final String SERVER_INSTANCES_ICON = "org/netbeans/modules/jeeserver/base/embedded/resources/nbservers-16x16.png";
+    @StaticResource
+    public static final String WEB_APP_ICON = "org/netbeans/modules/jeeserver/base/embedded/resources/webProjectIcon.gif";
+    @StaticResource
+    public static final String DIST_WEB_APPS_BADGE_ICON = "org/netbeans/modules/jeeserver/base/embedded/resources/web-pages-badge.png";
     
     @StaticResource
     public static final String SERVER_PROJECT_ICON = "org/netbeans/modules/jeeserver/base/embedded/resources/servers-16x16.png";

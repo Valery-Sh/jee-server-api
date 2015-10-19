@@ -241,7 +241,8 @@ public abstract class AbstractJettyInstanceIterator implements WizardDescriptor.
         ip.put(BaseConstants.SHUTDOWN_PORT_PROP, (String) wiz.getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
         ip.put(BaseConstants.URL_PROP, url);
         ip.put(BaseConstants.HOME_DIR_PROP, jettyHome);
-        ip.put(BaseConstants.SERVER_LOCATION_PROP, projectDir.getPath());
+        //ip.put(BaseConstants.SERVER_LOCATION_PROP, projectDir.getPath());
+        BaseUtil.setServerLocation(ip, projectDir.getPath());
         ip.put(BaseConstants.SERVER_VERSION_PROP, jettyVersion);
 
         return ip;

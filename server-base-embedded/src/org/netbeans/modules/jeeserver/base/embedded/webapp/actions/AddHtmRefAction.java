@@ -216,7 +216,7 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
             if (uri != null) {
                 InstanceProperties ip = InstanceProperties.getInstanceProperties(uri);
                 if (ip != null) {
-                    String location = ip.getProperty(SuiteConstants.SERVER_LOCATION_PROP);
+                    String location = BaseUtil.getServerLocation(ip);;
                     File file = new File(location);
                     if (location != null && new File(location).exists()) {
                         FileObject projDir = FileUtil.toFileObject(new File(location));

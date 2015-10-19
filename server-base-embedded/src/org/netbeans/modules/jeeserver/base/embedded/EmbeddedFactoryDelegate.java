@@ -11,7 +11,6 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.FactoryDelegate;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 
@@ -53,8 +52,8 @@ public class EmbeddedFactoryDelegate extends FactoryDelegate {
         if (p == null) {
             return false;
         }
-
-        String suteLocation = (String) instanceFO.getAttribute(SuiteConstants.SUITE_PROJECT_LOCATION);
+        return true;
+/*        String suteLocation = (String) instanceFO.getAttribute(SuiteConstants.SUITE_PROJECT_LOCATION);
         if (suteLocation == null || !new File(suteLocation).exists()) {
             return false;
         }
@@ -65,6 +64,7 @@ public class EmbeddedFactoryDelegate extends FactoryDelegate {
         p = FileOwnerQuery.getOwner(fo);
 
         return p != null;
+*/        
     }
 
 }
