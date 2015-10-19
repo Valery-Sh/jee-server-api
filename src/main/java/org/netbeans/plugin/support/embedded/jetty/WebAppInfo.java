@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package org.netbeans.plugin.support.jetty.embedded;
+package org.netbeans.plugin.support.embedded.jetty;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

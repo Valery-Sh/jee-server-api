@@ -1,4 +1,4 @@
-package org.netbeans.plugin.support.jetty.embedded;
+package org.netbeans.plugin.support.embedded.jetty;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +15,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import org.eclipse.jetty.webapp.WebAppContext;
 
-import org.netbeans.plugin.support.jetty.embedded.WebAppInfo.Info;
+import org.netbeans.plugin.support.embedded.jetty.WebAppInfo.Info;
 
 /**
  *

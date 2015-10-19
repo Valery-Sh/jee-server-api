@@ -1,4 +1,4 @@
-package org.netbeans.plugin.support.jetty.embedded;
+package org.netbeans.plugin.support.embedded.jetty;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

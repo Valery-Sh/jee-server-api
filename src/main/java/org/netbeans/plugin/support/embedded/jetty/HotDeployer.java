@@ -1,4 +1,4 @@
-package org.netbeans.plugin.support.jetty.embedded;
+package org.netbeans.plugin.support.embedded.jetty;
 
 import java.io.File;
 import java.util.Properties;
@@ -14,7 +14,7 @@ import org.eclipse.jetty.util.thread.QueuedThreadPool;
 
 /**
  *
- * @author Valery
+ * @author V. Shyshkin
  */
 public class HotDeployer {
     

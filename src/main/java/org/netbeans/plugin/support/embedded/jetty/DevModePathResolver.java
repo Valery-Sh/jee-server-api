@@ -1,5 +1,5 @@
 
-package org.netbeans.plugin.support.jetty.embedded;
+package org.netbeans.plugin.support.embedded.jetty;
 
 import java.io.File;
 import java.io.FileInputStream;
