@@ -13,6 +13,7 @@
  *
  * You should see the GNU General Public License here:
  * <http://www.gnu.org/licenses/>.
+ * 
  */
 package org.netbeans.plugin.support.embedded.jetty;
 
@@ -54,7 +55,7 @@ import org.eclipse.jetty.util.component.LifeCycle;
 import org.eclipse.jetty.webapp.WebAppContext;
 
 /**
- *
+ * A jetty handler.
  * @author V. Shyshkin
  */
 public class NbDeployHandler extends AbstractHandler implements LifeCycle.Listener {
