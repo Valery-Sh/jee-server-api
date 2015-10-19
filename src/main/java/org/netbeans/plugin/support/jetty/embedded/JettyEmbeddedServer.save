@@ -1,0 +1,281 @@
+package org.embedded.server;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.EnumSet;
+import java.util.EventListener;
+import java.util.Map;
+import java.util.UUID;
+import javax.servlet.DispatcherType;
+import javax.servlet.FilterRegistration;
+import org.eclipse.jetty.deploy.DeploymentManager;
+import org.eclipse.jetty.deploy.PropertiesConfigurationManager;
+import org.eclipse.jetty.deploy.providers.WebAppProvider;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.util.component.LifeCycle;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.eclipse.jetty.webapp.AbstractConfiguration;
+import org.eclipse.jetty.webapp.WebAppContext;
+import org.netbeans.plugin.support.jetty.embedded.NbDeployHandler;
+
+/**
+ *
+ * @author V. Shyshkin
+ */
+public class JettyEmbeddedServer {
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String[] args) throws Exception {
+        //Server server = new Server(8488);
+        Server server = getHotDeploymentServer(8488);
+        server.addLifeCycleListener(new NbDeployHandler());
+
+        enableAnnotationsJspJNDI(server);
+        enableCDI(server);
+        enableJSF(server);
+        //------------------------------------------------------------
+        // Of course, you can use a line of code, as shown below:
+        //
+        //  Server server =  new Server(8280);
+        //
+        //------------------------------------------------------------
+        //
+        // The next line is required if you create a server manually for example:
+        // Server server = new Server(8080);
+        // It may appear anywhere in the code, but before the line
+        // server.start() and after the Server definition;
+        //
+        //CommandManager cm = CommandManager.getInstance(server);
+        // ------------------------------------------------------------        // If you wish to shut down the server progranmatically the you vust
+        // specify a "shutdown token":
+        //
+        //      cm.setRuntimeShutdownToken("netbeans");
+        //
+        //-------------------------------------------------------------
+        // ========================= SAMPLE CODE ==========================
+        // ContextHandlerCollection chc = new ContextHandlerCollection();
+        // WebAppContext ctx1 = new WebAppContext("WebApp01", "/WebApp01");
+        // WebAppContext ctx2 = new WebAppContext("HTML5Application01", "/HTML5Application01");
+        // WebAppContext ctx3 = new WebAppContext("d:\\NetBeans802Plugins\\TestWebApps\\WebApp02\\build\\web", "/WebApp02");
+        // WebAppContext ctx4 = new WebAppContext("WebAppMaven02", "/WebAppMaven02");
+        // WebAppContext ctx5 = new WebAppContext("BackboneWineCellar", "/BackboneWineCellar");
+        // chc.addHandler(ctx1);
+        // chc.addHandler(ctx2);
+        // chc.addHandler(ctx3);
+        // chc.addHandler(ctx4);
+        // chc.addHandler(ctx5);
+        // HandlerCollection hc = new HandlerCollection();
+        // hc.addHandler(chc);
+        // server.setHandler(hc);
+        server.start();
+        server.join();
+
+    }
+
+    public static void enableAnnotationsJspJNDI(Server server) {
+        org.eclipse.jetty.webapp.Configuration.ClassList classlist
+                = org.eclipse.jetty.webapp.Configuration.ClassList
+                .setServerDefault(server);
+        classlist.addAfter(
+                "org.eclipse.jetty.webapp.FragmentConfiguration",
+                "org.eclipse.jetty.plus.webapp.EnvConfiguration",
+                "org.eclipse.jetty.plus.webapp.PlusConfiguration");
+
+        classlist.addBefore(
+                "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                "org.eclipse.jetty.annotations.AnnotationConfiguration");
+    }
+
+
+    public static void enableCDI(Server server) {
+
+        org.eclipse.jetty.webapp.Configuration.ClassList classlist
+                = org.eclipse.jetty.webapp.Configuration.ClassList
+                .setServerDefault(server);
+        classlist.addAfter(
+                "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                WebNbCDI.class.getName()
+        );
+        
+        server.addLifeCycleListener(new LifeCycle.Listener() {
+
+            @Override
+            public void lifeCycleStarting(LifeCycle lc) {
+            }
+
+            @Override
+            public void lifeCycleStarted(LifeCycle lc) {
+                Handler[] hs = server.getChildHandlersByClass(CustomWebAppContext.class);
+                if (hs.length == 0) {
+
+                    WebAppContext ctx = new CustomWebAppContext();
+                    Handler[] chc = server.getChildHandlersByClass(ContextHandlerCollection.class);
+                    ((ContextHandlerCollection) chc[0]).addHandler(ctx);
+                    try {
+                        ctx.start();
+                    } catch (Exception ex) {
+                        System.err.println("NB-DEPLOYER: EXCEPTION server.lifeCycleStarted(): " + ex.getMessage());
+                    }
+                }
+                
+            }
+
+            @Override
+            public void lifeCycleFailure(LifeCycle lc, Throwable thrwbl) {
+            }
+
+            @Override
+            public void lifeCycleStopping(LifeCycle lc) {
+            }
+
+            @Override
+            public void lifeCycleStopped(LifeCycle lc) {
+            }
+            
+        });
+      
+        
+    }
+    public static class WebNbCDI extends AbstractConfiguration {
+
+        @Override
+        public void preConfigure(WebAppContext context) throws Exception {
+            if (context.getInitParameter("WELD_CONTEXT_ID_KEY") == null) {
+                if (!"/WEB_APP_FOR_CDI_WELD".equals(context.getContextPath())) {
+                    UUID id = UUID.randomUUID();
+                    context.setInitParameter("WELD_CONTEXT_ID_KEY", id.toString());
+                }
+            }
+            //context.getServletContext().addListener("org.jboss.weld.environment.servlet.EnhancedListener");            
+        }
+    }
+
+    public static void enableJSF(Server server) {
+
+        org.eclipse.jetty.webapp.Configuration.ClassList classlist
+                = org.eclipse.jetty.webapp.Configuration.ClassList
+                .setServerDefault(server);
+        classlist.addAfter(
+                "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+                WebNbJSF.class.getName()
+        );
+    }
+    
+    public static Server getHotDeploymentServer(int httpPort) { //throws Exception {
+
+        QueuedThreadPool threadPool = new QueuedThreadPool();
+        System.out.println("maxThreads: " + threadPool.getMaxThreads()); // Дает 200
+        threadPool.setMaxThreads(500);
+        Server server = new Server(threadPool);
+
+        HandlerCollection handlers = new HandlerCollection();
+        ContextHandlerCollection contextHandlers = new ContextHandlerCollection();
+
+        handlers.addHandler(contextHandlers);
+
+        server.setHandler(handlers);
+
+        ServerConnector serverConnector = new ServerConnector(server, new HttpConnectionFactory());
+        serverConnector.setPort(httpPort);
+        server.addConnector(serverConnector);
+
+        DeploymentManager deployer = new DeploymentManager();
+        deployer.setContexts(contextHandlers);
+        deployer.setContextAttribute("org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
+                ".*/[^/]*servlet-api-[^/]*\\.jar$|.*/javax.servlet.jsp.jstl-.*\\.jar$|.*/org.apache.taglibs.taglibs-standard-impl-.*\\.jar$");
+
+        WebAppProvider webappProvider = new WebAppProvider();
+        webappProvider.setMonitoredDirName("./webapps");
+
+        // webdefault.xml is not required. 	
+//        webappProvider.setDefaultsDescriptor("....../webappsxml/webdefault.xml")+;
+        webappProvider.setScanInterval(1);
+        webappProvider.setExtractWars(true);
+        webappProvider.setConfigurationManager(new PropertiesConfigurationManager());
+        deployer.addAppProvider(webappProvider);
+        server.addBean(deployer);
+
+        return server;
+    }
+
+    public static class WebNbJSF extends AbstractConfiguration {
+
+        final String MYFACES_LISTENER = "org.apache.myfaces.webapp.StartupServletContextListener";
+        final String MOJARRA_LISTENER = "com.sun.faces.config.ConfigureListener";
+
+        @Override
+        public void preConfigure(WebAppContext context) throws Exception {
+            Map<String, ? extends FilterRegistration> srf = (Map<String, FilterRegistration>) context.getServletContext().getFilterRegistrations();
+            context.addSystemClass("com.sun.faces.");
+            context.addSystemClass("javax.faces.");
+            context.addSystemClass("com.google.common.");
+
+            context.prependServerClass("-com.sun.faces.");
+            context.prependServerClass("-javax.faces.");
+            context.prependServerClass("-com.google.common.");
+
+            EnumSet<DispatcherType> es = EnumSet.of(DispatcherType.REQUEST);
+            //context.addFilter(JsfFilter.class, "/", es);
+
+            String className = MOJARRA_LISTENER;
+            if (className != null) {
+                context.getServletContext().addListener(className);
+            }
+            EventListener[] els = context.getEventListeners();
+        }
+
+    }//class
+    
+    protected static class CustomWebAppContext extends WebAppContext {
+
+        private static final String CONTEXT_PATH = "/WEB_APP_FOR_CDI_WELD";
+        private static final String PREFIX = "jetty_cdi_weld_support_webapp_stub_";
+        private static final String STUB_FILE_NAME = ".donotdelete";
+        private static final String APPDIR = "./";
+        
+        public CustomWebAppContext() {
+            super();
+            init();
+        }
+
+        private void init() {
+            File tmp = getTempDirectory();
+            if (tmp == null) {
+                tmp = new File(System.getProperty("java.io.tmpdir"));
+            }
+
+
+            Path stub = Paths.get(APPDIR, "resources", STUB_FILE_NAME);
+            System.out.println("@@@@@@@@@@@@@ stub path=" + stub);
+
+            Path dirs = Paths.get(tmp.getPath(), PREFIX + "_DIR");
+            Path war = Paths.get(dirs.toString(), CONTEXT_PATH.substring(1) + "_" + System.currentTimeMillis() + ".war");
+            if (!Files.exists(war)) {
+                try {
+                    if (!Files.exists(dirs)) {
+                        Files.createDirectories(dirs);
+                    }
+                    Files.copy(stub, war);
+
+                } catch (IOException ex) {
+                    System.err.println("NB-DEPLOYER: CustomWebAppContext create directoriesexception " + ex);
+                }
+            }
+            setContextPath(CONTEXT_PATH);
+            setWar(war.toString());
+            war.toFile().deleteOnExit();
+
+        }
+    }
+    
+}
