@@ -9,9 +9,9 @@ import static javax.swing.Action.NAME;
 import javax.swing.JFileChooser;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.j2ee.deployment.devmodules.spi.J2eeModuleProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
@@ -87,7 +87,7 @@ public final class AddDistWebAppAction extends AbstractAction implements Context
                     }
                     File selectedFile = fc.getSelectedFile();
                     FileObject webappFo = FileUtil.toFileObject(selectedFile);
-                    Project webProj = FileOwnerQuery.getOwner(webappFo);                    
+                    Project webProj = FileOwnerQuery.getOwner(webappFo);
                     String msg = ProjectFilter.check(context, webappFo);
                     if (msg != null) {
                         NotifyDescriptor d
@@ -96,20 +96,23 @@ public final class AddDistWebAppAction extends AbstractAction implements Context
                         return;
                     }
                     String webappUri;
-                    
-                    int accept =  ProjectFilter.accept(context, webappFo);
-                    
-                    if ( accept == NOT_ACCEPTED ) {
+
+                    int accept = ProjectFilter.accept(context, webappFo);
+
+                    if (accept == NOT_ACCEPTED) {
                         return;
-                    } else if ( accept == NEEDS_CHANGE_SERVER ) {
+                    } else if (accept == NEEDS_CHANGE_SERVER) {
                         webappUri = ProjectFilter.changeServer(context, webappFo);
-                        if ( webappUri == null ) {
+                        if (webappUri == null) {
                             return;
                         }
-                        Project oldServer = SuiteManager.getManager(webappUri).getServerProject();
-                        DistributedWebAppManager distManager = DistributedWebAppManager.getInstance(oldServer);
-                        distManager.unregister(webProj);
-                        
+                        BaseDeploymentManager m = SuiteManager.getManager(webappUri);
+                        if ( m != null ) {
+                            Project oldServer = m.getServerProject();
+                            DistributedWebAppManager distManager = DistributedWebAppManager.getInstance(oldServer);
+                            distManager.unregister(webProj);
+                        }
+
                     }
                     DistributedWebAppManager distManager = DistributedWebAppManager.getInstance(serverInstance);
                     distManager.register(webProj);
@@ -180,27 +183,37 @@ public final class AddDistWebAppAction extends AbstractAction implements Context
                 return null;
             }
 
-            String webappUri = provider.getServerInstanceID();
-            String uri = BaseUtil.getServerInstanceId(context);
-            String suiteLoc = InstanceProperties.getInstanceProperties(webappUri).getProperty(SuiteConstants.SUITE_PROJECT_LOCATION);
-            String serverId = provider.getServerID();
-            if ( suiteLoc != null ) {
-                serverId = InstanceProperties.getInstanceProperties(webappUri).getProperty(BaseConstants.SERVER_LOCATION_PROP);
-                if ( serverId != null ) {
-                    serverId = new File(serverId).getName();
+            String webappUri = provider.getServerInstanceID(); // old server
+
+            String uri = BaseUtil.getServerInstanceId(context); // target server
+            
+            if (webappUri != null && InstanceProperties.getInstanceProperties(webappUri) != null) {
+                //
+                // we need confirmation dialog
+                //
+                String suiteLoc = InstanceProperties.getInstanceProperties(webappUri).getProperty(SuiteConstants.SUITE_PROJECT_LOCATION);
+                String displayAsServerName = provider.getServerID();
+
+                if (suiteLoc != null) {
+                    displayAsServerName = InstanceProperties.getInstanceProperties(webappUri).getProperty(BaseConstants.SERVER_LOCATION_PROP);
+                    if (displayAsServerName != null) {
+                        displayAsServerName = new File(displayAsServerName).getName();
+                    }
+                }
+
+                if (displayAsServerName == null) {
+                    displayAsServerName = "";
+                } else {
+                    displayAsServerName = "(" + displayAsServerName + ")";
+                }
+                boolean confirmed = notifyAccept(webappFo.getNameExt(), displayAsServerName);
+                if (!confirmed) {
+                    return null;
                 }
             }
-            
-            if (serverId == null) {
-                serverId = "";
-            } else {
-                serverId = "(" + serverId + ")";
-            }
-            boolean confirmed = notifyAccept(webappFo.getNameExt(), serverId);
-            if (!confirmed) {
-                return null;
-            }
-
+            //
+            // Now set target server
+            //
             if (BaseUtil.isMavenProject(webProj)) {
                 AuxiliaryProperties ap = webProj.getLookup().lookup(AuxiliaryProperties.class);
                 String mavenId = ap.get("org-netbeans-modules-maven-j2ee.netbeans_2e_deployment_2e_server_2e_id", false);
@@ -232,7 +245,7 @@ public final class AddDistWebAppAction extends AbstractAction implements Context
 
         }
 
-        private static Project findServerByWebProjectUri(String webappUri, Project serverProject) {
+/*        private static Project findServerByWebProjectUri(String webappUri, Project serverProject) {
 
             Project[] ps = OpenProjects.getDefault().getOpenProjects();
             Project result = null;
@@ -245,7 +258,7 @@ public final class AddDistWebAppAction extends AbstractAction implements Context
             }
             return result;
         }
-
+*/
         private static boolean notifyAccept(String webapp, String serverId) {
             String notifyMsg = NbBundle.getMessage(ProjectFilter.class,
                     "MSG_Web_Project", webapp);

@@ -163,7 +163,7 @@ public final class AddWebRefAction extends AbstractAction implements ContextAwar
             fo = webappFo.getParent();
             if (fo != null && fo.isFolder() && fo.getNameExt().equals(SuiteConstants.REG_WEB_APPS_FOLDER)) {
                 fo = fo.getParent();
-                fo = fo.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_PATH);
+               // fo = fo.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_PATH);
                 if (fo != null) {
                     msg = " The selected project is an inner project of an embedded serverProject";
                     return msg;

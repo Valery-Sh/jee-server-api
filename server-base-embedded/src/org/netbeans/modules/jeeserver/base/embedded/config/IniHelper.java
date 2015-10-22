@@ -25,8 +25,8 @@ public class IniHelper {
     private static final Logger LOG = Logger.getLogger(LibPathFinder.class.getName());
 
     private File file;
-    private List<String> lines = new ArrayList<>();
-    private Path jettyBase;
+    private final List<String> lines = new ArrayList<>();
+    private final Path jettyBase;
 
     protected IniHelper(File file, Path jettyBase) {
         this.file = file;

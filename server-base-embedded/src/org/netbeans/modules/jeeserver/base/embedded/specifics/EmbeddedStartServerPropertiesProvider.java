@@ -10,8 +10,10 @@ import org.netbeans.modules.jeeserver.base.deployment.maven.MavenAuxConfig;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
+import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
 import org.openide.filesystems.FileObject;
 
 /**
@@ -34,11 +36,15 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
 
     @Override
     public FileObject getBuildXml(Project serverProject) {
-
         FileObject fo = serverProject.getProjectDirectory().getFileObject("build.xml");
         if (!BaseUtil.isAntProject(serverProject)) {
             if (fo == null) {
-                fo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER + "/build.xml");
+                String uri = SuiteManager.getManager(serverProject).getUri();
+                FileObject buildFo = SuiteManager
+                        .getServerSuiteProject(uri)
+                        .getProjectDirectory()
+                        .getFileObject("nbconfig/maven-build.xml");
+                fo = DistributedWebAppManager.getInstance(serverProject).copyFile(buildFo);
             }
         }
         return fo;
@@ -80,42 +86,40 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
             cp += ":" + fo.getPath();
         }
 
-        FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
+        /*      FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
 
-        Properties pomProperties = BaseUtil.getPomProperties(cmJar);
-        if (pomProperties != null) {
+         Properties pomProperties = BaseUtil.getPomProperties(cmJar);
+         if (pomProperties != null) {
 
-            String str = pomProperties.getProperty("groupId");
-            str = str.replace(".", "/");
-            str += "/"
-                    + pomProperties.getProperty("artifactId")
-                    + "/"
-                    + pomProperties.getProperty("version")
-                    + "/"
-                    + cmJar.getNameExt();
-            if (cmJar.getParent().getFileObject(str) == null) {
-                properties.setProperty("do.deploy-file", "yes");
-            }
+         String str = pomProperties.getProperty("groupId");
+         str = str.replace(".", "/");
+         str += "/"
+         + pomProperties.getProperty("artifactId")
+         + "/"
+         + pomProperties.getProperty("version")
+         + "/"
+         + cmJar.getNameExt();
+         if (cmJar.getParent().getFileObject(str) == null) {
+         properties.setProperty("do.deploy-file", "yes");
+         }
 
-            properties.setProperty(SuiteConstants.COMMAND_MANAGER_GROUPID,
-                    pomProperties.getProperty("groupId"));
+         properties.setProperty(SuiteConstants.COMMAND_MANAGER_GROUPID,
+         pomProperties.getProperty("groupId"));
 
-            properties.setProperty(SuiteConstants.COMMAND_MANAGER_ARTIFACTID,
-                    pomProperties.getProperty("artifactId"));
-            properties.setProperty(SuiteConstants.COMMAND_MANAGER_VERSION,
-                    pomProperties.getProperty("version"));
-            properties.setProperty(BaseConstants.COMMAND_MANAGER_JAR_NAME_PROP,
-                    pomProperties.getProperty("artifactId") + "-"
-                    + pomProperties.getProperty("version")
-                    + ".jar"
-            );
-        }
-        //properties.setProperty("target.project.classes",
-        //            "target/classes");
+         properties.setProperty(SuiteConstants.COMMAND_MANAGER_ARTIFACTID,
+         pomProperties.getProperty("artifactId"));
+         properties.setProperty(SuiteConstants.COMMAND_MANAGER_VERSION,
+         pomProperties.getProperty("version"));
+         properties.setProperty(BaseConstants.COMMAND_MANAGER_JAR_NAME_PROP,
+         pomProperties.getProperty("artifactId") + "-"
+         + pomProperties.getProperty("version")
+         + ".jar"
+         );
+         }
 
-        properties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
-                SuiteConstants.MAVEN_REPO_LIB_PATH);
-
+         properties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
+         SuiteConstants.MAVEN_REPO_LIB_PATH);
+         */
         properties.setProperty("target", target);
 
         properties.setProperty(SuiteConstants.MAVEN_RUN_CLASSPATH_PROP, cp);
@@ -132,18 +136,24 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
 
         if (classes.size() == 1) {
             mainClass = classes.get(0);
-        } else if (classes.size() > 0 ) {
+        } else if (classes.size() > 0) {
             config = MavenAuxConfig.getInstance(serverProject);
+BaseUtil.out("EmbeddedStartServerPropertiesProvider MavenAuxConfig.getInstance(serverProject)");
             mainClass = config.getMainClass();
+BaseUtil.out("EmbeddedStartServerPropertiesProvider config.getMaiClass()=" + mainClass);            
             if (mainClass != null) {
-                if ( ! BaseUtil.isMavenMainClass(serverProject, mainClass)) {
+                if (!BaseUtil.isMavenMainClass(serverProject, mainClass)) {
                     //
                     // Main Class is specified by customize but actually is not a main class
                     //
                     MavenAuxConfig mac = MavenAuxConfig.customizeMainClass(serverProject, mainClass);
-                    mainClass = mac.getMainClass();                    
+BaseUtil.out("EmbeddedStartServerPropertiesProvider config.getMaiClass()=" + mainClass);            
+                    
+                    mainClass = mac.getMainClass();
+BaseUtil.out("EmbeddedStartServerPropertiesProvider mac.getMainClass()=" + mainClass);            
+                    
                 }
-            } else  {
+            } else {
                 //
                 // Main Class is not specified by customize
                 //
@@ -155,16 +165,16 @@ public class EmbeddedStartServerPropertiesProvider implements StartServerPropert
         if (mainClass != null) {
             properties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, mainClass);
         }
-        if ( config == null ) {
+        if (config == null) {
             config = MavenAuxConfig.getInstance(serverProject);
         }
         String line = config.getProgramArgsLine();
-BaseUtil.out("EmbeddedStartServerPropProviderconfig.getUserArgsLine = " + config.getProgramArgsLine());
+        BaseUtil.out("EmbeddedStartServerPropProviderconfig.getUserArgsLine = " + config.getProgramArgsLine());
         properties.setProperty("user.args.line", line);
         line = config.getJvmArgsLine();
-BaseUtil.out("EmbeddedStartServerPropProviderconfig.getJvmArgsLine = " + config.getJvmArgsLine());
-        
-        properties.setProperty("jvm.args.line", line);        
+        BaseUtil.out("EmbeddedStartServerPropProviderconfig.getJvmArgsLine = " + config.getJvmArgsLine());
+
+        properties.setProperty("jvm.args.line", line);
     }
 
     @Override

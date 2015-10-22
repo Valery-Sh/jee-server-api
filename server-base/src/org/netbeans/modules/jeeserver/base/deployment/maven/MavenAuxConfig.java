@@ -77,9 +77,11 @@ public class MavenAuxConfig {
 BaseUtil.out("MavenAuxConfig/ getInstance.activated = " + instance.activatedProfile);
         // Left for compatability
         Object o = p.getProjectDirectory().getAttribute(AUX_ATTR);
-        if (o == null || !o.getClass().equals(String.class)) {
+BaseUtil.out("MavenAuxConfig/ getInstance getAttribute(AUX_ATTR) " + o);        
+/*        if (o == null || !o.getClass().equals(String.class)) {
             return instance;
         }
+*/
 
         instance.auxAttributeValue = (String) o;
         instance.addNbActionPaths(p);
@@ -242,6 +244,9 @@ BaseUtil.out("MavenAuxConfig/ getInstance.activated = " + instance.activatedProf
 
     protected List<String> createExecArgs() {
         List<String> args = new ArrayList<>();
+BaseUtil.out("MavenAuxConfig/ createExecArgs nbactionsActivatedPath = " + nbactionsActivatedPath );        
+BaseUtil.out("MavenAuxConfig/ createExecArgs activatedProfile = " + activatedProfile );        
+        
         if (activatedProfile == null || nbactionsActivatedPath == null
                 || !new File(nbactionsActivatedPath).exists()) {
             return args;
@@ -250,6 +255,10 @@ BaseUtil.out("MavenAuxConfig/ getInstance.activated = " + instance.activatedProf
 
         try (InputStream is = nbactios.getInputStream()) {
             parseNbActions(is, args);
+BaseUtil.out("MavenAuxConfig/ createExecArgs AFTER  parseNbActions args.size=" + args.size());        
+            args.forEach(a -> {
+                BaseUtil.out("MavenAuxConfig/ createExecArgs AFTER  parseNbActions arg=" + a);        
+            });
         } catch (IOException | SAXException ex) {
             LOG.log(Level.INFO, ex.getMessage());
             return args;

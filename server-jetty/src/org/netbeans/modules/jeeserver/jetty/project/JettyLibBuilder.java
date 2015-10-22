@@ -54,7 +54,12 @@ public class JettyLibBuilder {
 
     private final Map<String, Module> modulesMap = new HashMap<>();
     //private final Map<String, String> jarsMap = new HashMap<>();
-
+    /**
+     * Creates an instance of the class for the specified 
+     * {@link org.netbeans.modules.jeeserver.base.DeploymentBaseDeploymentManager } 
+     * object.
+     * @param manager an instance of the the (@literal DeploymentBaseDeploymentManager}
+     */
     protected JettyLibBuilder(BaseDeploymentManager manager) {
 
         this.manager = manager;
@@ -63,10 +68,21 @@ public class JettyLibBuilder {
         this.baseModules = null;
         init();
     }
-
+    /**
+     * Initialize internal fields such as:
+     * <ul>
+     *   <li>jettyHome</li>
+     *   <li>jettyBase</li>
+     *   <li>jettyVersion</li>
+     *   <li>homeModules</li>
+     *   <li>baseModules</li>
+     * </ul>
+     * The method uses {@InstanceProperties} to get the value of field {@literal jettyHome}.
+     * Then it invokes the method {@link #getJettyBaseDefinedModules() }.
+     */
     private void init() {
         jettyHome = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP);
-        if ( jettyHome != null ) {
+        if (jettyHome != null) {
             jettyHome = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP).replace("\\", "/");
         }
         jettyBase = Paths.get(manager.getServerProject().getProjectDirectory().getPath(), JettyConstants.JETTYBASE_FOLDER)
@@ -84,11 +100,12 @@ public class JettyLibBuilder {
     }
 
     /**
-     * Returns modules that are explicitly defined in ini files of the {@literal  ${jetty.base}
+     * Returns modules that are explicitly defined in {@literal ini} files of the {@literal  ${jetty.base}
      * directory.
      * Dependent modules are not taken into account.
      *
-     * @return all modules that are explicitly defined in ini files of the {@literal  ${jetty.base}
+     * @return all modules that are explicitly defined in  {@literal ini}
+     * files of the {@literal  ${jetty.base}
      * directory.
      */
     public List<String> getJettyBaseDefinedModules() {
@@ -122,7 +139,10 @@ public class JettyLibBuilder {
         }
         return modules;
     }
-
+    /**
+     * 
+     * @return 
+     */
     public JettyLibBuilder build() {
         createModules();
         return this;
@@ -180,54 +200,28 @@ public class JettyLibBuilder {
         for (String nameRef : oldIniModules) {
             if (!startIniModuleNames.contains(nameRef)) {
                 Module mod = modulesMap.get(Paths.get(nameRef).getFileName().toString());
-                if ( mod != null ) {
+                if (mod != null) {
                     mod.delete();
                 }
             }
         }
-            /*        for (String nameRef : oldIniModules) {
-             Module mod = modulesMap.get(Paths.get(nameRef).getFileName().toString());
-             if (modulesMap.containsKey(Paths.get(nameRef).getFileName().toString())) {
-             // We must delete a module
-             BaseUtils.out("$$$$$$$$$$ module to delete = " + nameRef);
-             // this.jarsMap.clear();
-             this.modulesMap.clear();
-             errorMessages.clear();
-             //moduleNames.clear();
-             //jarNames.clear();
-
-             }
-             //
-             // Module not found. An error registered in tne errorMessages list
-             //
-             //String filePath = p.toString().replace("\\", "/");
-             //new Module(this, filePath);
-
-             }
-             */
-            //int count = 0;
-            for (String nameRef : this.startIniModuleNames) {
-                //BaseUtils.out( (++count) + " module = " + nameRef);
-                if (this.modulesMap.containsKey(Paths.get(nameRef).getFileName().toString())) {
-                    continue;
-                }
-                Path p = findModule(nameRef);
-
-                Module m = modulesMap.get(nameRef);
-                //
-                // Module not found. An error registered in tne errorMessages list
-                //
-                String filePath = p.toString().replace("\\", "/");
-                new Module(this, filePath);
-
+        for (String nameRef : this.startIniModuleNames) {
+            if (this.modulesMap.containsKey(Paths.get(nameRef).getFileName().toString())) {
+                continue;
             }
+            Path p = findModule(nameRef);
 
-            return modulesMap;
+            Module m = modulesMap.get(nameRef);
+            //
+            // Module not found. An error registered in tne errorMessages list
+            //
+            String filePath = p.toString().replace("\\", "/");
+            new Module(this, filePath);
+
         }
 
-    
-
-    
+        return modulesMap;
+    }
 
     protected Path findModule(String nameRef) {
         Path p = Paths.get(baseModules, nameRef + ".mod");

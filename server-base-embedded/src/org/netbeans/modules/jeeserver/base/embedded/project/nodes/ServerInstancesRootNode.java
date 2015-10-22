@@ -264,10 +264,19 @@ public class ServerInstancesRootNode extends FilterNode implements ChildrenNotif
         @Override
         public void addNotify() {
             List<String> uris = SuiteManager.getServerInstanceIds(suiteProj);
-            this.setKeys(uris);
+BaseUtil.out("ServerInstanceRootNode uris.size = " + uris.size());
+            if ( uris.size() == 0 ) {
+                removeNotify();
+            } else {
+BaseUtil.out("ServerInstanceRootNode uris[0] = " + uris.get(0));
+                removeNotify();
+                setKeys(uris);
+            }
+            
         }
 
         public void childrenChanged(Object source, Object... params) {
+//            addNotify();
             if (source instanceof DistributedWebAppManager) {
                 DistributedWebAppManager distManager = (DistributedWebAppManager) source;
                 Project instance = distManager.getProject();

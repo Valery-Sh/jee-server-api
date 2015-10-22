@@ -3,10 +3,7 @@ package org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.Properties;
-import javax.lang.model.SourceVersion;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
@@ -21,12 +18,11 @@ import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
-import org.netbeans.modules.jeeserver.base.deployment.maven.MavenAuxConfig;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseActionProviderExecutor;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseAntTaskProgressObject;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
-import static org.netbeans.modules.jeeserver.base.deployment.maven.MavenAuxConfig.AUX_ATTR;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.CustomizerWizardActionAsIterator;
@@ -38,10 +34,6 @@ import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanc
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
-import org.netbeans.spi.project.AuxiliaryConfiguration;
-import org.netbeans.spi.project.ProjectConfiguration;
-import org.netbeans.spi.project.ProjectConfigurationProvider;
-import org.netbeans.spi.project.ui.CustomizerProvider;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.DialogDescriptor;
 import org.openide.DialogDisplayer;
@@ -53,7 +45,6 @@ import org.openide.util.ContextAwareAction;
 import org.openide.util.Exceptions;
 import org.openide.util.Lookup;
 import org.openide.util.RequestProcessor;
-import org.w3c.dom.Element;
 
 /**
  *
@@ -67,7 +58,8 @@ public class ServerActions {
             FileObject fo = context.lookup(FileObject.class);
             Project serverProject = FileOwnerQuery.getOwner(fo);
             Properties props = null;
-            if (!BaseUtil.isAntProject(serverProject) && (needsBuildProject(serverProject) || needsBuildRepo(serverProject))) {
+            if (!BaseUtil.isAntProject(serverProject) && (needsBuildProject(serverProject)) ) {
+                    //|| needsBuildRepo(serverProject))) {
                 props = new Properties();
                 props.setProperty(StartServerAction.ACTION_ENABLED_PROP, "true");
             }
@@ -87,7 +79,7 @@ public class ServerActions {
             return result;
         }
 
-        protected static boolean needsBuildRepo(Project serverProject) {
+/*        protected static boolean needsBuildRepo(Project serverProject) {
 
             FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
 
@@ -108,6 +100,7 @@ public class ServerActions {
             }
             return result;
         }
+*/        
     }
 
     public static class BuildProjectActions extends AbstractAction implements ContextAwareAction {
@@ -588,10 +581,15 @@ public class ServerActions {
                 if (isDummyAction()) {
                     return;
                 }
-                FileObject fo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER + "/build.xml");
+                
+                FileObject fo = SuiteManager.getManager(serverProject)
+                        .getLookup()
+                        .lookup(StartServerPropertiesProvider.class)
+                        .getBuildXml(serverProject);
+                
                 startProperties.setProperty(BaseAntTaskProgressObject.BUILD_XML, fo.getPath());
-
-                FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
+                startProperties.setProperty(SuiteConstants.BASE_DIR_PROP, serverProject.getProjectDirectory().getPath() );
+/*leObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
 
                 Properties pomProperties = BaseUtil.getPomProperties(cmJar);
                 if (pomProperties != null) {
@@ -622,9 +620,9 @@ public class ServerActions {
                             + ".jar"
                     );
                 }
-
-                startProperties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
-                        SuiteConstants.MAVEN_REPO_LIB_PATH);
+*/
+//                startProperties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
+//                        SuiteConstants.MAVEN_REPO_LIB_PATH);
 
                 //
                 // We set MAVEN_DEBUG_CLASSPATH_PROP. In future this approach may change

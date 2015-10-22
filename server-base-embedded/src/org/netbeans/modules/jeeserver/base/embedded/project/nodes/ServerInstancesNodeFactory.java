@@ -54,7 +54,8 @@ public class ServerInstancesNodeFactory implements NodeFactory {
 /*        if (!EmbUtils.isEmbeddedServer(suiteProject)) {
             return NodeFactorySupport.fixedNodeList();
         }
-*/        
+*/       
+        
         try {
             ServerInstancesRootNode node = new ServerInstancesRootNode(suiteProject);
             //node.init(suiteProject);

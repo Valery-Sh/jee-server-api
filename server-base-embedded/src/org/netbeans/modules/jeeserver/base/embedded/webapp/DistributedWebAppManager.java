@@ -7,6 +7,7 @@ package org.netbeans.modules.jeeserver.base.embedded.webapp;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import org.openide.filesystems.FileEvent;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileRenameEvent;
 import org.openide.filesystems.FileUtil;
+import org.openide.util.Exceptions;
 
 /**
  *
@@ -44,7 +46,10 @@ public class DistributedWebAppManager implements FileChangeListener {
 
     public static final int NOT_FOUND = 6;
 
-    public static final int CONTEXTPATH_NOT_FOUND = 6;
+    public static final int CONTEXTPATH_NOT_FOUND = 8;
+    
+    public static final int NOT_A_SUITE = 10;
+
 
     private final Project serverInstance;
 
@@ -60,17 +65,20 @@ public class DistributedWebAppManager implements FileChangeListener {
     public Project getProject() {
         return serverInstance;
     }
+
     public boolean isRegistered(Project webApp) {
         List<FileObject> list = getWebAppFileObjects();
-        if ( list.contains(webApp.getProjectDirectory())) {
+        if (list.contains(webApp.getProjectDirectory())) {
             return true;
         } else {
             return false;
         }
     }
-    public int register(Project webApp) {
-        int result = SUCCESS;
+
+    public Path createRegistry() {
+
         Path serverDir = Paths.get(serverInstance.getProjectDirectory().getPath());
+
         String root = serverDir.getRoot().toString().replaceAll(":", "_");
         if (root.startsWith("/")) {
             root = root.substring(1);
@@ -85,11 +93,75 @@ public class DistributedWebAppManager implements FileChangeListener {
             try {
                 FileUtil.createFolder(file);
             } catch (IOException ex) {
-                result = CREATE_FOLDER_ERROR;
+//                result = CREATE_FOLDER_ERROR;
+                target = null;
                 LOG.log(Level.INFO, ex.getMessage());
             }
         }
+        return target;
 
+    }
+    
+    
+    public FileObject copyFile(FileObject source) {
+        FileObject result = null;
+        Path target = createRegistry().resolve(source.getNameExt());
+        if ( Files.exists(target)) {
+            result = FileUtil.toFileObject(target.toFile());
+        } else {
+            Path sourcePath = FileUtil.toFile(source).toPath();
+            try {
+                Path p = Files.copy(sourcePath, target);
+                result = FileUtil.toFileObject(p.toFile());
+            } catch (IOException ex) {
+                LOG.log(Level.INFO, ex.getMessage());                
+            }
+        }
+        return result;
+    }
+    public String getServerInstanceProperty(String name) {
+        Properties props = new Properties();
+        Path target = createRegistry();
+        if (target == null) {
+            return null;
+        }
+        FileObject propsFo = FileUtil.toFileObject(target.toFile()).getFileObject("server-instance.properties");
+
+        if (propsFo != null) {
+            props = BaseUtil.loadProperties(propsFo);
+        }
+        return props.getProperty(name);
+    }
+
+    public void setServerInstanceProperty(String name, String value) {
+        Properties props = new Properties();
+        Path target = createRegistry();
+        if (target == null) {
+            return;
+        }
+        FileObject propsFo = FileUtil.toFileObject(target.toFile()).getFileObject(SuiteConstants.SERVER_INSTANCE_PROPERTIES_FILE);
+
+        if (propsFo != null) {
+            props = BaseUtil.loadProperties(propsFo);
+            try {
+                propsFo.delete();
+            } catch (IOException ex) {
+                LOG.log(Level.INFO, ex.getMessage());
+            }
+        }
+        props.setProperty(name, value);
+        BaseUtil.storeProperties(props, FileUtil.toFileObject(target.toFile()), SuiteConstants.SERVER_INSTANCE_PROPERTIES_FILE);
+        
+    }
+
+    public void register(Project webApp) {
+        int result = SUCCESS;
+
+        Path target = createRegistry();
+
+        if (target == null) {
+            return;
+        }
         FileObject propsFo = FileUtil.toFileObject(target.toFile()).getFileObject(SuiteConstants.SERVER_INSTANCE_WEB_APPS_PROPS);
         Properties props = new Properties();
         if (propsFo != null) {
@@ -97,7 +169,6 @@ public class DistributedWebAppManager implements FileChangeListener {
             try {
                 propsFo.delete();
             } catch (IOException ex) {
-                result = CREATE_FOLDER_ERROR;
                 LOG.log(Level.INFO, ex.getMessage());
             }
         }
@@ -108,18 +179,16 @@ public class DistributedWebAppManager implements FileChangeListener {
 
         if (cp != null) {
             props.setProperty(cp, webApp.getProjectDirectory().getPath());
-            FileObject targetFo = FileUtil.toFileObject(target.toFile());
         } else {
             result = CONTEXTPATH_NOT_FOUND;
         }
-        if ( result == SUCCESS) {
-            BaseUtil.storeProperties(props, FileUtil.toFileObject(target.toFile()), SuiteConstants.SERVER_INSTANCE_WEB_APPS_PROPS );
+        if (result == SUCCESS) {
+            BaseUtil.storeProperties(props, FileUtil.toFileObject(target.toFile()), SuiteConstants.SERVER_INSTANCE_WEB_APPS_PROPS);
             String uri = SuiteManager.getManager(serverInstance).getUri();
             SuiteNotifier sn = SuiteManager.getServerSuiteProject(uri).getLookup().lookup(SuiteNotifier.class);
             sn.childrenChanged(this, webApp);
-            //sn.childrenChanged();
         }
-        return result;
+        return;
     }
 
     public int unregister(Project webApp) {
@@ -166,18 +235,22 @@ public class DistributedWebAppManager implements FileChangeListener {
         } else {
             result = CONTEXTPATH_NOT_FOUND;
         }
-        if ( result == SUCCESS) {
-            BaseUtil.storeProperties(props, FileUtil.toFileObject(target.toFile()), SuiteConstants.SERVER_INSTANCE_WEB_APPS_PROPS );
+        if (result == SUCCESS) {
+            BaseUtil.storeProperties(props, FileUtil.toFileObject(target.toFile()), SuiteConstants.SERVER_INSTANCE_WEB_APPS_PROPS);
             String uri = SuiteManager.getManager(serverInstance).getUri();
-            SuiteNotifier sn = SuiteManager.getServerSuiteProject(uri).getLookup().lookup(SuiteNotifier.class);
-            sn.childrenChanged(this, webApp);
-            //sn.childrenChanged();
+            Project suite = SuiteManager.getServerSuiteProject(uri);
+            if ( suite == null ) {
+                result = NOT_A_SUITE;
+            } else {
+                SuiteNotifier sn = suite.getLookup().lookup(SuiteNotifier.class);
+                sn.childrenChanged(this, webApp);
+            }
         }
         return result;
 
     }
 
-    private FileObject getTmpWebAppsDir() {
+    public FileObject getRegistry() {
         Path serverDir = Paths.get(serverInstance.getProjectDirectory().getPath());
         String root = serverDir.getRoot().toString().replaceAll(":", "_");
         if (root.startsWith("/")) {
@@ -193,22 +266,22 @@ public class DistributedWebAppManager implements FileChangeListener {
     public List<FileObject> getWebAppFileObjects() {
         List<FileObject> list = new ArrayList<>();
         Properties props = getWebAppsProperties();
-        props.forEach((k,v) -> {
+        props.forEach((k, v) -> {
             FileObject fo = FileUtil.toFileObject(new File((String) v));
-            if ( fo != null ) {
+            if (fo != null) {
                 Project p = FileOwnerQuery.getOwner(fo);
-                if ( p != null ) {
+                if (p != null) {
                     list.add(fo);
                 }
             }
         });
-        
+
         return list;
     }
 
     protected Properties getWebAppsProperties() {
         Properties props = new Properties();
-        FileObject target = getTmpWebAppsDir();
+        FileObject target = getRegistry();
         if (target == null) {
             return props;
         }
@@ -235,17 +308,17 @@ public class DistributedWebAppManager implements FileChangeListener {
 
     }
 
-    public boolean exists(Project webApp) {
+/*    public boolean exists(Project webApp) {
         boolean result = false;
         return result;
     }
-
-    public FileObject findByContextpath(String cp) {
+*/
+/*    public FileObject findByContextpath(String cp) {
         FileObject result = null;
 
         return result;
     }
-
+*/
     @Override
     public void fileFolderCreated(FileEvent fe) {
     }

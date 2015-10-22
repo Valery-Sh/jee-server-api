@@ -56,6 +56,7 @@ public class BaseServerIconAnnotator implements ProjectIconAnnotator {
     public Image annotateIcon(Project p, Image orig, boolean openedNode) {
         if ("AServerSuite01".equals(p.getProjectDirectory().getNameExt())) {
         }
+        
         BaseDeploymentManager dm = BaseUtil.managerOf(p);
         if (dm == null) {
             return orig;

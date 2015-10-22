@@ -16,14 +16,15 @@ public class SuiteConstants extends BaseConstants {
         WARS
     }
     // ----------- CommandManager properties names ---------------------
+    public static String BASE_DIR_PROP = "base.dir";
     public static String COMMAND_MANAGER_PROPERIES_PROP = "command.manager.pom.properties";    
     public static final String COMMAND_MANAGER_GROUPID = "command.manager.groupId";
     public static final String COMMAND_MANAGER_ARTIFACTID = "command.manager.artifactId";    
     public static final String COMMAND_MANAGER_VERSION = "command.manager.version";    
-    public static final String INSTANCE_NBDEPLOYMENT_FOLDER = "nbdeployment"; 
+//    public static final String INSTANCE_NBDEPLOYMENT_FOLDER = "nbdeployment"; 
     
-    public static final String MAVEN_REPO_LIB_PATH = INSTANCE_NBDEPLOYMENT_FOLDER + "/lib";        
-    public static final String MAVEN_REPO_LIB_PATH_PROP = "maven.repo.lib.path";            
+    //public static final String MAVEN_REPO_LIB_PATH = INSTANCE_NBDEPLOYMENT_FOLDER + "/lib";        
+    //public static final String MAVEN_REPO_LIB_PATH_PROP = "maven.repo.lib.path";            
     public static final String ANT_LIB_PATH = "lib";            
     
     // ----------- END CommandManager properties names -------------------------------------------------
@@ -55,7 +56,7 @@ public class SuiteConstants extends BaseConstants {
 
     public static final String  DIST_WEB_APPS = "dist-web-apps";
 
-    public static final String  DIST_WEB_APPS_LOCATION = INSTANCE_NBDEPLOYMENT_FOLDER + "/" + DIST_WEB_APPS;
+//    public static final String  DIST_WEB_APPS_LOCATION = INSTANCE_NBDEPLOYMENT_FOLDER + "/" + DIST_WEB_APPS;
     
     @StaticResource
     public static final String SERVER_INSTANCES_ICON = "org/netbeans/modules/jeeserver/base/embedded/resources/nbservers-16x16.png";
@@ -106,11 +107,11 @@ public class SuiteConstants extends BaseConstants {
     
     public static final String REG_WEB_APPS_FOLDER = SERVER_CONFIG_FOLDER + "/reg-web-apps";  
     
-    public static final String INSTANCE_PROPERTIES_FILE = "server-instance.properties";        
+    public static final String SERVER_INSTANCE_PROPERTIES_FILE = "server-instance.properties";        
     //public static final String INSTANCE_PROPERTIES_PATH = REG_WEB_APPS_FOLDER + "/" + INSTANCE_PROPERTIES_FILE;    
     
     public static final String WEBAPPS_DEFAULT_DIR_NAME = "web-apps";
 
-    public static final String INSTANCE_PROPERTIES_PATH = SERVER_PROJECT_FOLDER + "/src/main/resources/" + INSTANCE_PROPERTIES_FILE;
+    //public static final String INSTANCE_PROPERTIES_PATH = SERVER_PROJECT_FOLDER + "/src/main/resources/" + INSTANCE_PROPERTIES_FILE;
     
 }

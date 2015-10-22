@@ -1,7 +1,6 @@
 package org.netbeans.modules.jeeserver.base.embedded.specifics;
 
 import java.io.InputStream;
-import javax.swing.event.ChangeEvent;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;

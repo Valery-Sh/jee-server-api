@@ -267,7 +267,7 @@ public class JettyServerSpecifics implements ServerSpecifics {
      */
     @Override
     public int getDefaultShutdownPort() {
-        return 8180;
+        return 9090;
     }
 
     @Override

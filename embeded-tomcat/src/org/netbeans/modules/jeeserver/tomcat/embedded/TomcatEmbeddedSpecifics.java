@@ -48,15 +48,16 @@ import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectUtils;
 import org.netbeans.api.project.SourceGroup;
 import org.netbeans.api.project.Sources;
-import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.WizardDescriptorPanel;
-import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbUtils;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
+import org.netbeans.modules.jeeserver.*;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.EmbConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtils;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.loaders.DataFolder;
@@ -71,6 +72,7 @@ import org.openide.util.Utilities;
  */
 public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     
+    
     private static final Logger LOG = Logger.getLogger(TomcatEmbeddedSpecifics.class.getName());
 
     @StaticResource
@@ -79,11 +81,12 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
 //    private static final String HELPER_JAR = "nb-tomcat-helper.jar";
 
     @Override
-    public boolean pingServer(Project serverProject) {
-        ServerInstanceProperties sp = EmbUtils.getServerProperties(serverProject);
+    public boolean pingServer(BaseDeploymentManager dm) {
+        
+//        ServerInstanceProperties sp = SuiteUtil.getServerProperties(serverProject);
 
         Socket socket = new Socket();
-        int port = Integer.parseInt(sp.getHttpPort());
+        int port = Integer.parseInt(dm.getInstanceProperties().getProperty(BaseConstants.HTTP_PORT_PROP));
         int timeout = 2000;
         try {
             try {
@@ -134,13 +137,12 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     }
 
     @Override
-    public boolean shutdownCommand(Project serverProject) {
+    public boolean shutdownCommand(BaseDeploymentManager dm) {
 
-        ServerInstanceProperties sp = EmbUtils.getServerProperties(serverProject);
-
+        int port = Integer.parseInt(dm.getInstanceProperties().getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
         // checking whether a socket can be created is not reliable enough, see #47048
         Socket socket = new Socket();
-        int port = Integer.parseInt(sp.getShutdownPort());
+        
 
         int timeout = 2000;
         try {
@@ -165,7 +167,7 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
 
         long pingtimeout = System.currentTimeMillis() + BaseConstants.SERVER_TIMEOUT_DELAY;
         boolean result = true;
-        while (pingServer(serverProject)) {
+        while (pingServer(dm)) {
             try {
                 Thread.sleep(200);
             } catch (InterruptedException ie) {
@@ -179,15 +181,15 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     }
 
     @Override
-    public String execCommand(Project serverProject, String cmd) {
+    public String execCommand(BaseDeploymentManager dm, String cmd) {
         HttpURLConnection connection = null;
         String result = null;
         try {
             String urlstr = "/jeeserver/manager?" + cmd;
             
-            BaseUtils.out("TomcatSpecifics: deployCommand urlStr=" + urlstr);
+            BaseUtil.out("TomcatSpecifics: deployCommand urlStr=" + urlstr);
 
-            URL url = new URL(buildUrl(serverProject) + urlstr);
+            URL url = new URL(buildUrl(dm) + urlstr);
             connection = (HttpURLConnection) url.openConnection();
 
             connection.setRequestMethod("POST");
@@ -243,9 +245,8 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
         return command.substring(4, i).equals("printinfo");
     }
 
-    private String buildUrl(Project p) {
-        ServerInstanceProperties sp = EmbUtils.getServerProperties(p);
-        return "http://" + sp.getHost() + ":" + sp.getHttpPort();
+    private String buildUrl(BaseDeploymentManager dm) {
+        return "http://localhost:" + dm.getInstanceProperties().getProperty(BaseConstants.HTTP_PORT_PROP);
     }
 
     @Override
@@ -257,7 +258,7 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     public Image getProjectImage(Project serverProject) {
         return ImageUtilities.loadImage(IMAGE);
     }
-
+/*
     @Override
     public void projectCreated(FileObject projectDir, Map<String, Object> props) {
         //
@@ -268,7 +269,7 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
         //
         // Add command-manager.jar to the classpath of the project
         //
-        String actualServerId = (String)props.get(EmbConstants.SERVER_ACTUAL_ID_PROP);
+        String actualServerId = (String)props.get(SuiteConstants.SERVER_ACTUAL_ID_PROP);
         String cmOut = actualServerId + "-command-manager";
         String cmIn = "/org/netbeans/modules/jeeserver/tomcat/embedded/resources/" + actualServerId + "-command-manager.jar";
         
@@ -351,16 +352,17 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
         props.setProperty("main.class", "org.embedded.server.TomcatEmbeddedServer");
         BaseUtils.storeEditableProperties(props, fo);
     }
+    @Override
+    public WizardDescriptorPanel getAddonCreateProjectPanel(org.openide.WizardDescriptor wiz) {
+        return null;
+    }
 
+*/
     @Override
     public boolean needsShutdownPort() {
         return true;
     }
 
-    @Override
-    public WizardDescriptorPanel getAddonCreateProjectPanel(org.openide.WizardDescriptor wiz) {
-        return null;
-    }
 
     @Override
     public int getDefaultPort() {
@@ -377,11 +379,11 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
         return 9191;
     }
 
-    public void redeployCommand(Project serverProject, String oldContextPath, String oldWebApplication, String newContextPath, String newWebApplication) {
+    public void redeployCommand(BaseDeploymentManager dm, String oldContextPath, String oldWebApplication, String newContextPath, String newWebApplication) {
         HttpURLConnection connection = null;
 
         try {
-            BaseUtils.out("DEPLOY COMMAND contetPath = " + oldContextPath + "; newContetPath = " + newContextPath);
+            BaseUtil.out("DEPLOY COMMAND contetPath = " + oldContextPath + "; newContetPath = " + newContextPath);
 
             String encContextPath = oldContextPath;
             if (oldContextPath == null || oldContextPath.trim().isEmpty()) {
@@ -400,7 +402,7 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
             String urlstr = "/jeeserver/manager?cmd=redeploy&olddir=" + l + "&oldcp=" + c
                     + "&dir=" + ln + "&cp=" + cn;
 
-            URL url = new URL(buildUrl(serverProject) + urlstr);
+            URL url = new URL(buildUrl(dm) + urlstr);
 
             connection = (HttpURLConnection) url.openConnection();
 
@@ -417,18 +419,13 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     }
 
     @Override
-    public boolean supportsDistributeAs(EmbConstants.DistributeAs distributeAs) {
+    public boolean supportsDistributeAs(SuiteConstants.DistributeAs distributeAs) {
         boolean result = true;
         switch (distributeAs) {
             case SINGLE_JAR_UNPACKED_WARS:
                 result = false;
         }
         return result;
-    }
-
-    @Override
-    public boolean isEmbedded() {
-        return true;
     }
     
     @Override

@@ -23,9 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -41,7 +39,6 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationExceptio
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
-import org.netbeans.modules.jeeserver.base.deployment.utils.Copier;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
@@ -87,9 +84,9 @@ public abstract class InstanceBuilder {
 
     public abstract InputStream getZipTemplateInputStream();
 
-    public abstract void createOrUpdateNbDeployment(Set result);
+    public abstract void updateWithTemplates(Set result);
 
-    public abstract void removeCommandManager(Project project);
+    //public abstract void removeCommandManager(Project project);
 
     public WizardDescriptor getWizardDescriptor() {
         return wiz;
@@ -99,7 +96,7 @@ public abstract class InstanceBuilder {
         this.wiz = wiz;
     }
     
-    protected abstract String getCommandManagerJarTemplateName();
+    //protected abstract String getCommandManagerJarTemplateName();
 
     protected void runInstantiateProjectDir(Set result) throws IOException {
 
@@ -121,7 +118,7 @@ public abstract class InstanceBuilder {
         OpenProjects.getDefault().open(new Project[]{p}, true);
         result.add(p);
         
-        createOrUpdateNbDeployment(result);
+        updateWithTemplates(result);
     }
 
     /**
@@ -147,6 +144,7 @@ public abstract class InstanceBuilder {
 
         FileUtil.runAtomicAction((Runnable) () -> {
             try {
+BaseUtil.out("InstanceBuilder invoke runInstantiateProjectDir");
                 runInstantiateProjectDir(result);
             } catch (IOException ex) {
                 LOG.log(Level.FINE, ex.getMessage()); //NOI18N

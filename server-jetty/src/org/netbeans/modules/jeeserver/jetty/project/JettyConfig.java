@@ -58,9 +58,10 @@ public class JettyConfig {
 
         if (config == null) {
             config = new JettyConfig(server);
-            config.libBuilder = new JettyLibBuilder(BaseUtil.managerOf(server.getLookup()));
             configs.put(server, config);
         }
+        config.libBuilder = new JettyLibBuilder(BaseUtil.managerOf(server.getLookup()));
+        
 
         return config;
     }

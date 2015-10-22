@@ -18,8 +18,6 @@ package org.netbeans.modules.jeeserver.base.embedded;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.Map;
 import java.util.Properties;
@@ -42,9 +40,9 @@ import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.deployment.utils.LibrariesFileLocator;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
+import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
 import org.openide.util.Utilities;
 
 /**
@@ -65,7 +63,7 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
     public boolean isMavenbased() {
         return mavenbased;
     }
-
+/*
     public void copyBuildXml(FileObject targetFolder) throws IOException {
         if (BaseUtil.isAntProject(FileOwnerQuery.getOwner(targetFolder))) {
             return;
@@ -86,7 +84,7 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
         }
 
     }
-
+*/
     public void setMavenbased(boolean mavenbased) {
         this.mavenbased = mavenbased;
     }
@@ -219,27 +217,14 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
     }
 
     protected void updateServerInstanceProperties(Project project) {
-
-        FileObject fo = project.getProjectDirectory().getFileObject("nbdeployment/server-instance.properties");
-        Properties props = new Properties();
+        DistributedWebAppManager distManager = DistributedWebAppManager.getInstance(project);
         String port = (String) getWizardDescriptor().getProperty(BaseConstants.HTTP_PORT_PROP);
         if (port == null) { // Cannot be
             port = "8080";
         }
-        try {
-            if (fo != null) {
-                props = BaseUtil.loadProperties(fo);
-                if (props == null) {
-                    return;
-                }
-                fo.delete();
-            }
-            props.setProperty(BaseConstants.HTTP_PORT_PROP, port);
-            fo = project.getProjectDirectory().getFileObject("nbdeployment");
-            BaseUtil.storeProperties(props, fo, "server-instance.properties");
-        } catch (IOException ex) {
-            LOG.log(Level.INFO, ex.getMessage()); //NOI18N
-        }
+        
+        distManager.setServerInstanceProperty(BaseConstants.HTTP_PORT_PROP, port);
+        
     }
 
 }

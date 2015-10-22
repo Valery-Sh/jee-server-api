@@ -59,19 +59,10 @@ public class JettyCustomizeInstanceBuilder extends EmbeddedInstanceBuilder {
     }
 
     @Override
-    public void createOrUpdateNbDeployment(Set result) {
+    public void updateWithTemplates(Set result) {
         throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
     }
 
-    @Override
-    public void removeCommandManager(Project project) {
-        throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    protected String getCommandManagerJarTemplateName() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
 
     @Override
     protected FileObject getLibDir(Project project) {

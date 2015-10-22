@@ -154,9 +154,7 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
 
     ServerSpecifics getSpecifics() {
         String serverId = BaseUtil.getServerIdByAcualId(getActualServerId());
-        BaseUtil.out("SERVER INSTANCE CONNECTOR:  serverId=" + serverId);
         ServerSpecifics ss = BaseUtil.getServerSpecifics(serverId);
-        BaseUtil.out("SERVER INSTANCE CONNECTOR:  specifics=" + ss);
         
         return BaseUtil.getServerSpecifics(serverId);
     }

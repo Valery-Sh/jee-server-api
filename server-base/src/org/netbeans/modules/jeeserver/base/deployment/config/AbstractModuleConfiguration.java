@@ -226,9 +226,7 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
         }
         Project srv = getServerProject(instanceId);
         if (srv != null) {
-BaseUtil.out("AbstractModuleConfigurations instanceId=" + instanceId);
             final AvailableWebModules<AbstractModuleConfiguration> avm = srv.getLookup().lookup(AvailableWebModules.class);
-BaseUtil.out("AbstractModuleConfigurations avm=" + avm);
             if ( avm == null ) {
                 return;
             }

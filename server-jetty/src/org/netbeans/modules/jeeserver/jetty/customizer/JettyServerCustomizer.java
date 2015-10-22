@@ -37,6 +37,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.jetty.project.nodes.libs.LibUtil;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyServerInstancePanelVisual;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyServerInstanceWizardPanel;
 import org.netbeans.modules.jeeserver.jetty.project.template.JettyProperties;
@@ -243,6 +244,7 @@ public class JettyServerCustomizer extends JettyServerInstancePanelVisual implem
         store(wiz);
         InstanceProperties ip = InstanceProperties.getInstanceProperties(manager.getUri());
         String homeDir = (String) wiz.getProperty(BaseConstants.HOME_DIR_PROP);
+        String oldHomeDir = ip.getProperty(BaseConstants.HOME_DIR_PROP);
         ip.setProperty(BaseConstants.HOME_DIR_PROP, homeDir);
 //        JettyProperties jvs = JettyProperties.getInstance(wiz);
 
@@ -268,6 +270,9 @@ public class JettyServerCustomizer extends JettyServerInstancePanelVisual implem
         });
 */
         updateHttpIni(manager.getServerProject().getProjectDirectory(), iniProps);
+        if ( ! homeDir.equals(oldHomeDir)) {
+            LibUtil.updateLibraries(manager.getServerProject());
+        }
         // 
         // Change ${jetty.base}/star.d
         //
@@ -330,10 +335,6 @@ public class JettyServerCustomizer extends JettyServerInstancePanelVisual implem
         props.setProperty(prop, iniProps.getProperty(BaseConstants.HTTP_PORT_PROP));
 
         prop = jvs.getTimeoutPropertyName();
-        BaseUtil.out("jvs.getTimeoutPropertyName()=" + prop);
-        BaseUtil.out("jvs.getTimeoutPropertyName()=" + prop);
-        
-        BaseUtil.out("iniProps.getProperty(JettyConstants.JETTY_HTTP_TIMEOUT)=" + iniProps.getProperty(JettyConstants.JETTY_HTTP_TIMEOUT));
         
         props.setProperty(prop, iniProps.getProperty(JettyConstants.JETTY_HTTP_TIMEOUT));
         try (FileOutputStream fos = new FileOutputStream(httpIni.getPath())) {

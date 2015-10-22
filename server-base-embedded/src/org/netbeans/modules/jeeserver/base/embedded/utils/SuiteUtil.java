@@ -44,11 +44,9 @@ public class SuiteUtil extends BaseUtil {
 
 
     public static FileObject getCommandManagerJar(Project server) {
-        FileObject lib;
+        FileObject lib = null;
         if (BaseUtil.isAntProject(server)) {
             lib = server.getProjectDirectory().getFileObject(SuiteConstants.ANT_LIB_PATH + "/ext");
-        } else {
-            lib = server.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
         }
 
         if (lib == null) {
@@ -112,7 +110,8 @@ public class SuiteUtil extends BaseUtil {
 
     public static StringBuilder getServerInfo(Project server) {
 
-        Properties props = SuiteUtil.loadServerProperties(server);
+        //Properties props = SuiteUtil.loadServerProperties(server);
+        Properties props = null;
         StringBuilder sb = new StringBuilder();
         int len = 50;
         String sep = System.lineSeparator();
@@ -123,7 +122,7 @@ public class SuiteUtil extends BaseUtil {
                 .append(sep)
                 .append("SERVER: ")
                 .append("\t\t")
-                .append(props.getProperty(BaseConstants.SERVER_ID_PROP))
+                //.append(props.getProperty(BaseConstants.SERVER_ID_PROP))
                 .append(sep)
                 .append("--- Name:\t\t")
                 .append(file.getName())
@@ -132,16 +131,16 @@ public class SuiteUtil extends BaseUtil {
                 .append(file.getAbsolutePath())
                 .append(sep)
                 .append("--- Host:\t\t")
-                .append(props.getProperty(BaseConstants.HOST_PROP))
+                //.append(props.getProperty(BaseConstants.HOST_PROP))
                 .append(sep)
                 .append("--- Http Port:\t\t")
-                .append(props.getProperty(BaseConstants.HTTP_PORT_PROP))
+                //.append(props.getProperty(BaseConstants.HTTP_PORT_PROP))
                 .append(sep)
                 .append("--- Debug Port:\t\t")
-                .append(props.getProperty(BaseConstants.DEBUG_PORT_PROP))
+                //.append(props.getProperty(BaseConstants.DEBUG_PORT_PROP))
                 .append(sep)
-                .append("--- Incr Deploy:\t")
-                .append(props.getProperty(BaseConstants.INCREMENTAL_DEPLOYMENT))
+                //.append("--- Incr Deploy:\t")
+                //.append(props.getProperty(BaseConstants.INCREMENTAL_DEPLOYMENT))
                 .append(sep)
                 .append(replicate('=', len))
                 .append(sep);
@@ -418,11 +417,11 @@ public class SuiteUtil extends BaseUtil {
      * @return an instance of properties that corresponds the server
      * configuration file
      */
-    public static Properties loadServerProperties(Project serverProject) {
+/*    public static Properties loadServerProperties(Project serverProject) {
         FileObject fo = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
         return loadProperties(fo, SuiteConstants.INSTANCE_PROPERTIES_FILE);
     }
-
+*/
     private static Properties loadProperties(FileObject propFolder, String fileName) {
         FileObject fo = propFolder.getFileObject(fileName);
         if (fo == null) {

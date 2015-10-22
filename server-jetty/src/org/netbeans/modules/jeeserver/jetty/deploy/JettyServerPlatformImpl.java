@@ -37,6 +37,7 @@ import org.netbeans.modules.j2ee.deployment.common.api.J2eeLibraryTypeProvider;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformImpl2;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.jetty.project.JettyConfig;
 import org.netbeans.spi.project.libraries.LibraryImplementation;
 import org.openide.DialogDisplayer;
@@ -66,7 +67,7 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
     private ServerInstanceProperties sp;
     private BaseDeploymentManager manager;
     private JettyLibBuilder jettyLibBuilter;
-    LibraryImplementation[] libraries;
+    public LibraryImplementation[] libraries;
 
     /**
      * Creates a new instance of the Jetty Installation.
@@ -79,6 +80,7 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
     }
 
     public static JettyServerPlatformImpl getInstance(BaseDeploymentManager manager) {
+
         if (manager.getPlatform() == null) {
             String homePath = manager.getInstanceProperties().getProperty(BaseConstants.HOME_DIR_PROP);
             JettyServerPlatformImpl p = new JettyServerPlatformImpl(manager);
@@ -112,7 +114,7 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
             libraries = null;
         }
         //if (fireEvents) {
-            firePropertyChange(PROP_LIBRARIES, null, getLibraries());
+        firePropertyChange(PROP_LIBRARIES, null, getLibraries());
         //}
     }
 
@@ -167,7 +169,6 @@ public class JettyServerPlatformImpl extends J2eePlatformImpl2 {
         if ( lostHomeDir ) {
             return new LibraryImplementation[0];
         }
-        
         if (libraries == null) {
             J2eeLibraryTypeProvider libProvider = new J2eeLibraryTypeProvider();
             LibraryImplementation lib = libProvider.createLibrary();

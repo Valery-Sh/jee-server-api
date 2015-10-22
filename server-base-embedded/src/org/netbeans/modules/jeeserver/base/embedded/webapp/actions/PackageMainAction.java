@@ -440,7 +440,8 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
                     Path packageDistPath = projPath.resolve(SuiteConstants.PACKAGE_DIST);
                     String serverJarName = projPath.getFileName() + ".jar";
                     File serverJar = packageDistPath.resolve(serverJarName).toFile();
-                    File serverProps = projPath.resolve(SuiteConstants.INSTANCE_PROPERTIES_PATH).toFile();
+                    //File serverProps = projPath.resolve(SuiteConstants.INSTANCE_PROPERTIES_PATH).toFile();
+                    File serverProps = null;
 
                     try {
 
@@ -467,7 +468,8 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
         }
 
         protected File getWebappsFolder(Project serverProject) {
-            Properties props = SuiteUtil.loadServerProperties(serverProject);
+            //Properties props = SuiteUtil.loadServerProperties(serverProject);
+            Properties props = null;            
 
             String warsFolderName = props.getProperty(SuiteConstants.WEBAPPS_DIR_PROP);
             if (warsFolderName == null) {
@@ -478,7 +480,8 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
         }
 
         protected boolean updateWebappsFolder(Project serverProject) {
-            Properties props = SuiteUtil.loadServerProperties(serverProject);
+            //Properties props = SuiteUtil.loadServerProperties(serverProject);
+            Properties props = null;
 
             String warsFolderName = props.getProperty(SuiteConstants.WEBAPPS_DIR_PROP);
             String newFolderName = warsFolderName;
@@ -493,7 +496,7 @@ public class PackageMainAction extends AbstractAction implements ContextAwareAct
             if (newFolderName != null && !newFolderName.equals(warsFolderName)) {
                 props.setProperty(SuiteConstants.WEBAPPS_DIR_PROP, newFolderName);
                 FileObject target = serverProject.getProjectDirectory().getFileObject(SuiteConstants.REG_WEB_APPS_FOLDER);
-                SuiteUtil.updateProperties(props, target, SuiteConstants.INSTANCE_PROPERTIES_FILE);
+//                SuiteUtil.updateProperties(props, target, SuiteConstants.INSTANCE_PROPERTIES_FILE);
             }
             return true;
         }

@@ -3,25 +3,23 @@ package org.netbeans.modules.jeeserver.jetty.embedded;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
-import org.openide.xml.XMLUtil;
-import org.w3c.dom.DOMException;
+import org.openide.loaders.DataFolder;
+import org.openide.loaders.DataObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  *
@@ -45,7 +43,8 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
 
     @Override
     protected FileObject getLibDir(Project p) {
-        return p.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
+        return null;
+        //return p.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
     }
 
     @Override
@@ -71,7 +70,7 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
      *
      * @param project
      */
-    @Override
+/*    @Override
     protected void modifyPomXml(Project project) {
         FileObject projDir = project.getProjectDirectory();
 
@@ -131,6 +130,7 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
         }
 
     }
+*/    
     protected void updateMavenElValue(Document doc, String elName, String elValue) {
 
         NodeList nl = doc.getDocumentElement().getElementsByTagName(elName);
@@ -160,5 +160,59 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
                 + zipMavenTemplatePath);
     }
 
+    @Override
+    public void updateWithTemplates(Set result) {
+        Project proj = findProject(result);
+
+        String classpackage = (String) getWizardDescriptor()
+                .getProperty("package");
+
+        updateServerInstanceProperties(proj);
+        //
+        // Plugin jar => we can create a class from template
+        //
+        DataObject template;
+        DataFolder outputFolder;
+
+        Map<String, Object> templateParams = new HashMap<>(1);
+        try {
+
+            FileObject srcFo = getSrcDir(proj);
+
+            FileObject toDelete = srcFo.getFileObject("javaapplication0");
+            if (toDelete != null) {
+                toDelete.delete();
+            }
+            FileObject targetFo = srcFo;
+
+            if (classpackage != null) {
+                String path = classpackage.replace(".", "/");
+                targetFo = FileUtil.createFolder(targetFo, path);
+
+            } else {
+                classpackage = "org.embedded.server";
+                targetFo = srcFo.createFolder("org")
+                        .createFolder("embedded")
+                        .createFolder("server");
+            }
+
+            outputFolder = DataFolder.findFolder(targetFo);
+            template = DataObject.find(
+                    FileUtil.getConfigFile("Templates/jetty9/JettyEmbeddedServer"));
+            templateParams.put("port", getWizardDescriptor().getProperty(BaseConstants.HTTP_PORT_PROP));
+            //templateParams.put("comStart", "");
+            //templateParams.put("comEnd", "");
+            templateParams.put("classpackage", classpackage);
+//            templateParams.put("command.manager.param", getCommandManagerJarTemplateName());
+
+            template.createFromTemplate(
+                    outputFolder,
+                    "JettyEmbeddedServer.java",
+                    templateParams);
+        } catch (IOException ex) {
+            LOG.log(Level.INFO, ex.getMessage()); //NOI18N
+        }
+    }
+    
 
 }

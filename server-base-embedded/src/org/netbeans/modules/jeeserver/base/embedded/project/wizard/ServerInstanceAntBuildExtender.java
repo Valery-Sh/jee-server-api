@@ -16,6 +16,7 @@ import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
 import org.netbeans.spi.project.support.ant.GeneratedFilesHelper;
 import org.openide.filesystems.FileObject;
 import org.openide.xml.XMLUtil;
@@ -108,37 +109,31 @@ public class ServerInstanceAntBuildExtender extends ServerInstanceBuildExtender 
         updateNbDeploymentFile();
     }
 
-    @Override
     public void updateNbDeploymentFile() {
         FileObject projFo = project.getProjectDirectory();
-        try {
-            FileObject d = projFo.getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
-            if (d != null) {
-                
-                updateNbDeploymentFile(d);
-                return;
-            }
-            FileObject toDir = projFo.createFolder(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
-            Properties props = new Properties();
-            InstanceProperties ip = SuiteManager.getManager(project).getInstanceProperties();
-            props.setProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
-            BaseUtil.storeProperties(props, toDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
-        } catch (IOException ex) {
-            LOG.log(Level.INFO, ex.getMessage());
+/*        FileObject d = projFo.getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
+        if (d != null) {
+            updateNbDeploymentFile(d);
+            return;
         }
+*/        
+//            FileObject toDir = projFo.createFolder(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
+//            Properties props = new Properties();
+        DistributedWebAppManager distManager = DistributedWebAppManager.getInstance(project);
+        InstanceProperties ip = SuiteManager.getManager(project).getInstanceProperties();
+        distManager.setServerInstanceProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
+//            props.setProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
+//            BaseUtil.storeProperties(props, toDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
     }
 
     @Override
     public void updateNbDeploymentFile(FileObject nbDir) {
-        FileObject propsFo = nbDir.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_FILE);
-        Properties props = new Properties();
-        if (propsFo != null) {
-            props = BaseUtil.loadProperties(propsFo);
-        } 
-        InstanceProperties ip = SuiteManager.getManager(project).getInstanceProperties();
-        props.setProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
-        BaseUtil.updateProperties(props, nbDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
+        DistributedWebAppManager distManager = DistributedWebAppManager.getInstance(project);
 
+        //FileObject propsFo = nbDir.getFileObject(SuiteConstants.INSTANCE_PROPERTIES_FILE);
+        InstanceProperties ip = SuiteManager.getManager(project).getInstanceProperties();
+        distManager.setServerInstanceProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
+        //BaseUtil.updateProperties(props, nbDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
     }
 
     protected void rebuild() {
@@ -194,7 +189,7 @@ public class ServerInstanceAntBuildExtender extends ServerInstanceBuildExtender 
      */
     public void disableExtender() {
         removeBuildScript();
-        try {
+/*        try {
             FileObject projFo = project.getProjectDirectory();
             FileObject toDelete = projFo.getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
             if (toDelete != null) {
@@ -204,7 +199,7 @@ public class ServerInstanceAntBuildExtender extends ServerInstanceBuildExtender 
         } catch (IOException ex) {
             LOG.log(Level.INFO, ex.getMessage());
         }
-
+*/
     }
 
     /**

@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.netbeans.modules.jeeserver.jetty.project.nodes.libs;
 
 import java.awt.Image;
@@ -73,6 +68,7 @@ public class LibUtil {
             platform.notifyLibrariesChanged(false);
             platform.fireChangeEvents();
             if (null != nodeToNotify) {
+                
                 ((LibrariesFileNode.FileKeys) nodeToNotify.getChildrenKeys()).addNotify();
             }
             /*            LibrariesFileNode ln = (LibrariesFileNode) manager.getServerProject().getLookup()
@@ -130,6 +126,7 @@ public class LibUtil {
     }
 
     public static String getHtmlDisplayName(LibrariesFileNode node) {
+//        return getDisplayName(node);
         String tx = "";
         switch (node.getOptions()) {
             case ROOT:
@@ -160,6 +157,7 @@ public class LibUtil {
 
         }
         return tx;
+        
     }
 
     public static String getHtmlDisplayName(Project server, Object key) {
@@ -179,8 +177,10 @@ public class LibUtil {
         if (p.startsWith(jettyHome)) {
             s = "${jetty.Home}";
             s += jettyHome.relativize(p);
-        } else {
+        } else if (p.startsWith(jettyBase)) {
             s += jettyBase.relativize(p);
+        } else {
+            s = p.toString();
         }
 
         nm = "<font color='!textText'>" + s + "</font>";
@@ -230,14 +230,13 @@ public class LibUtil {
                 .getProperty(BaseConstants.HOME_DIR_PROP);
         final String jb = server.getProjectDirectory()
                 .getFileObject(JettyConstants.JETTYBASE_FOLDER).getPath();
-
         final Path jettyHome = Paths.get(jh);
         final Path jettyBase = Paths.get(jb);
 
         final Path extLib = Paths.get(jb, "lib/ext");
         JettyServerPlatformImpl platform = JettyServerPlatformImpl.getInstance(manager);
         LibraryImplementation[] libs = platform.getLibraries();
-        final List jars = new ArrayList<>();
+        final List<String> jars = new ArrayList<>();
         if (libs != null) {
             for (LibraryImplementation lib : libs) {
                 List<URL> urls = lib.getContent(J2eeLibraryTypeProvider.VOLUME_TYPE_CLASSPATH);
@@ -262,6 +261,7 @@ public class LibUtil {
             if (o2 == null) {
                 return 1;
             }
+            
             Path p1 = Paths.get(o1.toString());
             Path p2 = Paths.get(o2.toString());
             if (p1.startsWith(jettyBase) && p2.startsWith(jettyHome)) {
@@ -281,14 +281,16 @@ public class LibUtil {
                 return 1;
             }
 
-            if (p1.startsWith(jettyBase)) {
+            if (p1.startsWith(jettyBase) && p2.startsWith(jettyBase) ) {
                 rp1 = jettyBase.relativize(p1);
                 rp2 = jettyBase.relativize(p2);
+            } else if (p1.startsWith(jettyBase)) {
+                return 1;
             } else {
-                rp1 = jettyHome.relativize(p1);
-                rp2 = jettyHome.relativize(p2);
+                return -1;
             }
             return rp1.compareTo(rp2);
+            
         });
         return jars;
 
