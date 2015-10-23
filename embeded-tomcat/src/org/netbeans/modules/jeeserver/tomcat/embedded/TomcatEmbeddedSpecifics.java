@@ -16,20 +16,16 @@
  */
 package org.netbeans.modules.jeeserver.tomcat.embedded;
 
-import org.netbeans.api.java.classpath.ClassPath;
 import java.awt.Image;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketException;
-import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -41,30 +37,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.annotations.common.StaticResource;
-import org.netbeans.api.java.project.JavaProjectConstants;
-import org.netbeans.api.java.project.classpath.ProjectClassPathModifier;
-import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectUtils;
-import org.netbeans.api.project.SourceGroup;
-import org.netbeans.api.project.Sources;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.*;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
-import org.netbeans.modules.jeeserver.base.deployment.ServerInstanceProperties;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.EmbeddedInstanceBuilder;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.filesystems.FileObject;
-import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataFolder;
-import org.openide.loaders.DataObject;
-import org.openide.util.EditableProperties;
+
 import org.openide.util.ImageUtilities;
-import org.openide.util.Utilities;
 
 /**
  *
@@ -258,6 +243,32 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     public Image getProjectImage(Project serverProject) {
         return ImageUtilities.loadImage(IMAGE);
     }
+    @Override
+    public InstanceBuilder getInstanceBuilder(Properties props, InstanceBuilder.Options options) {
+        InstanceBuilder ib = null;
+
+        if ("ant".equals(props.getProperty("project.based.type"))) {
+BaseUtil.out("TomcatSpecifics ANT.BASED");
+            if (options.equals(InstanceBuilder.Options.CUSTOMIZER)) {
+                ib = new TomcatCustomizeInstanceBuilder(props, options);
+            } else {
+                ib = new TomcatInstanceBuilder(props, options);
+            }
+            ((EmbeddedInstanceBuilder) ib).setMavenbased(false);
+
+        } else if ("maven".equals(props.getProperty("project.based.type"))) {
+BaseUtil.out("TomcatSpecifics MAVEB.BASED");            
+            if (options.equals(InstanceBuilder.Options.CUSTOMIZER)) {
+                ib = new TomcatCustomizeInstanceBuilder(props, options);
+            } else {
+                ib = new TomcatMavenInstanceBuilder(props, options);
+            }
+            ((EmbeddedInstanceBuilder) ib).setMavenbased(true);
+        }
+
+        return ib;
+    }
+    
 /*
     @Override
     public void projectCreated(FileObject projectDir, Map<String, Object> props) {
