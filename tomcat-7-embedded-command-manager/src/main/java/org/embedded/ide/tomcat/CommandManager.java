@@ -1131,6 +1131,7 @@ public class CommandManager extends HttpServlet implements LifecycleListener {
             return sb;
         }
 
+        
         protected Map<String, File> getHardCodedApps() {
             Map<String, File> map = new HashMap<>();
             for (Map.Entry<String, StandardContext> e : explicitApps.entrySet()) {
