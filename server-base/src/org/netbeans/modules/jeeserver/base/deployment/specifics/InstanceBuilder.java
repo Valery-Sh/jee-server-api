@@ -32,6 +32,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.ui.OpenProjects;
@@ -114,8 +115,11 @@ public abstract class InstanceBuilder {
         if (parent != null && parent.exists()) {
             ProjectChooser.setProjectsFolder(parent); // Last used folder with a new project
         }
-        Project p = ProjectManager.getDefault().findProject(dir);
+        //Project p = ProjectManager.getDefault().findProject(dir);
+        Project p = FileOwnerQuery.getOwner(dir);
+
         OpenProjects.getDefault().open(new Project[]{p}, true);
+        
         result.add(p);
         
         updateWithTemplates(result);

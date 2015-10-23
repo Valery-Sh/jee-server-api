@@ -34,7 +34,7 @@ public class JettyPlatformFactory extends J2eePlatformFactory {
     
     @Override
     public J2eePlatformImpl getJ2eePlatformImpl(DeploymentManager manager) {
-        String s = manager == null ? "NULL" : ((BaseDeploymentManager)manager).getUri();
+        //String s = manager == null ? "NULL" : ((BaseDeploymentManager)manager).getUri();
         return new BaseJ2eePlatformImpl((BaseDeploymentManager) manager);
     }
     

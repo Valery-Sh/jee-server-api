@@ -7,6 +7,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
@@ -69,7 +70,7 @@ public interface EmbeddedServerSpecifics extends ServerSpecifics {
      */
 
     @Override
-    default void register(BaseDeploymentManager dm) {
+    default void register(final BaseDeploymentManager dm) {
 
         FileObject fo = dm.getServerProjectDirectory();
         fo.addFileChangeListener(new FileChangeListener() {
@@ -91,13 +92,17 @@ public interface EmbeddedServerSpecifics extends ServerSpecifics {
                 FileObject fo = fe.getFile();
                 FileObject source = (FileObject) fe.getSource();
                 if (!ProjectManager.getDefault().isProject(source)) {
+                    String uri = dm.getUri();
                     Project suite = SuiteManager.getServerSuiteProject(dm.getUri());
-
-                    SuiteNotifier suiteNotifier = suite.getLookup().lookup(SuiteNotifier.class);
-                    suiteNotifier.instancesChanged();
-
+                    
                     source.removeFileChangeListener(this);
-                    InstanceProperties.removeInstance(dm.getUri());
+
+                    if (suite != null) {
+                        InstanceProperties.removeInstance(uri);
+                        SuiteNotifier suiteNotifier = suite.getLookup().lookup(SuiteNotifier.class);
+                        suiteNotifier.instancesChanged();
+                    }
+
                 }
 
             }
@@ -118,4 +123,9 @@ public interface EmbeddedServerSpecifics extends ServerSpecifics {
         return new EmbeddedStartServerPropertiesProvider(dm);
     }
 
+    public static class ServerProjectFileChangeListener {
+        public ServerProjectFileChangeListener(Project suite, String uri) {
+            
+        }
+    }
 }

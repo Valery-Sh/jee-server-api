@@ -112,15 +112,6 @@ BaseUtil.out("JettInstanceBuilder nvoke updateWithTemplates");
             return;
         }
 
-//        addCommandManagerJar(libFolder);
-
-        /*        try {
-         copyBuildXml(libFolder);
-         } catch (IOException ex) {
-         LOG.log(Level.INFO, ex.getMessage()); //NOI18N
-         }
-         */
-//        modifyPomXml(proj);
         updateServerInstanceProperties(proj);
         //
         // Plugin jar => we can create a class from template

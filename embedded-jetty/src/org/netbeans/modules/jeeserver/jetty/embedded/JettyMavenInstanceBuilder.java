@@ -3,20 +3,14 @@ package org.netbeans.modules.jeeserver.jetty.embedded;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataFolder;
-import org.openide.loaders.DataObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -47,7 +41,7 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
         //return p.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
     }
 
-    @Override
+/*    @Override
     public FileObject createLib(Project project) {
         FileObject libFo = null;
 
@@ -65,7 +59,7 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
         }
         return libFo;
     }
-
+*/
     /**
      *
      * @param project
@@ -160,7 +154,7 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
                 + zipMavenTemplatePath);
     }
 
-    @Override
+/*    @Override
     public void updateWithTemplates(Set result) {
         Project proj = findProject(result);
 
@@ -213,6 +207,6 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
             LOG.log(Level.INFO, ex.getMessage()); //NOI18N
         }
     }
-    
+*/    
 
 }
