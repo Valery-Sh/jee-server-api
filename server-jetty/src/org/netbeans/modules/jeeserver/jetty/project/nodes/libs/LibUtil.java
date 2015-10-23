@@ -1,5 +1,6 @@
 package org.netbeans.modules.jeeserver.jetty.project.nodes.libs;
 
+
 import java.awt.Image;
 import java.io.IOException;
 import java.net.URL;
