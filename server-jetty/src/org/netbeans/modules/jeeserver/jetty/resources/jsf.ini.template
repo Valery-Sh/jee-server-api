@@ -1,0 +1,4 @@
+#
+# Initialize module Java Server Faces (jsf)
+#
+--module=jsf

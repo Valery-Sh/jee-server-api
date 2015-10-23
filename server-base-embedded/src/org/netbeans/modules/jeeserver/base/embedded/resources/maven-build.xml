@@ -1,0 +1,161 @@
+<project name="JettyMavenServerInstance" default="run">
+    <property name="pre-run" value="true" />
+    <!-- 
+                ======================
+                    MACRODEF SECTION 
+                ======================
+    -->
+
+    <!-- ***************  MACRODEF: RUN EMBEDDED SERVER ****************** -->
+    
+    <target name="-server-embedded-macrodef-run">
+
+        <macrodef name="server-embedded-run">
+            <attribute default="${main.class}" name="classname"/>
+            <attribute default="${run.classpath}" name="classpath"/>
+            <attribute default="jvm" name="jvm"/>
+            <element name="customize" optional="true"/>
+            <sequential>
+                <java classname="@{classname}" dir="${work.dir}" fork="true">
+                    <jvmarg line="${endorsed.classpath.cmd.line.arg}"/>
+                    <jvmarg value="-Dfile.encoding=${runtime.encoding}"/>
+                    <redirector errorencoding="${runtime.encoding}" inputencoding="${runtime.encoding}" outputencoding="${runtime.encoding}"/>
+                    <!--jvmarg line="${run.jvmargs}"/>
+                    <jvmarg line="${run.jvmargs.ide}"/-->
+                    <classpath>
+                        <path path="@{classpath}"/>
+                    </classpath>
+                    <syspropertyset>
+                        <propertyref prefix="run-sys-prop."/>
+                        <mapper from="run-sys-prop.*" to="*" type="glob"/>
+                    </syspropertyset>
+                    <customize/>
+                </java>
+            </sequential>
+        </macrodef>
+    </target>
+    
+    
+    <!-- ***************  MACRODEF: DEBUG EMBEDDED SERVER ****************** -->
+    
+    <target name="-server-embedded-macrodef-debug">
+        <macrodef name="server-embedded-debug">
+            <attribute name="classname" default="${main.class}"/>
+            <attribute name="classpath" default="${debug.classpath}"/>
+            <element name="customize" optional="true"/>
+            <sequential>
+                <java fork="true" classname="@{classname}" dir="${work.dir}">
+                    <jvmarg line="${endorsed.classpath.cmd.line.arg}"/>
+                    <jvmarg line="${debug-args-line}"/>
+                    <jvmarg value="-Xrunjdwp:transport=${server-debug-transport},address=${server-debug-port},server=y,suspend=n"/>
+                    <jvmarg value="-Dfile.encoding=${runtime.encoding}"/>
+                    <redirector inputencoding="${runtime.encoding}" outputencoding="${runtime.encoding}" errorencoding="${runtime.encoding}"/>
+                    <!--jvmarg line="${run.jvmargs}"/>
+                    <jvmarg line="${run.jvmargs.ide}"/-->
+                    <classpath>
+                        <path path="@{classpath}"/>
+                    </classpath>
+                    <syspropertyset>
+                        <propertyref prefix="run-sys-prop."/>
+                        <mapper type="glob" from="run-sys-prop.*" to="*"/>
+                    </syspropertyset>
+                    <customize/>
+                </java>
+            </sequential>
+        </macrodef>
+    </target>
+    
+    <target name="-macro-build"  >
+        <echo message="MACRO-BUILD" />
+        
+        <macrodef name="macro-build">
+            <attribute name="exec.executable" default="maven" />            
+            <attribute name="options" default="-e -U" />
+            <attribute name="goal" />
+            <attribute name="maven.project.basedir" default="${basedir}" />
+            <attribute name="resultproperty" default="maven.result" />
+            <!--element name="args" implicit="true" optional="true" /-->
+            <sequential>
+                <java classname="org.codehaus.classworlds.Launcher" fork="true"
+                      dir="@{maven.project.basedir}" resultproperty="@{resultproperty}">
+                    <jvmarg value="-Xmx512m"/>
+                    <classpath>
+                        <fileset dir="${maven.home}/boot">
+                            <include name="*.jar" />
+                        </fileset>
+                        <fileset dir="${maven.home}/lib">
+                            <include name="*.jar" />
+                        </fileset>
+                    </classpath>
+                    <sysproperty key="classworlds.conf" value="${maven.home}/bin/m2.conf" />
+                    <sysproperty key="maven.home" value="${maven.home}" />
+                    <arg line="--batch-mode @{options} @{goal} " />
+                </java>
+            </sequential>
+        </macrodef>
+    </target>  
+        
+    <!-- ==============  TARGET: MAVEN-BUILD-GOALS  ================= -->
+
+    <target name="maven-build-goals" depends="-macro-build" >
+        <property name ="maven.home" location="${netbeans.home}/../java/maven" />
+        <property name="root.dir" location=".."/>
+   
+        <echo message="basedir = ${basedir}" />
+        <property name="maven.project.dir" location="${basedir}"/>        
+        <!--property name="maven.goal" value="deploy:deploy-file"/-->        
+        <echo message="GOALS: ${goals}" />
+        
+        <macro-build maven.project.basedir="${maven.project.dir}"
+                      goal="${goals}"
+                      resultproperty="maven.build.result"         
+        />
+        
+    </target>
+
+    <!-- ============================================================  
+                TARGET: RUN-EMBEDDED-SERVER 
+         ============================================================ -->          
+    <!--target name="run-embedded-server" if="netbeans.home" depends="-pre-run,install-repo-file,-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE."-->
+    <target name="run-embedded-server" if="netbeans.home" depends="-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE.">
+        
+        <property name="main.class" value="${maven.main.class}"/>                
+        <property name="compiled.classes" value="${basedir}/target/classes" />
+        <property name="work.dir" value="${maven.work.dir}"/>
+        <property name="run.classpath" value="${maven.run.classpath}:${compiled.classes}" />                
+        <property name="endorsed.classpath.cmd.line.arg" value=""/>
+        <server-embedded-run  />
+    </target>
+            
+    
+    <!-- ============================================================  
+                TARGET: DEBUG-EMBEDDED-SERVER 
+         ============================================================ -->              
+    <target name="debug-embedded-server" if="netbeans.home" depends="-server-embedded-macrodef-debug" description="Debug Embedded Server project in IDE.">
+        <echo message="maven.main.class ${maven.main.class}" />                
+        
+        <property name="debug-args-line" value="-Xdebug"/>
+        <property name="main.class" value="${maven.main.class}"/>                
+        
+        <property name="work.dir" value="${maven.work.dir}"/>
+        <property name="debug.classpath" value="${maven.run.classpath}" />                
+        <property name="endorsed.classpath.cmd.line.arg" value=""/>
+        <property name="server-debug-transport" value="${server.debug.transport}"/>
+        <property name="server-debug-port" value="${server.debug.port}"/>
+        
+        <server-embedded-debug/>
+    </target>
+            
+    <target name="profile1" >        
+        <echo message="Profiler args: ${profiler.args}" />
+        <java jar="${start.jar}" fork="true" >
+            <jvmarg line="${profiler.args}"/>
+            <arg line="STOP.PORT=${stop.port}"/>
+            <arg line="STOP.KEY=${stop.key}"/>
+        </java>
+    </target>
+
+        
+            
+                    
+</project>

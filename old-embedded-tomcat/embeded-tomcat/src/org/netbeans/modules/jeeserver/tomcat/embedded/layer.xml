@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <!--folder name="Services">
+        <file name="JavaHelp_hidden_hidden"/>
+    </folder-->
+    <folder name="Templates">
+        <folder name="tomcat7">
+            <file name="TomcatEmbeddedServer" url="resources/TomcatEmbeddedServer.template">
+                <attr name="template" boolvalue="false"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+            </file>
+        </folder>
+    </folder>    
+    
+    <folder name="J2EE">
+        
+        <folder name="DeploymentPlugins">
+            <!-- ================== Tomcat 7 ====================== -->
+            
+            <folder name="Tomcat7EmbeddedServer">
+                <file name="Descriptor" url="resources/deployment.xml"/>
+                <file name="EmbRegistryNodeFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.jeeserver.base.embedded.nodes.EmbRegistryNodeFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.base.embedded.nodes.EmbRegistryNodeFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.RegistryNodeFactory"/>
+                </file>
+
+                <file name="TomcatManagerFactory.instance">
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.jeeserver.tomcat.embedded.TomcatManagerFactory.getInstance"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.tomcat.embedded.TomcatManagerFactory"/>
+                    <attr name="instanceOf" stringvalue="javax.enterprise.deploy.spi.factories.DeploymentFactory"/>
+                </file>
+                <file name="TomcatOptionalFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.jeeserver.tomcat.embedded.TomcatOptionalFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.tomcat.embedded.TomcatOptionalFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.OptionalDeploymentManagerFactory"/>
+                </file>
+
+                <file name="TomcatPlatformFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.jeeserver.tomcat.embedded.TomcatPlatformFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.tomcat.embedded.TomcatPlatformFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformFactory"/>
+                </file>
+
+                <file name="TomcatConfigurationFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.jeeserver.tomcat.embedded.TomcatConfigurationFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.tomcat.embedded.TomcatConfigurationFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.config.ModuleConfigurationFactory"/>
+                </file>
+                <folder name="DeploymentFileNames">
+                    <folder name="WAR">
+                        <file name="META-INF\context.xml"/>
+                    </folder>
+                </folder>
+            </folder>
+        </folder>        
+    </folder>
+    
+    <!--folder name="Projects">
+        <folder name="org-netbeans-modules-java-j2seproject">
+            <folder name="Lookup">
+                <file name="org-netbeans-modules-embedded-jetty-project-JettyEmbeddedServerInstanceRegistry.instance_hidden"/>
+                <file name="org-netbeans-modules-embedded-jetty-project-JettyServerInstanceRegistry.instance"/>
+            </folder>
+        </folder>
+    </folder-->
+</filesystem>
+<!--?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <folder name="J2EE">
+        <folder name="DeploymentPlugins">
+            <folder name="TestBaseESServer">
+                <file name="Descriptor" url="testbaseesdeployment.xml"/>
+                <file name="TestBaseESManagerFactory.instance">
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.embedded.base.TestBaseESManagerFactory.getInstance"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.embedded.base.TestBaseESManagerFactory"/>
+                    <attr name="instanceOf" stringvalue="javax.enterprise.deploy.spi.factories.DeploymentFactory"/>
+                </file>
+
+            </folder>
+            <folder name="TestBaseESServer1">
+                <file name="Descriptor" url="testbaseesdeployment.xml"/>
+                <file name="TestBaseESManagerFactory1.instance">
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.embedded.base.TestBaseESManagerFactory1.getInstance"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.embedded.base.TestBaseESManagerFactory1"/>
+                    <attr name="instanceOf" stringvalue="javax.enterprise.deploy.spi.factories.DeploymentFactory"/>
+                </file>
+
+            </folder>
+-->
+<!--folder name="ESEmbeddedServer">
+                <file name="Descriptor" url="deployment.xml"/>
+                <file name="ESRegistryNodeFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.embedded.base.nodes.ESRegistryNodeFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.embedded.base.nodes.ESRegistryNodeFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.RegistryNodeFactory"/>
+                </file>
+
+                <file name="ESDeploymentFactory.instance">
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.embedded.base.ESDeploymentFactory.getInstance"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.embedded.base.ESDeploymentFactory"/>
+                    <attr name="instanceOf" stringvalue="javax.enterprise.deploy.spi.factories.DeploymentFactory"/>
+                </file>
+                <file name="ESOptionalDeploymentFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.embedded.base.ESOptionalDeploymentFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.embedded.base.ESOptionalDeploymentFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.OptionalDeploymentManagerFactory"/>
+                </file>
+
+                <file name="ESJ2eePlatformFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.embedded.base.ESJ2eePlatformFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.embedded.base.ESJ2eePlatformFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformFactory"/>
+                </file>
+
+                <file name="ESModuleConfigurationFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.embedded.base.ESModuleConfigurationFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.embedded.base.ESModuleConfigurationFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.config.ModuleConfigurationFactory"/>
+                </file-->
+<!--file name="JettyModuleConfigurationFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.embedded.jetty.JettyModuleConfigurationFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.embedded.jetty.JettyModuleConfigurationFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.config.ModuleConfigurationFactory"/>
+                </file-->
+<!--
+                <file name="AppEngineJ2eePlatformFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.j2ee.appengine.ide.AppEngineJ2eePlatformFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.j2ee.appengine.ide.AppEngineJ2eePlatformFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformFactory"/>
+                </file>
+
+
+                <file name="AppEngineModuleConfigurationFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.j2ee.appengine.config.AppEngineModuleConfigurationFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.j2ee.appengine.config.AppEngineModuleConfigurationFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.config.ModuleConfigurationFactory"/>
+                </file>
+-->
+<!--            </folder>
+        </folder>
+</filesystem>
+-->

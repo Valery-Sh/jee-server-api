@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
+<filesystem>
+    <!--folder name="Templates">
+        <folder name="JettyServer">
+            <file name="buildxml" url="project/template/build.template">
+                <attr name="template" boolvalue="false"/>
+                <attr name="javax.script.ScriptEngine" stringvalue="freemarker"/>
+            </file>
+        </folder>
+    </folder-->    
+    
+    <folder name="J2EE">
+        
+        <folder name="DeploymentPlugins">
+            <folder name="JettyStandaloneServer">
+                <file name="Descriptor" url="resources/deployment.xml"/>
+                
+                <file name="JettyServerRegistryNodeFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.jeeserver.jetty.nodes.JettyServerRegistryNodeFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.jetty.nodes.JettyServerRegistryNodeFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.RegistryNodeFactory"/>
+                </file>
+
+                <file name="JettyServerManagerFactory.instance">
+                    <attr name="instanceCreate" methodvalue="org.netbeans.modules.jeeserver.jetty.deploy.JettyServerManagerFactory.getInstance"/>
+                    <attr name="instanceClass"  stringvalue="org.netbeans.modules.jeeserver.jetty.deploy.JettyServerManagerFactory"/>
+                    <attr name="instanceOf" stringvalue="javax.enterprise.deploy.spi.factories.DeploymentFactory"/>
+                </file>
+                <file name="JettyServerOptionalFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.jeeserver.jetty.deploy.ide.JettyServerOptionalFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.jetty.deploy.ide.JettyServerOptionalFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.OptionalDeploymentManagerFactory"/>
+                </file>
+
+                <file name="JettyServerPlatformFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.jeeserver.jetty.deploy.ide.JettyServerPlatformFactory.getInstance"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.jetty.deploy.ide.JettyServerPlatformFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.J2eePlatformFactory"/>
+                </file>
+
+                <file name="JettyServerConfigurationFactory.instance">
+                    <attr name="instanceCreate" newvalue="org.netbeans.modules.jeeserver.jetty.deploy.config.JettyServerConfigurationFactory"/>
+                    <attr name="instanceClass" stringvalue="org.netbeans.modules.jeeserver.jetty.deploy.config.JettyServerConfigurationFactory"/>
+                    <attr name="instanceOf" stringvalue="org.netbeans.modules.j2ee.deployment.plugins.spi.config.ModuleConfigurationFactory"/>
+                </file>
+                <folder name="DeploymentFileNames">
+                    <folder name="WAR">
+                        <file name="WEB-INF\jetty-web.xml"/>
+                    </folder>
+                </folder>
+
+            </folder>
+        </folder>
+    </folder>
+            
+</filesystem>
