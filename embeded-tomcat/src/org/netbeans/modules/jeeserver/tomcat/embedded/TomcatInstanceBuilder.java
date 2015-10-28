@@ -107,11 +107,21 @@ BaseUtil.out("JettInstanceBuilder nvoke updateWithTemplates");
         FileObject libFolder = getLibDir(proj);
 
         if (libFolder == null) {
-            libFolder = createLib(proj);
-        } else {
-            return;
+            createLib(proj);
+        }
+        
+        updateServerInstanceProperties(proj);
+
+        if (libFolder == null) {
+            createLib(proj);
         }
         updateServerInstanceProperties(proj);
+        
+        if ( ! getOptions().equals(InstanceBuilder.Options.NEW) ) {
+            // We create main method from template only for a new project
+            return;
+        }
+        
         //
         // Plugin jar => we can create a class from template
         //
@@ -238,7 +248,7 @@ BaseUtil.out("TomcatInstanceBuilder EXCEPTION " + ex.getMessage());
 
      }
      */
-    public FileObject createLib(Project project) {
+    public void createLib(Project project) {
         FileObject libFo = null;
 
         File libFolder;
@@ -253,7 +263,7 @@ BaseUtil.out("TomcatInstanceBuilder EXCEPTION " + ex.getMessage());
                 LOG.log(Level.INFO, ex.getMessage()); //NOI18N
             }
         }
-        return libFo;
+        return;
     }
     /*
      @Override

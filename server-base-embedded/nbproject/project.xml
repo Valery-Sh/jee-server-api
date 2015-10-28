@@ -307,6 +307,7 @@
             </module-dependencies>
             <public-packages>
                 <package>org.netbeans.modules.jeeserver.base.embedded</package>
+                <package>org.netbeans.modules.jeeserver.base.embedded.apisupport</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.config</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.gencode</package>
                 <package>org.netbeans.modules.jeeserver.base.embedded.nodes</package>

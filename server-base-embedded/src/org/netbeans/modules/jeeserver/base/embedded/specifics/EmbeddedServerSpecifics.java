@@ -7,9 +7,9 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
+import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileAttributeEvent;
 import org.openide.filesystems.FileChangeListener;
@@ -29,7 +29,7 @@ public interface EmbeddedServerSpecifics extends ServerSpecifics {
     default InputStream getPomFileTemplate() {
         return null;
     }
-
+    SupportedApiProvider getSupportedApiProvider();
     @Override
     default void iconChange(String uri, boolean newValue) {
         SuiteManager.getServerSuiteProject(uri)

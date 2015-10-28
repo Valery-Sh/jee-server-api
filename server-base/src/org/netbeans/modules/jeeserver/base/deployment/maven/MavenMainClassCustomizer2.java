@@ -64,7 +64,6 @@ public class MavenMainClassCustomizer2 {
 
         if (dd.getValue() == acceptButton) {
             config = MavenAuxConfig.getInstance(instanceProject);
-
         }
         return config;
 

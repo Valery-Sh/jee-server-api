@@ -178,13 +178,13 @@ BaseUtil.out("EmbeddedStartServerPropertiesProvider mac.getMainClass()=" + mainC
     }
 
     @Override
-    public Properties getStopProperties(Project serverProject
-    ) {
+    public Properties getStopProperties(Project serverProject) {
         if (stopProperties == null) {
             stopProperties = new Properties();
             stopProperties.setProperty("target", "stop");
             stopProperties.setProperty("stop.port", manager.getInstanceProperties().getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
 //            stopProperties.setProperty("stop.key", JettyServerSpecifics.JETTY_SHUTDOWN_KEY);        
+            
         }
         return stopProperties;
     }

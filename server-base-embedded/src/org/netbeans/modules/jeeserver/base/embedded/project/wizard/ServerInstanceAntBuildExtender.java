@@ -3,7 +3,6 @@ package org.netbeans.modules.jeeserver.base.embedded.project.wizard;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.annotations.common.StaticResource;
@@ -13,9 +12,7 @@ import org.netbeans.api.project.ant.AntBuildExtender;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
-import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.netbeans.modules.jeeserver.base.embedded.webapp.DistributedWebAppManager;
 import org.netbeans.spi.project.support.ant.GeneratedFilesHelper;
 import org.openide.filesystems.FileObject;
@@ -109,21 +106,19 @@ public class ServerInstanceAntBuildExtender extends ServerInstanceBuildExtender 
         updateNbDeploymentFile();
     }
 
+    @Override
     public void updateNbDeploymentFile() {
         FileObject projFo = project.getProjectDirectory();
-/*        FileObject d = projFo.getFileObject(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
-        if (d != null) {
-            updateNbDeploymentFile(d);
-            return;
-        }
-*/        
-//            FileObject toDir = projFo.createFolder(SuiteConstants.INSTANCE_NBDEPLOYMENT_FOLDER);
-//            Properties props = new Properties();
+
         DistributedWebAppManager distManager = DistributedWebAppManager.getInstance(project);
         InstanceProperties ip = SuiteManager.getManager(project).getInstanceProperties();
         distManager.setServerInstanceProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
-//            props.setProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
-//            BaseUtil.storeProperties(props, toDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
+        String shutdownPort = ip.getProperty(BaseConstants.SHUTDOWN_PORT_PROP);
+        if (shutdownPort == null) { // Cannot be
+            shutdownPort = String.valueOf(Integer.MAX_VALUE);
+        }
+        distManager.setServerInstanceProperty(BaseConstants.SHUTDOWN_PORT_PROP, shutdownPort);        
+        
     }
 
     @Override
@@ -134,6 +129,12 @@ public class ServerInstanceAntBuildExtender extends ServerInstanceBuildExtender 
         InstanceProperties ip = SuiteManager.getManager(project).getInstanceProperties();
         distManager.setServerInstanceProperty(BaseConstants.HTTP_PORT_PROP, ip.getProperty(BaseConstants.HTTP_PORT_PROP));
         //BaseUtil.updateProperties(props, nbDir, SuiteConstants.INSTANCE_PROPERTIES_FILE);
+        String shutdownPort = ip.getProperty(BaseConstants.SHUTDOWN_PORT_PROP);
+        if (shutdownPort == null) { // Cannot be
+            shutdownPort = String.valueOf(Integer.MAX_VALUE);
+        }
+        distManager.setServerInstanceProperty(BaseConstants.SHUTDOWN_PORT_PROP, shutdownPort);        
+        
     }
 
     protected void rebuild() {

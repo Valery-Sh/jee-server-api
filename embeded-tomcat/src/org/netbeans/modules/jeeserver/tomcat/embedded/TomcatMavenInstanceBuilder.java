@@ -3,19 +3,15 @@ package org.netbeans.modules.jeeserver.tomcat.embedded;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.loaders.DataFolder;
-import org.openide.loaders.DataObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
@@ -47,22 +43,8 @@ public class TomcatMavenInstanceBuilder extends TomcatInstanceBuilder {
     }
 
     @Override
-    public FileObject createLib(Project project) {
-        FileObject libFo = null;
-
-        File libFolder;
-        FileObject fo;
-        libFolder = new File(project.getProjectDirectory().getPath() + "/nbdeployment/lib");
-        fo = project.getProjectDirectory().getFileObject("nbdeployment/lib");
-
-        if (fo == null) {
-            try {
-                libFo = FileUtil.createFolder(libFolder);
-            } catch (IOException ex) {
-                LOG.log(Level.INFO, ex.getMessage()); //NOI18N
-            }
-        }
-        return libFo;
+    public void createLib(Project project) {
+        return;
     }
 
     /**

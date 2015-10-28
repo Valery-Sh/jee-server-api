@@ -222,8 +222,14 @@ public abstract class EmbeddedInstanceBuilder extends InstanceBuilder {
         if (port == null) { // Cannot be
             port = "8080";
         }
-        
+        String shutdownPort = (String) getWizardDescriptor().getProperty(BaseConstants.SHUTDOWN_PORT_PROP);
+        if (shutdownPort == null) { // Cannot be
+            shutdownPort = String.valueOf(Integer.MAX_VALUE);
+        }
         distManager.setServerInstanceProperty(BaseConstants.HTTP_PORT_PROP, port);
+        distManager.setServerInstanceProperty(BaseConstants.SHUTDOWN_PORT_PROP, shutdownPort);        
+        
+        
         
     }
 

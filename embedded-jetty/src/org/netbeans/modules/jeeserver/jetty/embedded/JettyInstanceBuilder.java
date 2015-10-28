@@ -107,12 +107,14 @@ BaseUtil.out("JettInstanceBuilder nvoke updateWithTemplates");
         FileObject libFolder = getLibDir(proj);
 
         if (libFolder == null) {
-            libFolder = createLib(proj);
-        } else {
+            createLib(proj);
+        }
+        updateServerInstanceProperties(proj);
+        
+        if ( ! getOptions().equals(InstanceBuilder.Options.NEW) ) {
+            // We create main method from template only for a new project
             return;
         }
-
-        updateServerInstanceProperties(proj);
         //
         // Plugin jar => we can create a class from template
         //
@@ -239,7 +241,7 @@ BaseUtil.out("JettInstanceBuilder EXCEPTION " + ex.getMessage());
 
      }
      */
-    public FileObject createLib(Project project) {
+    public void createLib(Project project) {
         FileObject libFo = null;
 
         File libFolder;
@@ -254,7 +256,7 @@ BaseUtil.out("JettInstanceBuilder EXCEPTION " + ex.getMessage());
                 LOG.log(Level.INFO, ex.getMessage()); //NOI18N
             }
         }
-        return libFo;
+        return;
     }
     /*
      @Override

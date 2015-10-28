@@ -40,6 +40,11 @@ public class JettyMavenInstanceBuilder extends JettyInstanceBuilder {
         return null;
         //return p.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
     }
+    @Override
+    public void createLib(Project p) {
+        return;
+        //return p.getProjectDirectory().getFileObject(SuiteConstants.MAVEN_REPO_LIB_PATH);
+    }
 
 /*    @Override
     public FileObject createLib(Project project) {

@@ -118,7 +118,7 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
         return result;
     }
 
-    protected void notifyDispose() {
+/*    protected void notifyDispose() {
         if (serverInstanceId == null) {
             return;
         }
@@ -129,8 +129,10 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
         AvailableWebModules<AbstractModuleConfiguration> avm = s.getLookup().lookup(AvailableWebModules.class);
         avm.moduleDispose(this);
     }
-
+*/
     protected void notifyCreate() {
+        BaseUtil.out("AbstractModuleConfiguration notifyCreate module=" + module);
+
         notifyAvailableModule(serverInstanceId, false);
     }
 
@@ -219,6 +221,7 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
         return lookup;
     }
     
+
     protected void notifyAvailableModule(String instanceId, final boolean dispose) {
         
         if ( instanceId == null ) {
@@ -246,10 +249,10 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
         
     }
     protected void notifyServerChange(String oldInstanceId, String newInstanceId) {
+        BaseUtil.out("AbstractModuleConfiguration notifyServerChange oldInstanceId=" + oldInstanceId + "; newInstanceId=" + newInstanceId);
 
         notifyAvailableModule(oldInstanceId, true);
         notifyAvailableModule(newInstanceId, false);
-        
     }
 
 
@@ -284,6 +287,7 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
      */
     @Override
     public void dispose() {
+        BaseUtil.out("AbstractModuleConfiguration dispose ");
         notifyAvailableModule(serverInstanceId, true);
     }
 

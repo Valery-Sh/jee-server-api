@@ -21,12 +21,12 @@ import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseActionProviderExecutor;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseAntTaskProgressObject;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.CustomizerWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.AddExistingProjectWizardActionAsIterator;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.DownloadJarsPanelVisual;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.ServerInstanceAntBuildExtender;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.InstanceWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.MainClassChooserPanelVisual;
@@ -58,8 +58,8 @@ public class ServerActions {
             FileObject fo = context.lookup(FileObject.class);
             Project serverProject = FileOwnerQuery.getOwner(fo);
             Properties props = null;
-            if (!BaseUtil.isAntProject(serverProject) && (needsBuildProject(serverProject)) ) {
-                    //|| needsBuildRepo(serverProject))) {
+            if (!BaseUtil.isAntProject(serverProject) && (needsBuildProject(serverProject))) {
+                //|| needsBuildRepo(serverProject))) {
                 props = new Properties();
                 props.setProperty(StartServerAction.ACTION_ENABLED_PROP, "true");
             }
@@ -79,28 +79,6 @@ public class ServerActions {
             return result;
         }
 
-/*        protected static boolean needsBuildRepo(Project serverProject) {
-
-            FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
-
-            Properties pomProperties = BaseUtil.getPomProperties(cmJar);
-            boolean result = false;
-            if (pomProperties != null) {
-
-                String str = pomProperties.getProperty("groupId");
-                str = str.replace(".", "/");
-                str += "/"
-                        + pomProperties.getProperty("artifactId")
-                        + "/"
-                        + pomProperties.getProperty("version")
-                        + "/"
-                        + cmJar.getNameExt();
-
-                result = cmJar.getParent().getFileObject(str) == null;
-            }
-            return result;
-        }
-*/        
     }
 
     public static class BuildProjectActions extends AbstractAction implements ContextAwareAction {
@@ -473,80 +451,80 @@ public class ServerActions {
             }
 
             public void attr(Project p) {
-                
+
                 Project suite = SuiteManager.getServerSuiteProject(SuiteManager.getManager(p).getUri());
                 SuiteNotifier notif = suite.getLookup().lookup(SuiteNotifier.class);
                 DistributedWebAppManager man = DistributedWebAppManager.getInstance(p);
                 notif.childrenChanged(man, null);
-                
-/*                FileObject pfo = p.getProjectDirectory();
 
-                try {
-                    Enumeration<String> en = p.getProjectDirectory().getAttributes();
-                    while ( en.hasMoreElements()) {
-                        String s = en.nextElement();
-                        BaseUtil.out("ServerActions.attr attributeName=" + s);                        
-                    }
-                } catch (Exception ex) {
-                    Exceptions.printStackTrace(ex);
-                    BaseUtil.out("ServerActions.attr EXCEPTION " + ex.getMessage());
-                }
-                Enumeration<String> en = pfo.getAttributes();
-                while (en.hasMoreElements()) {
-                    String nm = en.nextElement();
-                    BaseUtil.out("attrname = " + nm + "; attr value)=" + pfo.getAttribute(nm));
-                }
+                /*                FileObject pfo = p.getProjectDirectory();
 
-                MavenAuxConfig auxConfig = MavenAuxConfig.getInstance(p);
-                BaseUtil.out("auxConfig.getAuxAttributeValue()=" + auxConfig.getAuxAttributeValue());
-                BaseUtil.out("auxConfig.getActivatedProfile()=" + auxConfig.getActivatedProfile());
-                BaseUtil.out("auxConfig.getNbactionCurrentPath()=" + auxConfig.getNbactionsActivatedPath());
+                 try {
+                 Enumeration<String> en = p.getProjectDirectory().getAttributes();
+                 while ( en.hasMoreElements()) {
+                 String s = en.nextElement();
+                 BaseUtil.out("ServerActions.attr attributeName=" + s);                        
+                 }
+                 } catch (Exception ex) {
+                 Exceptions.printStackTrace(ex);
+                 BaseUtil.out("ServerActions.attr EXCEPTION " + ex.getMessage());
+                 }
+                 Enumeration<String> en = pfo.getAttributes();
+                 while (en.hasMoreElements()) {
+                 String nm = en.nextElement();
+                 BaseUtil.out("attrname = " + nm + "; attr value)=" + pfo.getAttribute(nm));
+                 }
 
-                List<String> paths = auxConfig.getNbactionsPaths();
-                paths.forEach(path -> {
-                    BaseUtil.out("auxConfig.path=" + path);
-                });
-                List<String> args = auxConfig.getAllExecArgs();
-                args.forEach(arg -> {
-                    BaseUtil.out("SeverActions: arg=" + arg);
-                });
-                auxConfig.getJvmArgs().forEach(arg -> {
-                    BaseUtil.out("SeverActions: jvm arg=" + arg);
-                });
-                auxConfig.getProgramArgs().forEach(arg -> {
-                    BaseUtil.out("SeverActions: -D  arg =" + arg);
-                });
-                BaseUtil.out("MAIN CLASS " + auxConfig.getMainClass());
+                 MavenAuxConfig auxConfig = MavenAuxConfig.getInstance(p);
+                 BaseUtil.out("auxConfig.getAuxAttributeValue()=" + auxConfig.getAuxAttributeValue());
+                 BaseUtil.out("auxConfig.getActivatedProfile()=" + auxConfig.getActivatedProfile());
+                 BaseUtil.out("auxConfig.getNbactionCurrentPath()=" + auxConfig.getNbactionsActivatedPath());
 
-                BaseUtil.out("SourceVersion.isName(a.b.c.MyClass).isName=" + SourceVersion.isName("a.b.c.MyClass"));
-                BaseUtil.out("SourceVersion.isName(a).isName=" + SourceVersion.isName("a"));
-                BaseUtil.out("SourceVersion.isName(a-b).isName=" + SourceVersion.isName("a-b"));
-                BaseUtil.out("SourceVersion.isName(${a}).isName=" + SourceVersion.isName("${a}"));
-                BaseUtil.out("SourceVersion.isName(A$B).isName=" + SourceVersion.isName("A$B"));
-                SourceVersion.isName("a.b.c.MyClass");
-                //JavaPlatform.getDefault().
-                //AuxiliaryConfiguration ac = (AuxiliaryConfiguration) pfo.getAttribute("AuxilaryConfiguration");
-                AuxiliaryConfiguration ac = null;
-                if (ac == null) {
-                    return;
-                }
-                BaseUtil.out("AuxiliaryConfiguration toString= " + toString());
+                 List<String> paths = auxConfig.getNbactionsPaths();
+                 paths.forEach(path -> {
+                 BaseUtil.out("auxConfig.path=" + path);
+                 });
+                 List<String> args = auxConfig.getAllExecArgs();
+                 args.forEach(arg -> {
+                 BaseUtil.out("SeverActions: arg=" + arg);
+                 });
+                 auxConfig.getJvmArgs().forEach(arg -> {
+                 BaseUtil.out("SeverActions: jvm arg=" + arg);
+                 });
+                 auxConfig.getProgramArgs().forEach(arg -> {
+                 BaseUtil.out("SeverActions: -D  arg =" + arg);
+                 });
+                 BaseUtil.out("MAIN CLASS " + auxConfig.getMainClass());
 
-                Element el = ac.getConfigurationFragment(
-                        "config-data", "http://www.netbeans.org/ns/maven-config-data/1", false);
+                 BaseUtil.out("SourceVersion.isName(a.b.c.MyClass).isName=" + SourceVersion.isName("a.b.c.MyClass"));
+                 BaseUtil.out("SourceVersion.isName(a).isName=" + SourceVersion.isName("a"));
+                 BaseUtil.out("SourceVersion.isName(a-b).isName=" + SourceVersion.isName("a-b"));
+                 BaseUtil.out("SourceVersion.isName(${a}).isName=" + SourceVersion.isName("${a}"));
+                 BaseUtil.out("SourceVersion.isName(A$B).isName=" + SourceVersion.isName("A$B"));
+                 SourceVersion.isName("a.b.c.MyClass");
+                 //JavaPlatform.getDefault().
+                 //AuxiliaryConfiguration ac = (AuxiliaryConfiguration) pfo.getAttribute("AuxilaryConfiguration");
+                 AuxiliaryConfiguration ac = null;
+                 if (ac == null) {
+                 return;
+                 }
+                 BaseUtil.out("AuxiliaryConfiguration toString= " + toString());
 
-                BaseUtil.out("attr NOT Shared Element = " + el);
-                el = ac.getConfigurationFragment(
-                        "config-data", "http://www.netbeans.org/ns/maven-config-data/1", true);
+                 Element el = ac.getConfigurationFragment(
+                 "config-data", "http://www.netbeans.org/ns/maven-config-data/1", false);
 
-                BaseUtil.out("attr Shared Element = " + el);
+                 BaseUtil.out("attr NOT Shared Element = " + el);
+                 el = ac.getConfigurationFragment(
+                 "config-data", "http://www.netbeans.org/ns/maven-config-data/1", true);
 
-                el = ac.getConfigurationFragment(
-                        "config-data", "http://www.netbeans.org/ns/maven-config-data/1", false);
-                BaseUtil.out("1) NOT Shared Element = " + el);
-*/                        
+                 BaseUtil.out("attr Shared Element = " + el);
+
+                 el = ac.getConfigurationFragment(
+                 "config-data", "http://www.netbeans.org/ns/maven-config-data/1", false);
+                 BaseUtil.out("1) NOT Shared Element = " + el);
+                 */
             }
-                        
+
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (isDummyAction()) {
@@ -581,46 +559,46 @@ public class ServerActions {
                 if (isDummyAction()) {
                     return;
                 }
-                
+
                 FileObject fo = SuiteManager.getManager(serverProject)
                         .getLookup()
                         .lookup(StartServerPropertiesProvider.class)
                         .getBuildXml(serverProject);
-                
+
                 startProperties.setProperty(BaseAntTaskProgressObject.BUILD_XML, fo.getPath());
-                startProperties.setProperty(SuiteConstants.BASE_DIR_PROP, serverProject.getProjectDirectory().getPath() );
-/*leObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
+                startProperties.setProperty(SuiteConstants.BASE_DIR_PROP, serverProject.getProjectDirectory().getPath());
+                /*leObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
 
-                Properties pomProperties = BaseUtil.getPomProperties(cmJar);
-                if (pomProperties != null) {
+                 Properties pomProperties = BaseUtil.getPomProperties(cmJar);
+                 if (pomProperties != null) {
 
-                    String str = pomProperties.getProperty("groupId");
-                    str = str.replace(".", "/");
-                    str += "/"
-                            + pomProperties.getProperty("artifactId")
-                            + "/"
-                            + pomProperties.getProperty("version")
-                            + "/"
-                            + cmJar.getNameExt();
+                 String str = pomProperties.getProperty("groupId");
+                 str = str.replace(".", "/");
+                 str += "/"
+                 + pomProperties.getProperty("artifactId")
+                 + "/"
+                 + pomProperties.getProperty("version")
+                 + "/"
+                 + cmJar.getNameExt();
 
-                    if (cmJar.getParent().getFileObject(str) == null) {
-                        startProperties.setProperty("do.deploy-file", "yes");
-                    }
+                 if (cmJar.getParent().getFileObject(str) == null) {
+                 startProperties.setProperty("do.deploy-file", "yes");
+                 }
 
-                    startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_GROUPID,
-                            pomProperties.getProperty("groupId"));
+                 startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_GROUPID,
+                 pomProperties.getProperty("groupId"));
 
-                    startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_ARTIFACTID,
-                            pomProperties.getProperty("artifactId"));
-                    startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_VERSION,
-                            pomProperties.getProperty("version"));
-                    startProperties.setProperty(BaseConstants.COMMAND_MANAGER_JAR_NAME_PROP,
-                            pomProperties.getProperty("artifactId") + "-"
-                            + pomProperties.getProperty("version")
-                            + ".jar"
-                    );
-                }
-*/
+                 startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_ARTIFACTID,
+                 pomProperties.getProperty("artifactId"));
+                 startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_VERSION,
+                 pomProperties.getProperty("version"));
+                 startProperties.setProperty(BaseConstants.COMMAND_MANAGER_JAR_NAME_PROP,
+                 pomProperties.getProperty("artifactId") + "-"
+                 + pomProperties.getProperty("version")
+                 + ".jar"
+                 );
+                 }
+                 */
 //                startProperties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
 //                        SuiteConstants.MAVEN_REPO_LIB_PATH);
 
@@ -1050,7 +1028,7 @@ public class ServerActions {
                         JButton sb = createSelectButton();
                         JButton cb = createCancelButton();
 
-                        // MainClassChooserPanelVisual panel = new MainClassChooserPanelVisual(sb,cb);
+                        // MainClassChooserPanelVisual panel = new MainClassChooserPanelVisual(db,cb);
                         MainClassChooserPanelVisual panel = new MainClassChooserPanelVisual(sb, cb);
                         panel.setServerProject(instanceProject);
                         String[] classes = BaseUtil.getMavenMainClasses(instanceProject);
@@ -1112,4 +1090,99 @@ public class ServerActions {
         }//class
     }//class
 
+    public static class DownLoadJarsAction extends AbstractAction implements ContextAwareAction {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            assert false;
+        }
+
+        /**
+         *
+         * @param context a Lookup of the ServerInstancesRootNode object
+         * @return
+         */
+        @Override
+        public Action createContextAwareInstance(Lookup context) {
+            return new DownLoadJarsAction.ContextAction(context);
+        }
+
+        /**
+         *
+         * @param context a Lookup of the ServerInstancesRootNode object
+         * @return
+         */
+        public static Action getContextAwareInstance(Lookup context) {
+            return new DownLoadJarsAction.ContextAction(context);
+        }
+
+        private static final class ContextAction extends AbstractAction { //implements ProgressListener {
+
+            private final RequestProcessor.Task task;
+            private final Lookup context;
+
+
+            public ContextAction(Lookup context) {
+                this.context = context;
+                FileObject fo = context.lookup(FileObject.class);
+                final Project instanceProject = FileOwnerQuery.getOwner(fo);
+
+/*                if (BaseUtil.isAntProject(instanceProject)) {
+                    setEnabled(false);
+                } else {
+                    setEnabled(true);
+                }
+*/
+                putValue(NAME, "&Download jars");
+                putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);
+
+                task = new RequestProcessor("AddBody").create(new Runnable() { // NOI18N
+                    @Override
+                    public void run() {
+                        JButton db = createDownloadButton();
+                        JButton cb = createCancelButton();
+
+                        // MainClassChooserPanelVisual panel = new MainClassChooserPanelVisual(db,cb);
+                        DownloadJarsPanelVisual panel = new DownloadJarsPanelVisual(instanceProject,db, cb);
+
+                        DialogDescriptor dd = new DialogDescriptor(panel, "Select API and download jars",
+                                true, new Object[]{db, cb}, cb, DialogDescriptor.DEFAULT_ALIGN, null, null);
+//                                true, new Object[]{"Select Main Class", "Cancel"}, "Cancel", DialogDescriptor.DEFAULT_ALIGN, null, null);
+
+                        DialogDisplayer.getDefault().notify(dd);
+
+                        if (dd.getValue() == db) {
+                        }
+
+                    }
+                });
+            }
+
+            protected JButton createDownloadButton() {
+                JButton button = new javax.swing.JButton();
+                button.setName("SELECT");
+                org.openide.awt.Mnemonics.setLocalizedText(button, "Download jars");
+                button.setEnabled(false);
+                return button;
+
+            }
+
+            protected JButton createCancelButton() {
+                JButton button = new javax.swing.JButton();
+                button.setName("CANCEL");
+                org.openide.awt.Mnemonics.setLocalizedText(button, "Cancel");
+                return button;
+            }
+
+            public @Override
+            void actionPerformed(ActionEvent e) {
+                task.schedule(0);
+
+                if ("waitFinished".equals(e.getActionCommand())) {
+                    task.waitFinished();
+                }
+
+            }
+        }//class
+    }//class
 }//class

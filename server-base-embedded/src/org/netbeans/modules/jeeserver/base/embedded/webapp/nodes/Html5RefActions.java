@@ -336,14 +336,10 @@ public class Html5RefActions {
             public @Override
             void actionPerformed(ActionEvent e) {
                 FileObject pd = serverProject.getProjectDirectory();
-Path p = Paths.get(pd.getPath(),"server-project/pom.xml");
-PomXmlUtil pu = new PomXmlUtil(p);
-Path t = Paths.get(pd.getPath(),"server-project/pom-new.xml");
-                try {
-                    pu.save1(t);
-                } catch (TransformerException ex) {
-                    BaseUtil.out("^^^^^^^^ EXCEPTION pomXml" + ex.getMessage());
-                }
+                Path p = Paths.get(pd.getPath(),"server-project/pom.xml");
+                PomXmlUtil pu = new PomXmlUtil(p);
+                Path t = Paths.get(pd.getPath(),"server-project/pom-new.xml");
+                pu.save(t);
 
                 Properties props = BaseUtil.loadProperties(refFo);
                 if (props == null) {

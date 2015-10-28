@@ -35,6 +35,7 @@ import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.EmbeddedInstanceBuilder;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
+import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 import org.openide.util.ImageUtilities;
@@ -209,98 +210,6 @@ public class Jetty9Specifics implements EmbeddedServerSpecifics {
         return ImageUtilities.loadImage(IMAGE2);
     }
 
-    
-/*    @Override
-    public void projectCreated(FileObject projectDir, Map<String, Object> props) {
-        String actualServerId = (String) props.get(SuiteConstants.SERVER_ACTUAL_ID_PROP);
-        String cmOut = actualServerId + BaseConstants.COMMAND_MANAGER_JAR_POSTFIX;
-        String cmIn = "/org/netbeans/modules/jeeserver/jetty/embedded/resources/" + cmOut;
-
-        FileObject libExt = projectDir.getFileObject(SuiteConstants.SERVER_CONFIG_FOLDER + "/lib/ext");
-        FileObject cmFo;// = null;
-        try {
-            cmFo = libExt.createData(cmOut, "jar");
-            try (OutputStream os = cmFo.getOutputStream(); InputStream is = getClass().getClassLoader().getResourceAsStream(cmIn)) {
-                FileUtil.copy(is, os);
-            }
-            //this.addJarToServerClassPath(FileUtil.toFile(cmFo),projectDir);
-        } catch (IOException ex) {
-            LOG.log(Level.INFO, ex.getMessage()); //NOI18N
-        }
-        
-        //
-        // Plugin jar => we can create a class from template
-        //
-        DataObject template;
-        DataFolder outputFolder;
-
-        Map<String, Object> templateParams = new HashMap<>(1);
-        try {
-            String src = SuiteConstants.SERVER_PROJECT_FOLDER + "/src/main/java";
-            BaseUtil.out("---------- src=" + src);
-            BaseUtil.out("---------- projDir=" + projectDir.getPath());
-
-            FileObject srcFo = projectDir.getFileObject(src);
-            BaseUtil.out("---------- srcfo=" + srcFo);
-
-            FileObject toDelete = srcFo.getFileObject("javaapplication0");
-            if (toDelete != null) {
-                toDelete.delete();
-            }
-            FileObject targetFo = srcFo.createFolder("org")
-                    .createFolder("embedded")
-                    .createFolder("server");
-            outputFolder = DataFolder.findFolder(targetFo);
-            template = DataObject.find(
-                    FileUtil.getConfigFile("Templates/jetty9/JettyEmbeddedServer"));
-            templateParams.put("port", props.get(SuiteConstants.HTTP_PORT_PROP));
-            templateParams.put("comStart", "");
-            templateParams.put("comEnd", "");
-
-            template.createFromTemplate(
-                    outputFolder,
-                    "JettyEmbeddedServer.java",
-                    templateParams);
-            //setMainClass(projectDir);
-        } catch (IOException e) {
-            Logger.getLogger("global").log(Level.INFO, null, e);
-        }
-    }
-*/
-    /*    protected void addJarToServerClassPath(File jar, FileObject projectDir) throws IOException {
-
-     if (projectDir == null || jar == null || !jar.exists()) {
-     return;
-     }
-     URI[] uri = new URI[]{Utilities.toURI(jar)};
-     ProjectClassPathModifier.addRoots(uri, getSourceRoot(projectDir), ClassPath.COMPILE);
-     }
-     */
-    /*    protected FileObject getSourceRoot(FileObject projectDir) {
-     Project p = FileOwnerQuery.getOwner(projectDir);
-     Sources sources = ProjectUtils.getSources(p);
-     SourceGroup[] sourceGroups
-     = sources.getSourceGroups(JavaProjectConstants.SOURCES_TYPE_JAVA);
-     FileObject result = null;
-     try {
-     for (SourceGroup sourceGroup : sourceGroups) {
-     result = sourceGroup.getRootFolder();
-     break;
-
-     }
-     } catch (UnsupportedOperationException ex) {
-     LOG.log(Level.FINE, ex.getMessage()); //NOI18N
-     }
-     return result;
-     }
-     */
-    /*    protected void setMainClass(FileObject projDir) {
-     FileObject fo = projDir.getFileObject("nbproject/project.properties");
-     EditableProperties props = BaseUtils.loadEditableProperties(fo);
-     props.setProperty("main.class", "org.embedded.server.JettyEmbeddedServer");
-     BaseUtils.storeEditableProperties(props, fo);
-     }
-     */
     @Override
     public boolean needsShutdownPort() {
         return false;
@@ -367,6 +276,11 @@ BaseUtil.out("Jetty9Specifics MAVEB.BASED");
         }
 
         return ib;
+    }
+
+    @Override
+    public SupportedApiProvider getSupportedApiProvider() {
+        return new JettySupportedApiProvider();
     }
 
 }

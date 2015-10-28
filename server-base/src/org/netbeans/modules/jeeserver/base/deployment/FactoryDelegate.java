@@ -168,6 +168,7 @@ public class FactoryDelegate {
         FileObject dir = FileUtil.getConfigFile("/J2EE/InstalledServers");
         FileObject instanceFOs[] = dir.getChildren();
         for (FileObject instanceFO : instanceFOs) {
+            
             String url = (String) instanceFO.getAttribute(InstanceProperties.URL_ATTR);
             if (!url.startsWith(uriPrefix)) {
                 continue;

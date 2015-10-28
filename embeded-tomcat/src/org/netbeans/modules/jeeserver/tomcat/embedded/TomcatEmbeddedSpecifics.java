@@ -19,7 +19,6 @@ package org.netbeans.modules.jeeserver.tomcat.embedded;
 import java.awt.Image;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.HttpURLConnection;
@@ -39,13 +38,14 @@ import javax.enterprise.deploy.spi.DeploymentManager;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
-import org.netbeans.modules.jeeserver.*;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
+import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.EmbeddedInstanceBuilder;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
+import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
 import org.openide.filesystems.FileObject;
 
@@ -61,7 +61,7 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     private static final Logger LOG = Logger.getLogger(TomcatEmbeddedSpecifics.class.getName());
 
     @StaticResource
-    private static final String IMAGE = "org/netbeans/modules/jeeserver/tomcat/embedded/resources/tomcat.png";
+    private static final String SERVER_IMAGE = "org/netbeans/modules/jeeserver/tomcat/embedded/resources/tomcat.png";
 
 //    private static final String HELPER_JAR = "nb-tomcat-helper.jar";
 
@@ -72,7 +72,7 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
 
         Socket socket = new Socket();
         int port = Integer.parseInt(dm.getInstanceProperties().getProperty(BaseConstants.HTTP_PORT_PROP));
-        int timeout = 2000;
+        int timeout = 50;
         try {
             try {
                 socket.connect(new InetSocketAddress("localhost", port), timeout); // NOI18N
@@ -126,6 +126,7 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
 
         int port = Integer.parseInt(dm.getInstanceProperties().getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
         // checking whether a socket can be created is not reliable enough, see #47048
+BaseUtil.out("TomcatEmbeddedSpecifics port=" + port);        
         Socket socket = new Socket();
         
 
@@ -238,11 +239,16 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
     public FindJSPServlet getFindJSPServlet(DeploymentManager dm) {
         return new TomcatFindJspServlet((BaseDeploymentManager) dm);
     }
-
     @Override
+    public Image getServerImage(Project serverProject) {
+        return ImageUtilities.loadImage(SERVER_IMAGE);
+    }
+
+/*    @Override
     public Image getProjectImage(Project serverProject) {
         return ImageUtilities.loadImage(IMAGE);
     }
+*/    
     @Override
     public InstanceBuilder getInstanceBuilder(Properties props, InstanceBuilder.Options options) {
         InstanceBuilder ib = null;
@@ -447,4 +453,10 @@ BaseUtil.out("TomcatSpecifics MAVEB.BASED");
     public Properties getContextPoperties(FileObject config) {
         return TomcatModuleConfiguration.getContextProperties(config);
     }            
+
+    @Override
+    public SupportedApiProvider getSupportedApiProvider() {
+        return null;
+    }
+
 }

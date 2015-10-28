@@ -390,7 +390,7 @@ public class SuiteUtil extends BaseUtil {
     /**
      * Returns a set of supported profiles by the specified embedded server.
      *
-     * @param serverProject an embedded server project
+     * @param context
      * @return a set of supported profiles
      */
     public static Set<Profile> getJavaEEProfiles(Lookup context) {

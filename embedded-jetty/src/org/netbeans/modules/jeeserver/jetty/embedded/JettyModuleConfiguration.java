@@ -29,6 +29,7 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.config.AbstractModuleConfiguration;
 import org.netbeans.modules.j2ee.deployment.devmodules.api.J2eeModule;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.EmbeddedModuleConfiguration;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.xml.XMLUtil;
@@ -43,7 +44,7 @@ import org.xml.sax.SAXException;
  *
  * @author V. Shyshkin
  */
-public class JettyModuleConfiguration  extends AbstractModuleConfiguration {
+public class JettyModuleConfiguration  extends EmbeddedModuleConfiguration {
 
     private static final Logger LOG = Logger.getLogger(JettyModuleConfiguration.class.getName());
 
@@ -202,8 +203,5 @@ public class JettyModuleConfiguration  extends AbstractModuleConfiguration {
 
         }
         return result;
-    }
-    @Override
-    protected void notifyAvailableModule(String instanceId, final boolean dispose) {
     }
 }

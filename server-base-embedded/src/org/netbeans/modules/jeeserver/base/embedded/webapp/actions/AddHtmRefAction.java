@@ -68,8 +68,6 @@ public final class AddHtmRefAction extends AbstractAction implements ContextAwar
 
             this.context = context;
 
-            BaseUtil.out("=============== manager=" + BaseUtil.managerOf(context));
-            //serverProject = BaseUtils.managerOf(context).getServerProject();
 
             //boolean isEmbedded = SuiteUtil.isEmbedded(serverProject);
             boolean isEmbedded = false;

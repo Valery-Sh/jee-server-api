@@ -130,7 +130,8 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
                     BuildProjectActions.getContextAwareInstance("rebuild", getLookup()),
                     BuildProjectActions.getContextAwareInstance("clean", getLookup()),
                     null,
-                    ServerActions.DefineMainClassAction.getContextAwareInstance(getLookup()),
+                    //ServerActions.DefineMainClassAction.getContextAwareInstance(getLookup()),
+                    ServerActions.DownLoadJarsAction.getContextAwareInstance(getLookup()),
                     null,
                     InstancePropertiesAction
                     .getContextAwareInstance(getLookup()),
@@ -213,9 +214,9 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
         }
 
         if (source instanceof DistributedWebAppManager) {
-            BaseUtil.out("InstanceNode childrenChanged");            
-            DistributedWebAppRootNode  distNode = childKeys.getDistributedWebAppRootNode(); 
-            if ( distNode != null ) {
+            BaseUtil.out("InstanceNode childrenChanged");
+            DistributedWebAppRootNode distNode = childKeys.getDistributedWebAppRootNode();
+            if (distNode != null) {
                 distNode.childrenChanged(source, params);
             }
         }
@@ -268,17 +269,19 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
 
             //return new Node[]{};
         }
+
         public DistributedWebAppRootNode getDistributedWebAppRootNode() {
             Node[] nodes = getNodes();
-            if ( nodes != null && nodes.length > 0 ) {
-                for ( Node node : nodes ) {
-                    if ( node instanceof DistributedWebAppRootNode ) {
+            if (nodes != null && nodes.length > 0) {
+                for (Node node : nodes) {
+                    if (node instanceof DistributedWebAppRootNode) {
                         return (DistributedWebAppRootNode) node;
                     }
                 }
             }
             return null;
         }
+
         /**
          * Called when children of the {@code Web Applications} are first asked
          * for nodes. For each child node of the folder named

@@ -2,11 +2,16 @@ package org.netbeans.modules.jeeserver.base.embedded.project;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,13 +46,19 @@ public class PomXmlUtil {
 
     private static final Logger LOG = Logger.getLogger(PomXmlUtil.class.getName());
 
-    private final Path pomXml;
+    private Path pomXml;
     private Document doc;
 
     //private Dependencies dependencies = null;
     public PomXmlUtil(Path pomXml) {
         this.pomXml = pomXml;
         init();
+    }
+    public PomXmlUtil(InputStream pomXmlStream) {
+        init(pomXmlStream);
+    }
+    private void init(InputStream pomXmlStream) {
+        doc = parse(pomXmlStream);
     }
 
     private void init() {
@@ -69,6 +80,21 @@ public class PomXmlUtil {
         return d;
     }
 
+    protected Document parse(InputStream is) {
+
+        Document d = null;
+        try {
+            FileObject pomFo = FileUtil.toFileObject(pomXml.toFile());
+            InputSource source = new InputSource(is);
+            d = XMLUtil.parse(source, false, false, null, new ParseEntityResolver());
+
+            //doc.normalizeDocument();
+        } catch (IOException | DOMException | SAXException ex) {
+            LOG.log(Level.INFO, ex.getMessage());
+        }
+        return d;
+    }
+    
     protected Document parse1() {
         Document d = null;
 
@@ -99,10 +125,22 @@ public class PomXmlUtil {
         transformer.transform(source, result);
     }
 
-    public void save(Path target) throws TransformerConfigurationException, TransformerException {
-    }
+    public void save(Path targetDir, String newFileName) {
+        try {
+            Path p = Paths.get(targetDir.toString(),newFileName);
+            if ( ! Files.exists(p)) {
+                Path dir = Files.createDirectories(targetDir);
+                p = Files.createFile(p);
+            }
+            save(p);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, ex.getMessage());
+        }
+    }    
 
-    public void save1(Path target) throws TransformerConfigurationException, TransformerException {
+    
+    public void save(Path target) {
+
         FileObject pomFo = FileUtil.toFileObject(target.toFile());
         try (OutputStream os = pomFo.getOutputStream()) {
             XMLUtil.write(doc, os, doc.getXmlEncoding());
@@ -506,6 +544,203 @@ public class PomXmlUtil {
             return s == null ? null : element.getTextContent().trim();
         }
     }
+    public static class PomProperties {
+
+        private Document document;
+
+        private Element element;
+
+        protected PomProperties() {
+        }
+        public int size() {
+            return list().size();
+        }
+        
+        protected PomProperties(Element propertiesTag, Document document) {
+            this.element = propertiesTag;
+            this.document = document;
+        }
+        /**
+         * key - a name of the property propertyValue - a newValue of the property
+         * 
+         * @param pair a collection where key is a property name and propertyValue 
+         * is a text content of the property
+         */
+        public void replaceAll(Map<String,String> pair) {
+            pair.forEach((k,v) -> {
+                delete(k);
+            });
+            pair.forEach((k,v) -> {
+                Property p = new Property(k);
+                p.setValue(v);
+                add(p);
+            });
+        }
+
+        protected Element getElement() {
+            return element;
+        }
+
+        protected void setElement(Element element) {
+            this.element = element;
+        }
+        
+        public List<Property> list(final Predicate<Property> p) {
+            final List<Property> list = list();
+            final List<Property> result = list();
+            list.forEach(d -> {
+                if ( p.test(d) ) {
+                    result.add(d);
+                }
+            });
+            return result;
+            
+        }
+        public List<Property> list() {
+            List<Property> list = new ArrayList<>();
+            NodeList propList = element.getElementsByTagName("*");
+            if (propList == null || propList.getLength() == 0) {
+                return list;
+            }
+            for (int i = 0; i < propList.getLength(); i++) {
+                Element propertyElement = (Element) propList.item(i);
+                Property property = new Property(propertyElement);
+                property.setProperties(this);
+                //property.list();
+                list.add(property);
+            }
+            return list;
+        }
+
+
+        public void delete(String propertyName) {
+            delete(new Property(propertyName));
+        }
+
+        public void delete(Predicate<Property> p) {
+            List<Property> list = list();
+            list.forEach(d -> {
+                if ( p.test(d)) {
+                    d.delete();
+                }
+            });
+        }
+
+        public void add(List<Property> list) {
+            list.forEach(d -> add(d));
+        }
+
+        public boolean delete(Property prop) {
+            boolean b = true;
+            List<Property> list = list();
+            int idx = list.indexOf(prop);
+            if (idx >= 0) {
+                Property d = list.get(idx);
+                d.delete();
+
+            }
+            return b;
+        }
+
+        public Property add(Property prop) {
+            if (prop.properties != null) {
+                return null;
+            }
+            Element el = document.createElement(prop.getPropertyName());
+            prop.setElement(el);
+            prop.setProperties(this);
+            element.appendChild(el);
+            el.setTextContent(prop.getValue());
+            return prop;
+        }
+
+    }//class
+
+    public static class Property {
+
+        private Element element;
+        private String propertyName;
+        private String propertyValue;
+//        private List<PropertyChild> childs;
+
+        private PomProperties properties;
+
+        public Property(String propertyName) {
+            this.propertyName = propertyName;
+        }
+
+        protected Property(Element propertyElement) {
+            this.element = propertyElement;
+            this.propertyName = element.getTagName();
+            this.propertyValue = element.getTextContent().trim();
+        }
+
+        protected void setProperties(PomProperties properties) {
+            this.properties = properties;
+        }
+
+        public String getPropertyName() {
+            return propertyName;
+        }
+        
+        public String getValue() {
+            if ( propertyValue == null ) {
+                return "";
+            } else {
+                return propertyValue;
+            }
+        }
+        protected Element getElement() {
+            return element;
+        }
+
+        protected void setElement(Element element) {
+            this.element = element;
+        }
+
+        protected void delete() {
+            if (properties == null) {
+                return;
+            }
+            properties.getElement().removeChild(element);
+            properties = null;
+            element = null;
+        }
+        protected void replace(Property newProperty) {
+            if (properties == null) {
+                return;
+            }
+            properties.getElement().removeChild(element);
+            properties = null;
+            element = null;
+            
+            properties.add(newProperty);
+        }
+        protected void setValue(String value) {
+            this.propertyValue = value == null ? "" : value.trim();
+        }
+        @Override
+        public boolean equals(Object other) {
+            Property o = (Property) other;
+            if (other == null) {
+                return false;
+            }
+            boolean b = o.getPropertyName().equals(getPropertyName()); 
+            return b;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 23 * hash + Objects.hashCode(this.element);
+            hash = 23 * hash + Objects.hashCode(this.propertyName);
+            hash = 23 * hash + Objects.hashCode(this.propertyValue);
+            hash = 23 * hash + Objects.hashCode(this.properties);
+            return hash;
+        }
+
+
+    }//class Dependency
 
     public static class ParserEntityResolver implements EntityResolver {
 
@@ -516,7 +751,6 @@ public class PomXmlUtil {
         }
     }// ParserEntityResolver
 
-    public static interface DeleteDependency {
+    
 
-    }
 }//class

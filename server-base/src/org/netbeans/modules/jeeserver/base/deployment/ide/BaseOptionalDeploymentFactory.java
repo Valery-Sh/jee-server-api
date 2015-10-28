@@ -25,6 +25,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.spi.OptionalDeploymentManage
 import org.netbeans.modules.j2ee.deployment.plugins.spi.StartServer;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 
 /**
  *
@@ -60,6 +61,7 @@ public class BaseOptionalDeploymentFactory extends OptionalDeploymentManagerFact
                 b = true;
             }
         }
+BaseUtil.out("BaseOptionalDeploymentFactory b=" + b);
         return b ? new BaseIncrementalDeployment(dm) : null;
     }
 
