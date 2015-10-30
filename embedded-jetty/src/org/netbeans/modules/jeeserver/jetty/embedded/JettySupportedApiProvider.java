@@ -2,7 +2,9 @@ package org.netbeans.modules.jeeserver.jetty.embedded;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApi;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
@@ -15,6 +17,13 @@ public class JettySupportedApiProvider implements SupportedApiProvider{
     
     @StaticResource
     private static final String DOWNLOAD_POM = "org/netbeans/modules/jeeserver/jetty/embedded/resources/download-pom.xml";
+//    @StaticResource
+//    private static final String DOWNLOAD_BASE_POM = "org/netbeans/modules/jeeserver/jetty/embedded/resources/download-base-pom.xml";
+    
+    
+    public JettySupportedApiProvider() {
+    }
+
     
     @Override
     public List<SupportedApi> getApiList() {
@@ -76,8 +85,9 @@ public class JettySupportedApiProvider implements SupportedApiProvider{
         "jstl/Apache JSTL/Apache JSTL API",};
 
     protected String[] source = new String[]{
-        "maven:base://org.eclipse.jetty.aggregate/jetty-all/${nb.server.version}/type=pom/jetty-9-embedded-command-manager-${nb.server.version}.jar",
-        "maven:base://${command.manager.groupId}/${command.manager.artifactId}/${command.manager.version}/jetty-9-embedded-command-manager-${nb.server.version}.jar",
+     
+        "maven:base://org.eclipse.jetty.aggregate/jetty-all/${nb.server.version}/type=jar,classifier=uber,scope=provided/jetty-all-${nb.server.version}.jar",
+        "maven:base://org.netbeans.plugin.support.embedded/jetty-9-embedded-command-manager/${command.manager.version}/jetty-9-embedded-command-manager-${command.manager.version}.jar",
         "maven:jsp://org.ow2.asm/asm-commons/5.0.1/asm-5.0.1.jar",
         "maven:jsp://javax.annotation/javax.annotation-api/1.2/javax.annotation-api-1.2.jar",
         "maven:jsp://org.eclipse.jetty.orbit/javax.mail.glassfish/1.4.1.v201005082020/javax.mail.glassfish-1.4.1.v201005082020.jar",
@@ -110,8 +120,39 @@ public class JettySupportedApiProvider implements SupportedApiProvider{
         "maven:cdi-weld://org.jboss.weld/weld-spi/2.2.SP3/weld-spi-2.2.SP3.jar",};
 
     @Override
-    public InputStream getDownloadPom() {
+    public InputStream getDownloadPom(Object... options) {
+/*        if ( options.length > 0 && ( options[0] instanceof SupportedApi) ) {
+            SupportedApi api = (SupportedApi) options[0];
+            if ( "BASE".equals(api.getName().toUpperCase()) ) {
+                return getClass().getClassLoader().getResourceAsStream(DOWNLOAD_BASE_POM);
+            }
+        }
+*/        
         return getClass().getClassLoader().getResourceAsStream(DOWNLOAD_POM);
+    }
+
+    @Override
+    public Map<String, String> getServerVersionProperties(String version) {
+
+        Map<String,String> map = new HashMap<>();
+        map.put("nb.server.version",version);
+/*        map.put("command.manager.groupId", "org.netbeans.plugin.support.embedded");    
+        map.put("command.manager.artifactId", "jetty-9-embedded-command-manager");    
+*/        
+        map.put("command.manager.version", "[1.3.1-SNAPSHOT,)");            
+
+        return map;
+    }
+    
+    @Override
+    public String[] getServerVertions() {
+        return new String[] {
+            "9.3.5.v20151012",
+            "9.3.3.v20150827",
+            "9.3.2.v20150730",
+            "9.3.1.v20150827",
+            "9.3.0.v20150612",
+        };
     }
 
     public static class JettyDefaultAPIProvider {

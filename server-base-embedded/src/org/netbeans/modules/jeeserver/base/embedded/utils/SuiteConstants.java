@@ -15,6 +15,9 @@ public class SuiteConstants extends BaseConstants {
         UNPACKED_WARS,
         WARS
     }
+    public static String UNKNOWN_VERSION = "0.0.1";
+    public static String CUSTOMIZE_MODE_PROP = "customize_mode";
+    
     // ----------- CommandManager properties names ---------------------
     public static String BASE_DIR_PROP = "base.dir";
     public static String COMMAND_MANAGER_PROPERIES_PROP = "command.manager.pom.properties";    
@@ -39,6 +42,7 @@ public class SuiteConstants extends BaseConstants {
     public static final String MAVEN_WORK_DIR_PROP = "maven.work.dir";
     
     public static String TMP_DIST_WEB_APPS = "embedded_suite_server_instance";
+    public static String TMP_SERVER = "embedded_suite_server_instance_TEMP";    
     public static String SERVER_INSTANCE_WEB_APPS_PROPS = "server-instance-web-apps.properties";    
     
     public static final String SERVER_INSTANCE_NAME_PROP = "server-instance-display-name";     

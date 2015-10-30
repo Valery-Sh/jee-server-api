@@ -144,6 +144,6 @@ public class AddExistingProjectWizardActionAsIterator extends AbstractAction imp
     }
 
     protected void fillWizardDescriptor(WizardDescriptor wiz) {
-
+        wiz.putProperty(SuiteConstants.CUSTOMIZE_MODE_PROP, Boolean.FALSE);
     }
 }

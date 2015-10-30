@@ -192,6 +192,12 @@ BaseUtil.out("InstanceBuilder invoke runInstantiateProjectDir");
         ip.put(BaseConstants.HTTP_PORT_PROP, (String) wiz.getProperty(BaseConstants.HTTP_PORT_PROP));
         ip.put(BaseConstants.DEBUG_PORT_PROP, (String) wiz.getProperty(BaseConstants.DEBUG_PORT_PROP));
         ip.put(BaseConstants.SHUTDOWN_PORT_PROP, (String) wiz.getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
+        String serverVersion = (String) wiz.getProperty(BaseConstants.SERVER_VERSION_PROP);
+        if ( serverVersion == null  ) {
+            serverVersion = "0.0.1";
+            
+        }
+        ip.put(BaseConstants.SERVER_VERSION_PROP, serverVersion);
         
         ip.put(BaseConstants.URL_PROP, url);
 //        ip.put(BaseConstants.HOME_DIR_PROP, jettyHome);

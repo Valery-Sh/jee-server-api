@@ -13,14 +13,16 @@ import java.util.List;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.ListModel;
-import javax.swing.filechooser.FileFilter;
 import org.netbeans.api.project.Project;
-import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApi;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
+import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
+import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.filesystems.FileChooserBuilder;
-import org.openide.filesystems.FileUtil;
 
 /**
  *
@@ -31,6 +33,8 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
     private final Project serverProject;
     private final JButton downloadButton;
     private final JButton cancelButton;
+    private String[] apiNames = null;
+    private List<SupportedApi> apiList;
 
     /**
      * Creates new form DownloadJarsPanelVisual
@@ -40,20 +44,25 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
         this.serverProject = serverProject;
         this.downloadButton = downloadButton;
         this.cancelButton = cancelButton;
+        init();
+    }
+
+    private void init() {
         this.selectAPIComboBox.setModel(createComboBoxModel());
         this.selectAPIComboBox.addActionListener(new ComboBoxActionListener());
         this.selectAPIComboBox.setSelectedIndex(0);
         this.jarList.setModel(createListModel(null));
-        this.targetTextField.setText(getServerProject().getProjectDirectory().getPath());
-
-
-    }
-
-    String[] apiNames = null;
-    private List<SupportedApi> apiList;
+        if ( getServerProject().getProjectDirectory().getFileObject("lib") != null ) {
+            this.targetTextField.setText(getServerProject().getProjectDirectory()
+                    .getFileObject("lib")
+                    .getPath());
+        } else {
+            this.targetTextField.setText(getServerProject().getProjectDirectory().getPath());
+        }
+    }    
 
     protected DefaultComboBoxModel createComboBoxModel() {
-        apiList = SupportedApiProvider.getInstance(SuiteManager.getManager(serverProject)).getApiList();
+        apiList = SupportedApiProvider.getInstance(SuiteUtil.getServerId(serverProject)).getApiList();
         final List<String> names = new ArrayList<>();
         names.add("<not selected>");
         apiList.forEach(api -> {
@@ -76,12 +85,20 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
         if (api == null) {
             return model;
         }
+        String serverVersion = SuiteManager
+                .getManager(getServerProject())
+                .getInstanceProperties()
+                .getProperty(BaseConstants.SERVER_VERSION_PROP);
+
         api.getJarNames().forEach(jar -> {
+            jar.replaceAll("${nb.server.version}", serverVersion);
             model.addElement(jar);
         });
         return model;
     }
-
+    public JComboBox getSelectedApiComboBox() {
+        return selectAPIComboBox;
+    }
     protected class ComboBoxActionListener implements ActionListener {
 
         public ComboBoxActionListener() {
@@ -94,15 +111,19 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
             int idx = selectAPIComboBox.getSelectedIndex();
             if (idx == 0) {
                 jarList.setModel(createListModel(null));
+                downloadButton.setEnabled(false);
             } else {
                 jarList.setModel(createListModel(apiList.get(idx - 1)));
                 descTextArea.setText(apiList.get(idx - 1).getDescription());
+                downloadButton.setEnabled(true);
             }
 
         }
 
     }
-
+    public String getTargetFolder() {
+        return targetTextField.getText();
+    }
     public Project getServerProject() {
         return serverProject;
     }
@@ -126,6 +147,8 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
         jLabel2 = new javax.swing.JLabel();
         targetTextField = new javax.swing.JTextField();
         browseButton = new javax.swing.JButton();
+        jLabel3 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
 
         selectAPIComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
@@ -157,25 +180,31 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
             }
         });
 
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel3, "Jar achives to download:"); // NOI18N
+
+        org.openide.awt.Mnemonics.setLocalizedText(jLabel4, "Description:"); // NOI18N
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+            .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1)
                     .addComponent(selectAPIComboBox, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jScrollPane2)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 324, Short.MAX_VALUE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(targetTextField)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(browseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(browseButton, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 191, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 257, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 252, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -187,14 +216,19 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(targetTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(browseButton))
-                .addGap(16, 16, 16)
+                .addGap(25, 25, 25)
                 .addComponent(jLabel1)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(selectAPIComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
+                .addComponent(jLabel3)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(16, 16, 16)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(25, 25, 25)
+                .addComponent(jLabel4)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 89, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -211,7 +245,7 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(78, Short.MAX_VALUE))
+                .addContainerGap(61, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -221,21 +255,13 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
             basePath = new File( serverProject.getProjectDirectory().getPath());
         }
         File target = new FileChooserBuilder("target-dir")
+                .setDirectoriesOnly(true)
                 .setTitle("Select API and download jars")
                 .setDefaultWorkingDirectory(basePath)
-                .addFileFilter(new FileFilter() {
-                    @Override
-                    public boolean accept(File f) {
-                        return f.isDirectory();
-                    }
-
-                    @Override
-                    public String getDescription() {
-                        return "The folder to download an archive (jar) files";
-                    }
-                })
                 .setApproveText("Choose").showOpenDialog();
-
+        if ( target != null ) {
+            targetTextField.setText(target.getPath());
+        }
     }//GEN-LAST:event_browseButtonActionPerformed
 
 
@@ -244,6 +270,8 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
     private javax.swing.JTextArea descTextArea;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;

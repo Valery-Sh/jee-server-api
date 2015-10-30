@@ -86,7 +86,14 @@ BaseUtil.out("JettInstanceBuilder nvoke updateWithTemplates");
     }
 
     protected FileObject getSrcDir(Project p) {
+        BaseUtil.out("JettyInstanceBuilder.getSrcDir project = " + p);
+        if ( p != null ) {
+            BaseUtil.out("JettyInstanceBuilder.getSrcDir project.getDir = " + p.getProjectDirectory());
+            
+        }
         FileObject fo = p.getProjectDirectory().getFileObject("src");
+        BaseUtil.out("JettyInstanceBuilder.getSrcDir fo = " + fo);
+        
         return fo;
     }
 

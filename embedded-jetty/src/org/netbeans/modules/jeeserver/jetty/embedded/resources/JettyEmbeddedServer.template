@@ -30,7 +30,7 @@ public class JettyEmbeddedServer {
      */
     public static void main(String[] args) throws Exception {
         Server server = new Server(${port});
-        server.addLifeCycleListener(new NbDeployHandler());
+        NbDeployHandler.getInstance().listen(server);
 
         //
         //------------------------------------------------------------

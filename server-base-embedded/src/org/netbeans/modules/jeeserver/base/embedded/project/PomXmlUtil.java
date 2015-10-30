@@ -15,9 +15,6 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
@@ -28,7 +25,6 @@ import javax.xml.transform.stream.StreamResult;
 import org.netbeans.modules.jeeserver.base.embedded.utils.ParseEntityResolver;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Exceptions;
 import org.openide.xml.XMLUtil;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
@@ -84,7 +80,6 @@ public class PomXmlUtil {
 
         Document d = null;
         try {
-            FileObject pomFo = FileUtil.toFileObject(pomXml.toFile());
             InputSource source = new InputSource(is);
             d = XMLUtil.parse(source, false, false, null, new ParseEntityResolver());
 
@@ -95,7 +90,7 @@ public class PomXmlUtil {
         return d;
     }
     
-    protected Document parse1() {
+/*    protected Document parse1() {
         Document d = null;
 
         DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
@@ -113,7 +108,7 @@ public class PomXmlUtil {
 
         return d;
     }
-
+*/
     public void save() throws TransformerConfigurationException, TransformerException {
 
         TransformerFactory tFactory = TransformerFactory.newInstance();
@@ -145,9 +140,20 @@ public class PomXmlUtil {
         try (OutputStream os = pomFo.getOutputStream()) {
             XMLUtil.write(doc, os, doc.getXmlEncoding());
         } catch (IOException ex) {
-            Exceptions.printStackTrace(ex);
+            LOG.log(Level.INFO, ex.getMessage());
         }
 
+    }
+    public PomProperties getProperties() {
+
+        NodeList nl = doc.getDocumentElement().getElementsByTagName("properties");
+        if (nl == null) {
+            return null;
+        }
+
+        Element propertiesElement = (Element) nl.item(0);
+        PomProperties props = new PomProperties(propertiesElement, doc);
+        return props;
     }
 
     public Dependencies getDependencies() {
@@ -317,7 +323,34 @@ public class PomXmlUtil {
         protected void setDependencies(Dependencies dependencies) {
             this.dependencies = dependencies;
         }
+        public void setTags(Map<String,String> tags) {
+            tags.forEach((k,v) -> {
+                switch( k ) {
+                    case "scope":
+                        setScope(v);
+                        break;
+                    case "type":
+                        setType(v);
+                        break;
+                    case "optional":
+                        setOptional(v);
+                        break;
+                    case "systemPath":
+                        setSystemPath(v);
+                        break;
+                    case "classifier":
+                        setClassifier(v);
+                        break;
+                        
+                }
+            });
+            
+        }
 
+        public void setClassifier(String classifier) {
+            this.classifier = classifier;
+        }
+        
         protected List<String[]> getNotNullTags() {
             List<String[]> list = new ArrayList<>();
             if (groupId != null) {

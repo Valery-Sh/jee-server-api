@@ -72,6 +72,16 @@ public class CustomizerWizardActionAsIterator extends AddExistingProjectWizardAc
         wiz.putProperty(BaseConstants.DEBUG_PORT_PROP, ip.getProperty(BaseConstants.DEBUG_PORT_PROP));
         wiz.putProperty(BaseConstants.SHUTDOWN_PORT_PROP, ip.getProperty(BaseConstants.SHUTDOWN_PORT_PROP));
         wiz.putProperty(BaseConstants.SERVER_ID_PROP, ip.getProperty(BaseConstants.SERVER_ID_PROP));
+        wiz.putProperty(BaseConstants.SERVER_ACTUAL_ID_PROP, ip.getProperty(BaseConstants.SERVER_ACTUAL_ID_PROP));
+        
+        wiz.putProperty(SuiteConstants.CUSTOMIZE_MODE_PROP, Boolean.TRUE);
+        
+        String version = ip.getProperty(BaseConstants.SERVER_VERSION_PROP);
+        if ( version == null ) {
+            version = SuiteConstants.UNKNOWN_VERSION;
+        }
+        wiz.putProperty(BaseConstants.SERVER_VERSION_PROP, version);
+        
         wiz.putProperty("projdir", new File(BaseUtil.getServerLocation(ip)));
         wiz.putProperty(SuiteConstants.SUITE_PROJECT_LOCATION, new File(SuiteUtil.getSuiteProjectLocation(ip)));
         

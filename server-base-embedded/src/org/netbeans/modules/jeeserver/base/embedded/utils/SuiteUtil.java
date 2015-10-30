@@ -3,6 +3,7 @@ package org.netbeans.modules.jeeserver.base.embedded.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +43,32 @@ public class SuiteUtil extends BaseUtil {
 
     private static final Logger LOG = Logger.getLogger(SuiteUtil.class.getName());
 
+    public static Path createTempDir(Project project, String lastFolder) {
+
+        Path projectDir = Paths.get(project.getProjectDirectory().getPath());
+
+        String root = projectDir.getRoot().toString().replaceAll(":", "_");
+        if (root.startsWith("/")) {
+            root = root.substring(1);
+        }
+        Path targetPath = projectDir.getRoot().relativize(projectDir);
+        String tmp = System.getProperty("java.io.tmpdir");
+
+        Path target = Paths.get(tmp, SuiteConstants.TMP_SERVER, root, targetPath.toString(),lastFolder  );
+
+        File file = target.toFile();
+        if (!file.exists()) {
+            try {
+                FileUtil.createFolder(file);
+            } catch (IOException ex) {
+//                result = CREATE_FOLDER_ERROR;
+                target = null;
+                LOG.log(Level.INFO, ex.getMessage());
+            }
+        }
+        return target;
+
+    }
 
     public static FileObject getCommandManagerJar(Project server) {
         FileObject lib = null;
@@ -107,7 +134,10 @@ public class SuiteUtil extends BaseUtil {
 
         //return getServerProperties(p) != null;
     }
-
+    public static String getServerId(Project serverProject) {
+        return SuiteManager.getManager(serverProject).getInstanceProperties()
+                .getProperty(BaseConstants.SERVER_ID_PROP);
+    }
     public static StringBuilder getServerInfo(Project server) {
 
         //Properties props = SuiteUtil.loadServerProperties(server);

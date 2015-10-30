@@ -29,7 +29,10 @@ public interface EmbeddedServerSpecifics extends ServerSpecifics {
     default InputStream getPomFileTemplate() {
         return null;
     }
+    
+//    SupportedApiProvider getSupportedApiProvider(BaseDeploymentManager dm);
     SupportedApiProvider getSupportedApiProvider();
+    
     @Override
     default void iconChange(String uri, boolean newValue) {
         SuiteManager.getServerSuiteProject(uri)

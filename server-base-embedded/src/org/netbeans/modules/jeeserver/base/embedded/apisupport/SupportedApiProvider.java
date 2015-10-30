@@ -2,7 +2,8 @@ package org.netbeans.modules.jeeserver.base.embedded.apisupport;
 
 import java.io.InputStream;
 import java.util.List;
-import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
+import java.util.Map;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
 
 /**
@@ -12,10 +13,14 @@ import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpec
 public interface SupportedApiProvider {
     
     public SupportedApi getSupportedAPI(String apiName);
-    public static SupportedApiProvider getInstance(BaseDeploymentManager dm) {
-        return ((EmbeddedServerSpecifics)dm.getSpecifics()).getSupportedApiProvider();
+    public static SupportedApiProvider getInstance(String serverId) {
+        //return ((EmbeddedServerSpecifics)dm.getSpecifics()).getSupportedApiProvider(dm);
+        return ((EmbeddedServerSpecifics)BaseUtil.getServerSpecifics(serverId)).getSupportedApiProvider();
     }
     List<SupportedApi> getApiList();
-    InputStream getDownloadPom();
+    InputStream getDownloadPom(Object... options);
+    Map<String,String> getServerVersionProperties(String version);
+    String[] getServerVertions();    
+    
 
 }

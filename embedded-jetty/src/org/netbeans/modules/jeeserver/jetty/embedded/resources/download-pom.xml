@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
@@ -28,7 +29,24 @@
         </dependency>
         -->
     </dependencies>
-
+    <profiles>
+        <profile>
+            <id>base-downloads</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>normal-downloads</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+            </properties>
+        </profile>        
+    </profiles>
+    
+    
     <build>
         <plugins>
             <plugin>
@@ -40,9 +58,9 @@
                             <goals>
                                 <goal>copy-dependencies</goal>
                             </goals>
-
                             <configuration>
                                 <outputDirectory>${target.directory}</outputDirectory>
+                                <excludeTransitive>true</excludeTransitive>
                             </configuration>
                         </execution>
                     </executions>

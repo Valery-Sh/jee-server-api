@@ -47,6 +47,7 @@ public class TomcatCustomizeInstanceBuilder extends EmbeddedInstanceBuilder {
         ip.setProperty(BaseConstants.HTTP_PORT_PROP, ipmap.get(BaseConstants.HTTP_PORT_PROP));
         ip.setProperty(BaseConstants.DEBUG_PORT_PROP, ipmap.get(BaseConstants.DEBUG_PORT_PROP));
         ip.setProperty(BaseConstants.SHUTDOWN_PORT_PROP, ipmap.get(BaseConstants.SHUTDOWN_PORT_PROP));
+        ip.setProperty(BaseConstants.SERVER_VERSION_PROP, ipmap.get(BaseConstants.SERVER_VERSION_PROP));
         
         result.add(ip);
         //wiz.putProperty(ip.getProperty(BaseConstants.URL_PROP), url);

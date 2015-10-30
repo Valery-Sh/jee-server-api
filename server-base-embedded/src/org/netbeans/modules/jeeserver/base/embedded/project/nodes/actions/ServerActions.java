@@ -3,12 +3,22 @@ package org.netbeans.modules.jeeserver.base.embedded.project.nodes.actions;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import static javax.swing.Action.NAME;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import org.netbeans.api.annotations.common.StaticResource;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
@@ -20,10 +30,20 @@ import org.netbeans.modules.jeeserver.base.deployment.actions.StartServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.actions.StopServerAction;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseActionProviderExecutor;
 import org.netbeans.modules.jeeserver.base.deployment.progress.BaseAntTaskProgressObject;
+
 import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.apisupport.ApiDependency;
+import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApi;
+import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
+import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil;
+import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil.Dependencies;
+import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil.Dependency;
+import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil.PomProperties;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
+import org.netbeans.modules.jeeserver.base.embedded.project.wizard.AddDependenciesPanelVisual;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.CustomizerWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.AddExistingProjectWizardActionAsIterator;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.DownloadJarsPanelVisual;
@@ -51,6 +71,11 @@ import org.openide.util.RequestProcessor;
  * @author V. Shyshkin
  */
 public class ServerActions {
+
+    private static final Logger LOG = Logger.getLogger(ServerActions.class.getName());
+
+    @StaticResource
+    private static final String COPY_BUILD_XML = "org/netbeans/modules/jeeserver/base/embedded/resources/maven-copy-api-build.xml";
 
     public static class StartStopAction {
 
@@ -567,80 +592,13 @@ public class ServerActions {
 
                 startProperties.setProperty(BaseAntTaskProgressObject.BUILD_XML, fo.getPath());
                 startProperties.setProperty(SuiteConstants.BASE_DIR_PROP, serverProject.getProjectDirectory().getPath());
-                /*leObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
-
-                 Properties pomProperties = BaseUtil.getPomProperties(cmJar);
-                 if (pomProperties != null) {
-
-                 String str = pomProperties.getProperty("groupId");
-                 str = str.replace(".", "/");
-                 str += "/"
-                 + pomProperties.getProperty("artifactId")
-                 + "/"
-                 + pomProperties.getProperty("version")
-                 + "/"
-                 + cmJar.getNameExt();
-
-                 if (cmJar.getParent().getFileObject(str) == null) {
-                 startProperties.setProperty("do.deploy-file", "yes");
-                 }
-
-                 startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_GROUPID,
-                 pomProperties.getProperty("groupId"));
-
-                 startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_ARTIFACTID,
-                 pomProperties.getProperty("artifactId"));
-                 startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_VERSION,
-                 pomProperties.getProperty("version"));
-                 startProperties.setProperty(BaseConstants.COMMAND_MANAGER_JAR_NAME_PROP,
-                 pomProperties.getProperty("artifactId") + "-"
-                 + pomProperties.getProperty("version")
-                 + ".jar"
-                 );
-                 }
-                 */
-//                startProperties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
-//                        SuiteConstants.MAVEN_REPO_LIB_PATH);
-
                 //
                 // We set MAVEN_DEBUG_CLASSPATH_PROP. In future this approach may change
                 //
 //                properties.setProperty(SuiteConstants.MAVEN_DEBUG_CLASSPATH_PROP, cp);
                 startProperties.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, serverProject.getProjectDirectory().getPath());
-                /*                String mainClass = BaseUtil.getMavenMainClass(serverProject);
-                 if ( mainClass == null ) {
-                 MavenAuxConfig_OLD mac = SuiteUtil.customizedMavenProject(serverProject);
-                 mainClass = mac.getMainClass();
-                 }
-                 BaseUtil.out("ServerActions mainClass=" + mainClass);
-                 if (mainClass != null) {
-                 startProperties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, mainClass);
-                 }
-                 */
             }
 
-            /*            protected String getMavenMainClass() {
-             BaseDeploymentManager dm = SuiteManager.getManager(serverProject);
-             String mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
-             if (mainClass != null) {
-             return mainClass;
-             }
-
-             String[] classes = BaseUtil.getMavenMainClasses(serverProject);
-             if (classes.length == 0) {
-             return null;
-             }
-             if (classes.length == 0 || classes.length > 1) {
-             //                BaseDeploymentManager dm = SuiteManager.getManager(serverProject);
-                    
-             MavenMainClassCustomizer.customize(serverProject);
-             mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
-             } else {
-             mainClass = classes[0];
-             }
-             return mainClass;
-             }
-             */
         }//class
 
         protected static final class AntContextAction extends AbstractAction { //implements ProgressListener {
@@ -1120,19 +1078,19 @@ public class ServerActions {
 
             private final RequestProcessor.Task task;
             private final Lookup context;
-
+            private final Project instanceProject;
 
             public ContextAction(Lookup context) {
                 this.context = context;
                 FileObject fo = context.lookup(FileObject.class);
-                final Project instanceProject = FileOwnerQuery.getOwner(fo);
+                instanceProject = FileOwnerQuery.getOwner(fo);
 
-/*                if (BaseUtil.isAntProject(instanceProject)) {
-                    setEnabled(false);
-                } else {
+                if (BaseUtil.isAntProject(instanceProject)) {
                     setEnabled(true);
+                } else {
+                    setEnabled(false);
                 }
-*/
+
                 putValue(NAME, "&Download jars");
                 putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);
 
@@ -1143,7 +1101,7 @@ public class ServerActions {
                         JButton cb = createCancelButton();
 
                         // MainClassChooserPanelVisual panel = new MainClassChooserPanelVisual(db,cb);
-                        DownloadJarsPanelVisual panel = new DownloadJarsPanelVisual(instanceProject,db, cb);
+                        DownloadJarsPanelVisual panel = new DownloadJarsPanelVisual(instanceProject, db, cb);
 
                         DialogDescriptor dd = new DialogDescriptor(panel, "Select API and download jars",
                                 true, new Object[]{db, cb}, cb, DialogDescriptor.DEFAULT_ALIGN, null, null);
@@ -1152,10 +1110,83 @@ public class ServerActions {
                         DialogDisplayer.getDefault().notify(dd);
 
                         if (dd.getValue() == db) {
+                            int idx = panel.getSelectedApiComboBox().getSelectedIndex();
+                            if (idx <= 0) {
+                                return;
+                            }
+                            SupportedApi api = panel.getApiList().get(idx - 1);
+                            List<ApiDependency> apiDeps = api.getDependencies();
+                            if (apiDeps.isEmpty()) {
+                                return;
+                            }
+                            apiDeps.forEach(d -> {
+                                BaseUtil.out("DownloadJarAction: dependency: " + d.getJarName());
+                                BaseUtil.out("DownloadJarAction: groupId: " + d.getGroupId());
+                                BaseUtil.out("DownloadJarAction: artifactId: " + d.getArtifacId());
+                                BaseUtil.out("DownloadJarAction: version: " + d.getVersion());
+
+                            });
+                            createPom(api, panel.getTargetFolder());
                         }
 
                     }
                 });
+            }
+
+            protected void createPom(SupportedApi api, String copyToDir) {
+                SupportedApiProvider provider = SupportedApiProvider.getInstance(SuiteUtil.getServerId(instanceProject));
+                InputStream is = provider.getDownloadPom(api);
+                PomXmlUtil pomSupport = new PomXmlUtil(is);
+                PomProperties props = pomSupport.getProperties();
+
+                String serverVersion = SuiteManager
+                        .getManager(instanceProject)
+                        .getInstanceProperties()
+                        .getProperty(BaseConstants.SERVER_VERSION_PROP);
+
+                Map<String, String> map = provider.getServerVersionProperties(serverVersion);
+                map.put("target.directory", copyToDir);
+                props.replaceAll(map);
+
+                Path target = SuiteUtil.createTempDir(instanceProject, "downloads");
+                Dependencies deps = pomSupport.getDependencies();
+                api.getDependencies().forEach(d -> {
+                    Dependency dep = new Dependency(d.getGroupId(), d.getArtifacId(), d.getVersion());
+                    dep.setTags(d.getOtherTags());
+                    deps.add(dep);
+                });
+                //Dependency dep = new Dependency();
+                pomSupport.save(target, "pom.xml");
+                //
+                // copy build.xml
+                //
+                InputStream buildIS = getClass().getClassLoader().getResourceAsStream(COPY_BUILD_XML);
+                try {
+                    Files.copy(buildIS, Paths.get(target.toString(), "build.xml"), StandardCopyOption.REPLACE_EXISTING);
+                    copyJars(target);
+                } catch (IOException ex) {
+                    LOG.log(Level.INFO, ex.getMessage());
+
+                }
+
+            }
+
+            protected void copyJars(Path basedir) {
+                Properties execProps = new Properties();
+                basedir.resolve("build.xml").toString();
+                BaseUtil.out("****  COPY JARS " + basedir.resolve("build.xml").toString());
+                String buildXmlPath = basedir.resolve("build.xml").toString();
+                execProps.setProperty("build.xml", buildXmlPath);
+                execProps.setProperty(BaseAntTaskProgressObject.WAIT_TIMEOUT, "0");
+                execProps.setProperty("goals", "package");
+
+                execProps.setProperty(SuiteConstants.BASE_DIR_PROP, basedir.toString());
+                execProps.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, basedir.toString());
+
+                execProps.setProperty(BaseAntTaskProgressObject.ANT_TARGET, "maven-build-goals");
+
+                BaseAntTaskProgressObject task = new BaseAntTaskProgressObject(null, execProps);
+                task.execute();
             }
 
             protected JButton createDownloadButton() {
@@ -1183,6 +1214,148 @@ public class ServerActions {
                 }
 
             }
-        }//class
-    }//class
-}//class
+        }
+
+    }//class DownloadJaesAction
+
+    public static class AddDependenciesAction extends AbstractAction implements ContextAwareAction {
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            assert false;
+        }
+
+        /**
+         *
+         * @param context a Lookup of the ServerInstancesRootNode object
+         * @return
+         */
+        @Override
+        public Action createContextAwareInstance(Lookup context) {
+            return new AddDependenciesAction.ContextAction(context);
+        }
+
+        /**
+         *
+         * @param context a Lookup of the ServerInstancesRootNode object
+         * @return
+         */
+        public static Action getContextAwareInstance(Lookup context) {
+            return new AddDependenciesAction.ContextAction(context);
+        }
+
+        private static final class ContextAction extends AbstractAction { //implements ProgressListener {
+
+            private final RequestProcessor.Task task;
+            private final Lookup context;
+            private final Project instanceProject;
+
+            public ContextAction(Lookup context) {
+                this.context = context;
+                FileObject fo = context.lookup(FileObject.class);
+                instanceProject = FileOwnerQuery.getOwner(fo);
+
+                if (!BaseUtil.isAntProject(instanceProject)) {
+                    setEnabled(true);
+                } else {
+                    setEnabled(false);
+                }
+
+                putValue(NAME, "&Add Specific Dependencies");
+                putValue(DynamicMenuContent.HIDE_WHEN_DISABLED, true);
+
+                task = new RequestProcessor("AddBody").create(new Runnable() { // NOI18N
+                    @Override
+                    public void run() {
+                        JButton db = createAddDependenciesButton();
+                        JButton cb = createCancelButton();
+
+                        // MainClassChooserPanelVisual panel = new MainClassChooserPanelVisual(db,cb);
+                        AddDependenciesPanelVisual panel = new AddDependenciesPanelVisual(instanceProject, db, cb);
+
+                        DialogDescriptor dd = new DialogDescriptor(panel, "Select API and download jars",
+                                true, new Object[]{db, cb}, cb, DialogDescriptor.DEFAULT_ALIGN, null, null);
+//                                true, new Object[]{"Select Main Class", "Cancel"}, "Cancel", DialogDescriptor.DEFAULT_ALIGN, null, null);
+
+                        DialogDisplayer.getDefault().notify(dd);
+
+                        if (dd.getValue() == db) {
+                            int idx = panel.getSelectedApiComboBox().getSelectedIndex();
+                            if (idx <= 0) {
+                                return;
+                            }
+                            SupportedApi api = panel.getApiList().get(idx - 1);
+                            List<ApiDependency> apiDeps = api.getDependencies();
+                            if (apiDeps.isEmpty()) {
+                                return;
+                            }
+                            createPom(api);
+                        }
+
+                    }
+                });
+            }
+
+            protected void createPom(SupportedApi api) {
+                SupportedApiProvider provider = SupportedApiProvider.getInstance(SuiteUtil.getServerId(instanceProject));
+                try (InputStream is = instanceProject.getProjectDirectory()
+                        .getFileObject("pom.xml")
+                        .getInputStream();) 
+                {
+
+                    PomXmlUtil pomSupport = new PomXmlUtil(is);
+                    PomProperties props = pomSupport.getProperties();
+
+                    String serverVersion = SuiteManager
+                            .getManager(instanceProject)
+                            .getInstanceProperties()
+                            .getProperty(BaseConstants.SERVER_VERSION_PROP);
+
+                    Map<String, String> map = provider.getServerVersionProperties(serverVersion);
+
+                    props.replaceAll(map);
+                    Path target = Paths.get(instanceProject.getProjectDirectory().getPath());
+                    Dependencies deps = pomSupport.getDependencies();
+                    api.getDependencies().forEach(d -> {
+                        Dependency dep = new Dependency(d.getGroupId(), d.getArtifacId(), d.getVersion());
+                        dep.setTags(d.getOtherTags());
+                        deps.delete(dep);
+                        deps.add(dep);
+                    });
+                    pomSupport.save(target, "pom.xml");
+                } catch (IOException ex) {
+                    LOG.log(Level.INFO, ex.getMessage());
+                }
+
+            }
+
+            protected JButton createAddDependenciesButton() {
+                JButton button = new javax.swing.JButton();
+                button.setName("SELECT");
+                org.openide.awt.Mnemonics.setLocalizedText(button, "Add dependencies");
+                button.setEnabled(false);
+                return button;
+
+            }
+
+            protected JButton createCancelButton() {
+                JButton button = new javax.swing.JButton();
+                button.setName("CANCEL");
+                org.openide.awt.Mnemonics.setLocalizedText(button, "Cancel");
+                return button;
+            }
+
+            public @Override
+            void actionPerformed(ActionEvent e) {
+                task.schedule(0);
+
+                if ("waitFinished".equals(e.getActionCommand())) {
+                    task.waitFinished();
+                }
+
+            }
+        }
+
+    }//class AddDependenciesAction
+
+}

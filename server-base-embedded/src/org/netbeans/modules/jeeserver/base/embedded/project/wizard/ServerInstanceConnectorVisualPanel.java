@@ -18,11 +18,14 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecifics;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.ServerSpecificsProvider;
+import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import static org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants.*;
 
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
 import org.netbeans.modules.jeeserver.base.embedded.specifics.EmbeddedServerSpecifics;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants;
+import static org.netbeans.modules.jeeserver.base.embedded.utils.SuiteConstants.PANEL_VISITED_PROP;
 import org.netbeans.modules.jeeserver.base.embedded.utils.SuiteUtil;
 import org.openide.WizardDescriptor;
 import org.openide.util.NbBundle;
@@ -50,9 +53,8 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
     }
     private void addListeners() {
         serverId_ComboBox.addActionListener(this);
-        //incremental_Deployment_CheckBox.addActionListener(this);
+        versionComboBox.addActionListener(this);
         projectDisplayNameTextField.getDocument().addDocumentListener(this);
-
     }
     PortHandler portHandler;
     PortHandler debugPortHandler;
@@ -169,11 +171,12 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
 //        ServerInstanceWizardAction.panelVisited[1] = true;
         boolean[] v =  (boolean[])wiz.getProperty(SuiteConstants.PANEL_VISITED_PROP); 
         v[0] = true;
-        
+        wiz.putProperty(PANEL_VISITED_PROP, v);
         wiz.putProperty(HTTP_PORT_PROP, getPort());
         wiz.putProperty(DEBUG_PORT_PROP, getDebugPort());
         wiz.putProperty(HOST_PROP, getHost());
         wiz.putProperty(DISPLAY_NAME_PROP, getDisplayName());
+        wiz.putProperty(SERVER_VERSION_PROP, getServerVersion());
         
 //        String p = getShutdownPort();
         wiz.putProperty(SHUTDOWN_PORT_PROP, getShutdownPort());
@@ -197,6 +200,9 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
                 "true" : "false";
     }
 */    
+    String getServerVersion() {
+        return (String)versionComboBox.getEditor().getItem();
+    }
     String getActualServerId() {
         DefaultComboBoxModel<String> dcm = (DefaultComboBoxModel<String>) serverId_ComboBox.getModel();
         return (String) dcm.getSelectedItem();
@@ -258,7 +264,35 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
 
         return m;
     }
-
+    void setVersionComboBoxModel() {
+        String actualServerId = (String) serverId_ComboBox.getModel().getSelectedItem();
+        String serverId = BaseUtil.getServerIdByAcualId(actualServerId);        
+        DefaultComboBoxModel<String> versionModel = buildVersionComboModel(serverId);
+        versionComboBox.setModel(versionModel);
+        String version = (String) wiz.getProperty(BaseConstants.SERVER_VERSION_PROP);
+        if ( version != null ) {
+            versionComboBox.getEditor().setItem(version);
+        } else  {
+            versionModel.setSelectedItem( versionModel.getElementAt(0));
+        }
+        
+    }
+    DefaultComboBoxModel<String> buildVersionComboModel(String serverId) {
+        DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
+        if ( SupportedApiProvider.getInstance(serverId) == null ) {
+            m.addElement(SuiteConstants.UNKNOWN_VERSION);
+        } else {
+            String[] versions = SupportedApiProvider.getInstance(serverId).getServerVertions();
+            if ( versions == null ) {
+                m.addElement(SuiteConstants.UNKNOWN_VERSION);
+            }
+            for ( String v : versions ) {
+                m.addElement(v);
+            }
+        }
+        return m;
+    }
+    
     @Override
     public void read(WizardDescriptor wiz) {
         this.wiz = wiz;
@@ -266,11 +300,18 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
         DefaultComboBoxModel<String> dcm = buildComboModel();
         serverId_ComboBox.setModel(dcm);
         String actualServerId = (String) wiz.getProperty(SERVER_ACTUAL_ID_PROP);
+        //String serverId = (String) wiz.getProperty(SERVER_ID_PROP);        
         if (actualServerId != null && dcm.getIndexOf(actualServerId) >= 0) {
             dcm.setSelectedItem(actualServerId);
-            this.serverId_ComboBox.setFont(new Font((String)dcm.getSelectedItem(),Font.BOLD, serverId_ComboBox.getFont().getSize() ));            
+            
+            serverId_ComboBox.setFont(new Font((String)dcm.getSelectedItem(),Font.BOLD, serverId_ComboBox.getFont().getSize() ));            
+            serverId_ComboBox.setEnabled(false);
+        } else if ( actualServerId == null ) {
+            actualServerId = dcm.getElementAt(0);
+            dcm.setSelectedItem(actualServerId);
         }
         
+        setVersionComboBoxModel();
         
         File projectLocation = (File) wiz.getProperty("projdir");
         this.projectLocationTextField.setText(projectLocation.getAbsolutePath());
@@ -373,9 +414,14 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == serverId_ComboBox) {
+            versionComboBox.removeActionListener(this);
             panel.fireChangeEvent();
             readDefaultPortSettings(wiz);
-        } 
+            setVersionComboBoxModel();
+            
+        }  else if (e.getSource() == versionComboBox) {
+            panel.fireChangeEvent();
+        }
     }
 
     @Override
@@ -452,6 +498,8 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
         shutdownPort_Label = new javax.swing.JLabel();
         shutdownPort_Spinner = new javax.swing.JSpinner();
         nextTimeMsgLabel = new javax.swing.JLabel();
+        versionLabel = new javax.swing.JLabel();
+        versionComboBox = new javax.swing.JComboBox();
         jLabel1 = new javax.swing.JLabel();
         serverId_ComboBox = new javax.swing.JComboBox();
         messageLabel = new javax.swing.JLabel();
@@ -488,6 +536,12 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
 
         org.openide.awt.Mnemonics.setLocalizedText(nextTimeMsgLabel, "Note: Changes will take affect the next time you start the server"); // NOI18N
 
+        org.openide.awt.Mnemonics.setLocalizedText(versionLabel, "Server Version"); // NOI18N
+        versionLabel.setToolTipText("Select or enter a server version"); // NOI18N
+
+        versionComboBox.setEditable(true);
+        versionComboBox.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -501,20 +555,22 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
                             .addComponent(hostLabel)
                             .addComponent(serverPortLabel)
                             .addComponent(serverDebugPortLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(shutdownPort_Label))
+                            .addComponent(shutdownPort_Label)
+                            .addComponent(versionLabel))
                         .addGap(62, 62, 62)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(serverPort_Spinner, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(hostTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 242, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(serverPort_Spinner, javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(serverDebugPort_Spinner, javax.swing.GroupLayout.Alignment.LEADING)
                                 .addComponent(shutdownPort_Spinner, javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(serverDebugPort_Spinner, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 111, Short.MAX_VALUE)))))
+                                .addComponent(versionComboBox, javax.swing.GroupLayout.Alignment.LEADING, 0, 171, Short.MAX_VALUE)))))
                 .addContainerGap(46, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(29, 29, 29)
+                .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(hostTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(hostLabel))
@@ -530,6 +586,10 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(shutdownPort_Label)
                     .addComponent(shutdownPort_Spinner, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(24, 24, 24)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(versionLabel)
+                    .addComponent(versionComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 47, Short.MAX_VALUE)
                 .addComponent(nextTimeMsgLabel)
                 .addContainerGap())
@@ -583,10 +643,11 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addGap(18, 18, 18)
-                                .addComponent(serverId_ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(serverId_ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(saveButton)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGap(18, 18, 18)
                                 .addComponent(messageLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                         .addContainerGap())))
         );
@@ -612,18 +673,17 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
                     .addComponent(jLabel1)
                     .addComponent(serverId_ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
-                .addComponent(jTabbedPane1)
-                .addGap(18, 18, 18)
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 339, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(26, 26, 26)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(saveButton)
                     .addComponent(messageLabel))
-                .addContainerGap())
+                .addGap(32, 32, 32))
         );
     }// </editor-fold>//GEN-END:initComponents
 
     private void formComponentShown(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentShown
         if ( wiz != null ) {
-BaseUtil.out("********************* wiz != null");
             valid(wiz);
         }
     }//GEN-LAST:event_formComponentShown
@@ -652,5 +712,7 @@ BaseUtil.out("********************* wiz != null");
     private javax.swing.JSpinner serverPort_Spinner;
     private javax.swing.JLabel shutdownPort_Label;
     private javax.swing.JSpinner shutdownPort_Spinner;
+    private javax.swing.JComboBox versionComboBox;
+    private javax.swing.JLabel versionLabel;
     // End of variables declaration//GEN-END:variables
 }

@@ -118,8 +118,8 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
 
         Action[] actions
                 = new Action[]{
-                    BuildProjectActions.getContextAwareInstance("rebuild-all", getLookup()),
-                    null,
+//                    BuildProjectActions.getContextAwareInstance("rebuild-all", getLookup()),
+//                    null,
                     //new StartServerAction().createContextAwareInstance(getLookup()),
                     StartStopAction.getAction("start", getLookup()),
                     StartStopAction.getAction("stop", getLookup()),
@@ -132,6 +132,7 @@ public class InstanceNode extends FilterNode implements ChildrenNotifier {
                     null,
                     //ServerActions.DefineMainClassAction.getContextAwareInstance(getLookup()),
                     ServerActions.DownLoadJarsAction.getContextAwareInstance(getLookup()),
+                    ServerActions.AddDependenciesAction.getContextAwareInstance(getLookup()),
                     null,
                     InstancePropertiesAction
                     .getContextAwareInstance(getLookup()),

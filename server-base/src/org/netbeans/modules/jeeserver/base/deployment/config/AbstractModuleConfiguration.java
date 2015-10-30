@@ -131,8 +131,6 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
     }
 */
     protected void notifyCreate() {
-        BaseUtil.out("AbstractModuleConfiguration notifyCreate module=" + module);
-
         notifyAvailableModule(serverInstanceId, false);
     }
 
@@ -249,8 +247,6 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
         
     }
     protected void notifyServerChange(String oldInstanceId, String newInstanceId) {
-        BaseUtil.out("AbstractModuleConfiguration notifyServerChange oldInstanceId=" + oldInstanceId + "; newInstanceId=" + newInstanceId);
-
         notifyAvailableModule(oldInstanceId, true);
         notifyAvailableModule(newInstanceId, false);
     }
@@ -287,7 +283,6 @@ public abstract class AbstractModuleConfiguration implements ModuleConfiguration
      */
     @Override
     public void dispose() {
-        BaseUtil.out("AbstractModuleConfiguration dispose ");
         notifyAvailableModule(serverInstanceId, true);
     }
 
