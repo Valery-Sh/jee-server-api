@@ -40,7 +40,6 @@ import org.netbeans.api.project.Project;
 import org.netbeans.modules.j2ee.deployment.plugins.spi.FindJSPServlet;
 import org.netbeans.modules.jeeserver.base.deployment.BaseDeploymentManager;
 import org.netbeans.modules.jeeserver.base.deployment.specifics.InstanceBuilder;
-import org.netbeans.modules.jeeserver.base.deployment.specifics.StartServerPropertiesProvider;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.EmbeddedInstanceBuilder;
@@ -71,6 +70,9 @@ public class TomcatEmbeddedSpecifics implements EmbeddedServerSpecifics {
 //        ServerInstanceProperties sp = SuiteUtil.getServerProperties(serverProject);
 
         Socket socket = new Socket();
+        if ( dm == null || dm.getInstanceProperties() == null ) {
+            return false;
+        }
         int port = Integer.parseInt(dm.getInstanceProperties().getProperty(BaseConstants.HTTP_PORT_PROP));
         int timeout = 50;
         try {
@@ -455,8 +457,8 @@ BaseUtil.out("TomcatSpecifics MAVEB.BASED");
     }            
 
     @Override
-    public SupportedApiProvider getSupportedApiProvider() {
-        return null;
+    public SupportedApiProvider getSupportedApiProvider(String actualServerId) {
+        return new TomcatSupportedApiProvider(actualServerId);
     }
 
 }

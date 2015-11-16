@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.netbeans.modules.jeeserver.base.embedded.project.wizard;
 
 import java.awt.event.ActionEvent;
@@ -17,7 +12,6 @@ import javax.swing.JComboBox;
 import javax.swing.ListModel;
 import org.netbeans.api.project.Project;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
-import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApi;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
@@ -62,7 +56,7 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
     }    
 
     protected DefaultComboBoxModel createComboBoxModel() {
-        apiList = SupportedApiProvider.getInstance(SuiteUtil.getServerId(serverProject)).getApiList();
+        apiList = SupportedApiProvider.getInstance(SuiteUtil.getActualServerId(serverProject)).getApiList();
         final List<String> names = new ArrayList<>();
         names.add("<not selected>");
         apiList.forEach(api -> {
@@ -89,9 +83,9 @@ public class DownloadJarsPanelVisual extends javax.swing.JPanel {
                 .getManager(getServerProject())
                 .getInstanceProperties()
                 .getProperty(BaseConstants.SERVER_VERSION_PROP);
-
+        String version = serverVersion == null ? null : serverVersion;
         api.getJarNames().forEach(jar -> {
-            jar.replaceAll("${nb.server.version}", serverVersion);
+            jar = jar.replace("${nb.server.version}", version);
             model.addElement(jar);
         });
         return model;

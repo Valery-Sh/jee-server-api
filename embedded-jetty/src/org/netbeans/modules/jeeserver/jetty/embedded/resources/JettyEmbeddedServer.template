@@ -11,20 +11,6 @@ import org.netbeans.plugin.support.embedded.jetty.NbDeployHandler;
  * @author ${user}
  */
 public class JettyEmbeddedServer {
-    private static LifeCycle.Listener getListener() {
-        ServiceLoader<LifeCycle.Listener> loader
-                = ServiceLoader.load(LifeCycle.Listener.class);        
-        
-        LifeCycle.Listener result = null;
-        
-        for (LifeCycle.Listener listener : loader) {
-            if (listener.getClass().getName().endsWith("NbDeployHandler")) {
-                result = listener;
-                break;
-            }
-        }
-        return result;
-    }
     /**
      * @param args the command line arguments
      */

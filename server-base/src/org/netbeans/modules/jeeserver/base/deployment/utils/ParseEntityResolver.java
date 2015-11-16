@@ -1,4 +1,4 @@
-package org.netbeans.modules.jeeserver.base.embedded.utils;
+package org.netbeans.modules.jeeserver.base.deployment.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

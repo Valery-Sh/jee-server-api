@@ -117,7 +117,7 @@
                 TARGET: RUN-EMBEDDED-SERVER 
          ============================================================ -->          
     <!--target name="run-embedded-server" if="netbeans.home" depends="-pre-run,install-repo-file,-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE."-->
-    <target name="run-embedded-server" if="netbeans.home" depends="-server-embedded-macrodef-run" description="Debug Embedded Server project in IDE.">
+    <target name="run-embedded-server" if="netbeans.home" depends="-server-embedded-macrodef-run" description="Run Embedded Server project in IDE.">
         
         <property name="main.class" value="${maven.main.class}"/>                
         <property name="compiled.classes" value="${basedir}/target/classes" />
@@ -156,6 +156,39 @@
     </target>
 
         
+    <target name="-server-embedded-macrodef-run-jar">
+
+        <macrodef name="server-embedded-run-jar">
+            <attribute default="${main.class}" name="classname"/>
+            <attribute default="${run.classpath}" name="classpath"/>
+            <attribute default="jvm" name="jvm"/>
+            <element name="customize" optional="true"/>
+            <sequential>
+                <java classname="@{classname}" dir="${work.dir}" fork="true">
+                    <jvmarg line="${endorsed.classpath.cmd.line.arg}"/>
+                    <jvmarg value="-Dfile.encoding=${runtime.encoding}"/>
+                    <redirector errorencoding="${runtime.encoding}" inputencoding="${runtime.encoding}" outputencoding="${runtime.encoding}"/>
+                    <!--jvmarg line="${run.jvmargs}"/>
+                    <jvmarg line="${run.jvmargs.ide}"/-->
+                    <classpath>
+                        <path path="@{classpath}"/>
+                    </classpath>
+                    <syspropertyset>
+                        <propertyref prefix="run-sys-prop."/>
+                        <mapper from="run-sys-prop.*" to="*" type="glob"/>
+                    </syspropertyset>
+                    <customize/>
+                </java>
+            </sequential>
+        </macrodef>
+    </target>
             
-                    
+    <target name="run-jar-embedded-server" if="netbeans.home" depends="-server-embedded-macrodef-run-jar" description="Run Embedded Server project in IDE.">
+        
+        <property name="main.class" value="jar"/>                
+        <property name="work.dir" value="${maven.work.dir}"/>
+        <property name="run.classpath" value="${maven.run.classpath}" />                
+        <property name="endorsed.classpath.cmd.line.arg" value=""/>
+        <server-embedded-run-jar  />
+    </target>                    
 </project>

@@ -1,4 +1,4 @@
-package org.netbeans.modules.jeeserver.base.embedded.project;
+package org.netbeans.modules.jeeserver.base.deployment.utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,7 +22,7 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.netbeans.modules.jeeserver.base.embedded.utils.ParseEntityResolver;
+
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
 import org.openide.xml.XMLUtil;
@@ -50,11 +50,17 @@ public class PomXmlUtil {
         this.pomXml = pomXml;
         init();
     }
+
     public PomXmlUtil(InputStream pomXmlStream) {
         init(pomXmlStream);
     }
+
     private void init(InputStream pomXmlStream) {
         doc = parse(pomXmlStream);
+    }
+
+    public PomXmlUtil(Document doc) {
+        this.doc = doc;
     }
 
     private void init() {
@@ -89,26 +95,26 @@ public class PomXmlUtil {
         }
         return d;
     }
-    
-/*    protected Document parse1() {
-        Document d = null;
 
-        DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
-        try {
-            domFactory.setValidating(false);
-            DocumentBuilder builder = domFactory.newDocumentBuilder();
-            builder.setEntityResolver(new ParserEntityResolver());
-            d = builder.parse(pomXml.toFile());
-        } catch (SAXException | IOException | ParserConfigurationException ex) {
-            System.err.println("Cannot parse the pom.xml file: " + pomXml);
-            System.err.println("   --- Exception.message=" + ex.getMessage());
-            LOG.log(Level.INFO, "Parse pom.xml: ", ex);
+    /*    protected Document parse1() {
+     Document d = null;
 
-        }
+     DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
+     try {
+     domFactory.setValidating(false);
+     DocumentBuilder builder = domFactory.newDocumentBuilder();
+     builder.setEntityResolver(new ParserEntityResolver());
+     d = builder.parse(pomXml.toFile());
+     } catch (SAXException | IOException | ParserConfigurationException ex) {
+     System.err.println("Cannot parse the pom.xml file: " + pomXml);
+     System.err.println("   --- Exception.message=" + ex.getMessage());
+     LOG.log(Level.INFO, "Parse pom.xml: ", ex);
 
-        return d;
-    }
-*/
+     }
+
+     return d;
+     }
+     */
     public void save() throws TransformerConfigurationException, TransformerException {
 
         TransformerFactory tFactory = TransformerFactory.newInstance();
@@ -122,8 +128,8 @@ public class PomXmlUtil {
 
     public void save(Path targetDir, String newFileName) {
         try {
-            Path p = Paths.get(targetDir.toString(),newFileName);
-            if ( ! Files.exists(p)) {
+            Path p = Paths.get(targetDir.toString(), newFileName);
+            if (!Files.exists(p)) {
                 Path dir = Files.createDirectories(targetDir);
                 p = Files.createFile(p);
             }
@@ -131,9 +137,8 @@ public class PomXmlUtil {
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, ex.getMessage());
         }
-    }    
+    }
 
-    
     public void save(Path target) {
 
         FileObject pomFo = FileUtil.toFileObject(target.toFile());
@@ -144,6 +149,7 @@ public class PomXmlUtil {
         }
 
     }
+
     public PomProperties getProperties() {
 
         NodeList nl = doc.getDocumentElement().getElementsByTagName("properties");
@@ -323,9 +329,10 @@ public class PomXmlUtil {
         protected void setDependencies(Dependencies dependencies) {
             this.dependencies = dependencies;
         }
-        public void setTags(Map<String,String> tags) {
-            tags.forEach((k,v) -> {
-                switch( k ) {
+
+        public void setTags(Map<String, String> tags) {
+            tags.forEach((k, v) -> {
+                switch (k) {
                     case "scope":
                         setScope(v);
                         break;
@@ -341,16 +348,16 @@ public class PomXmlUtil {
                     case "classifier":
                         setClassifier(v);
                         break;
-                        
+
                 }
             });
-            
+
         }
 
         public void setClassifier(String classifier) {
             this.classifier = classifier;
         }
-        
+
         protected List<String[]> getNotNullTags() {
             List<String[]> list = new ArrayList<>();
             if (groupId != null) {
@@ -577,6 +584,7 @@ public class PomXmlUtil {
             return s == null ? null : element.getTextContent().trim();
         }
     }
+
     public static class PomProperties {
 
         private Document document;
@@ -585,29 +593,39 @@ public class PomXmlUtil {
 
         protected PomProperties() {
         }
+
         public int size() {
             return list().size();
         }
-        
+
         protected PomProperties(Element propertiesTag, Document document) {
             this.element = propertiesTag;
             this.document = document;
         }
+
         /**
-         * key - a name of the property propertyValue - a newValue of the property
-         * 
-         * @param pair a collection where key is a property name and propertyValue 
-         * is a text content of the property
+         * key - a name of the property propertyValue - a newValue of the
+         * property
+         *
+         * @param pair a collection where key is a property name and
+         * propertyValue is a text content of the property
          */
-        public void replaceAll(Map<String,String> pair) {
-            pair.forEach((k,v) -> {
+        public void replaceAll(Map<String, String> pair) {
+            pair.forEach((k, v) -> {
                 delete(k);
             });
-            pair.forEach((k,v) -> {
+            pair.forEach((k, v) -> {
                 Property p = new Property(k);
                 p.setValue(v);
                 add(p);
             });
+        }
+
+        public void replace(String propName, String newValue) {
+            delete(propName);
+            Property p = new Property(propName);
+            p.setValue(newValue);
+            add(p);
         }
 
         protected Element getElement() {
@@ -617,17 +635,29 @@ public class PomXmlUtil {
         protected void setElement(Element element) {
             this.element = element;
         }
-        
+
         public List<Property> list(final Predicate<Property> p) {
             final List<Property> list = list();
             final List<Property> result = list();
             list.forEach(d -> {
-                if ( p.test(d) ) {
+                if (p.test(d)) {
                     result.add(d);
                 }
             });
             return result;
-            
+
+        }
+        
+        public Property getPropertyByName(String propName) {
+            NodeList propList = element.getElementsByTagName(propName);
+            if (propList == null || propList.getLength() == 0) {
+                return null;
+            }
+            Element propertyElement = (Element) propList.item(0);
+            Property property = new Property(propertyElement);
+            property.setProperties(this);
+            BaseUtil.out("=== PomXmlUtil.getPropertyByName value = " + property.getValue());
+            return property;
         }
         public List<Property> list() {
             List<Property> list = new ArrayList<>();
@@ -645,7 +675,6 @@ public class PomXmlUtil {
             return list;
         }
 
-
         public void delete(String propertyName) {
             delete(new Property(propertyName));
         }
@@ -653,7 +682,7 @@ public class PomXmlUtil {
         public void delete(Predicate<Property> p) {
             List<Property> list = list();
             list.forEach(d -> {
-                if ( p.test(d)) {
+                if (p.test(d)) {
                     d.delete();
                 }
             });
@@ -715,14 +744,15 @@ public class PomXmlUtil {
         public String getPropertyName() {
             return propertyName;
         }
-        
+
         public String getValue() {
-            if ( propertyValue == null ) {
+            if (propertyValue == null) {
                 return "";
             } else {
                 return propertyValue;
             }
         }
+
         protected Element getElement() {
             return element;
         }
@@ -739,6 +769,7 @@ public class PomXmlUtil {
             properties = null;
             element = null;
         }
+
         protected void replace(Property newProperty) {
             if (properties == null) {
                 return;
@@ -746,19 +777,21 @@ public class PomXmlUtil {
             properties.getElement().removeChild(element);
             properties = null;
             element = null;
-            
+
             properties.add(newProperty);
         }
+
         protected void setValue(String value) {
             this.propertyValue = value == null ? "" : value.trim();
         }
+
         @Override
         public boolean equals(Object other) {
             Property o = (Property) other;
             if (other == null) {
                 return false;
             }
-            boolean b = o.getPropertyName().equals(getPropertyName()); 
+            boolean b = o.getPropertyName().equals(getPropertyName());
             return b;
         }
 
@@ -772,7 +805,6 @@ public class PomXmlUtil {
             return hash;
         }
 
-
     }//class Dependency
 
     public static class ParserEntityResolver implements EntityResolver {
@@ -783,7 +815,5 @@ public class PomXmlUtil {
             return new InputSource(new ByteArrayInputStream(new byte[0]));
         }
     }// ParserEntityResolver
-
-    
 
 }//class

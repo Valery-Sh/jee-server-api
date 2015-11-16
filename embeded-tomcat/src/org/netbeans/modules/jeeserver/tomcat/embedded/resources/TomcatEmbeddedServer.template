@@ -7,6 +7,20 @@ import org.apache.catalina.LifecycleException;
 import org.netbeans.plugin.support.embedded.tomcat.CommandManager;
 
 public class TomcatEmbeddedServer {
+    private static InstanceManager getInstanceManager() {
+        ServiceLoader<InstanceManager> loader
+                = ServiceLoader.load(InstanceManager.class);        
+        
+        InstanceManager result = null;
+        
+        for (InstanceManager manager : loader) {
+            if (manager.getClass().getName().endsWith("NbDeployHandler")) {
+                result = manager;
+                break;
+            }
+        }
+        return result;
+    }
 
     public static void main(String args[]) throws URISyntaxException, ServletException, LifecycleException {
         final Tomcat tomcat = new Tomcat();
@@ -15,6 +29,10 @@ public class TomcatEmbeddedServer {
         // The net line may be placed anywhere in the code 
         //
         NbDeployHandler.getInstance().listen(tomcat);
+        // 
+        // InstanceManager manager = getInstanceManager();
+        // if ( manager != null )  getInstanceManager().newInstance(tomcat);
+        //
 
 
         // Add the main page servlet to the context

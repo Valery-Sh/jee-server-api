@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.netbeans.modules.jeeserver.base.embedded.project.wizard;
 
 import java.awt.event.ActionEvent;
@@ -131,7 +126,7 @@ public class AddDependenciesPanelVisual extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
     protected DefaultComboBoxModel createComboBoxModel() {
-        apiList = SupportedApiProvider.getInstance(SuiteUtil.getServerId(serverProject)).getApiList();
+        apiList = SupportedApiProvider.getInstance(SuiteUtil.getActualServerId(serverProject)).getApiList();
         final List<String> names = new ArrayList<>();
         names.add("<not selected>");
         apiList.forEach(api -> {
@@ -159,9 +154,9 @@ public class AddDependenciesPanelVisual extends javax.swing.JPanel {
                 .getManager(getServerProject())
                 .getInstanceProperties()
                 .getProperty(BaseConstants.SERVER_VERSION_PROP);
-
+        String version = serverVersion == null ? null : serverVersion;
         api.getJarNames().forEach(jar -> {
-            jar.replaceAll("${nb.server.version}", serverVersion);
+            jar = jar.replace("${nb.server.version}", version);
             model.addElement(jar);
         });
         return model;

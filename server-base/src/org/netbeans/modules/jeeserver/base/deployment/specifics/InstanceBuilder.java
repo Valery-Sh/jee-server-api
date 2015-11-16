@@ -34,12 +34,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import org.netbeans.api.project.FileOwnerQuery;
 import org.netbeans.api.project.Project;
-import org.netbeans.api.project.ProjectManager;
 import org.netbeans.api.project.ui.OpenProjects;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceCreationException;
 import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseConstants;
 import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
+import org.netbeans.modules.jeeserver.base.deployment.utils.PomXmlUtil;
 import org.netbeans.spi.project.ui.support.ProjectChooser;
 import org.openide.WizardDescriptor;
 import org.openide.filesystems.FileObject;
@@ -148,7 +148,6 @@ public abstract class InstanceBuilder {
 
         FileUtil.runAtomicAction((Runnable) () -> {
             try {
-BaseUtil.out("InstanceBuilder invoke runInstantiateProjectDir");
                 runInstantiateProjectDir(result);
             } catch (IOException ex) {
                 LOG.log(Level.FINE, ex.getMessage()); //NOI18N
@@ -352,7 +351,14 @@ BaseUtil.out("InstanceBuilder invoke runInstantiateProjectDir");
             value = (String) getWizardDescriptor().getProperty("artifactVersion");
             
             setMavenElValue(doc, "version", value);
+            
+            PomXmlUtil util = new PomXmlUtil(doc);
 
+            value = (String) getWizardDescriptor().getProperty(BaseConstants.SERVER_VERSION_PROP);
+            if ( value == null ) {
+                value = "0.0.1";
+            }
+            util.getProperties().replace(BaseConstants.NB_SERVER_VERSION, value);
 //            value = (String) getWizardDescriptor().getProperty("");
 
             

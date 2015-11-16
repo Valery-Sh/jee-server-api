@@ -37,10 +37,10 @@ import org.netbeans.modules.jeeserver.base.deployment.utils.BaseUtil;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.ApiDependency;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApi;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
-import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil;
-import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil.Dependencies;
-import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil.Dependency;
-import org.netbeans.modules.jeeserver.base.embedded.project.PomXmlUtil.PomProperties;
+import org.netbeans.modules.jeeserver.base.deployment.utils.PomXmlUtil;
+import org.netbeans.modules.jeeserver.base.deployment.utils.PomXmlUtil.Dependencies;
+import org.netbeans.modules.jeeserver.base.deployment.utils.PomXmlUtil.Dependency;
+import org.netbeans.modules.jeeserver.base.deployment.utils.PomXmlUtil.PomProperties;
 import org.netbeans.modules.jeeserver.base.embedded.project.SuiteManager;
 import org.netbeans.modules.jeeserver.base.embedded.project.nodes.SuiteNotifier;
 import org.netbeans.modules.jeeserver.base.embedded.project.wizard.AddDependenciesPanelVisual;
@@ -105,6 +105,24 @@ public class ServerActions {
         }
 
     }
+    public static class StartJarAction {
+
+        public static Action getAction(String type, Lookup context) {
+            FileObject fo = context.lookup(FileObject.class);
+            Project serverProject = FileOwnerQuery.getOwner(fo);
+            Properties props = null;
+            if (!BaseUtil.isAntProject(serverProject)) {
+                //|| needsBuildRepo(serverProject))) {
+                props = new Properties();
+                props.setProperty(StartServerAction.ACTION_ENABLED_PROP, "true");
+            }
+            if ("start-jar".equals(type)) {
+                return new StartServerAction().createContextAwareInstance(context, props);
+            } else {
+                return new StopServerAction().createContextAwareInstance(context);
+            }
+        }
+    }
 
     public static class BuildProjectActions extends AbstractAction implements ContextAwareAction {
 
@@ -141,206 +159,6 @@ public class ServerActions {
             return new MavenContextAction(command, context);
         }
 
-        /*        protected static final class BuildContextAction extends ContextAction {
-
-         public BuildContextAction(Lookup context) {
-         super(context);
-         }
-
-         @Override
-         protected String getName() {
-         return "Build";
-         }
-
-         protected String getAntTarget() {
-         return "maven-build-goals";
-         }
-
-         @Override
-         protected String getMavenGoals() {
-         return "package";
-         }
-         }
-
-         protected static final class CleanContextAction extends ContextAction {
-
-         public CleanContextAction(Lookup context) {
-         super(context);
-         }
-
-         @Override
-         protected String getName() {
-         return "Clean";
-         }
-
-         protected String getAntTarget() {
-         return "maven-build-goals";
-         }
-
-         @Override
-         protected String getMavenGoals() {
-         return "clean";
-         }
-         }
-
-         protected static final class CleanAndBuildContextAction extends ContextAction {
-
-         public CleanAndBuildContextAction(Lookup context) {
-         super(context);
-         }
-
-         @Override
-         protected String getName() {
-         return "Clean and Build";
-         }
-
-         protected String getAntTarget() {
-         return "maven-build-goals";
-         }
-
-         @Override
-         protected String getMavenGoals() {
-         return "clean package";
-         }
-
-         }
-
-         protected static class ContextAction extends AbstractAction { //implements ProgressListener {
-
-         final private Lookup context;
-         final Project serverProject;
-
-         public ContextAction(Lookup context) {
-         this.context = context;
-         FileObject fo = context.lookup(FileObject.class);
-         serverProject = FileOwnerQuery.getOwner(fo);
-
-         if (BaseUtil.isAntProject(serverProject)) {
-         setEnabled(false);
-         } else {
-         setEnabled(true);
-         }
-
-         putValue(NAME, getName());
-         }
-
-         protected String getName() {
-         return "Rebuild All ( project and it's repo)";
-         }
-
-         protected String getAntTarget() {
-         return "maven-rebuild-all";
-         }
-
-         protected String getMavenGoals() {
-         return "clean deploy:deploy-file install:install-file package";
-         }
-
-         protected void setCommonProperties(Properties props) {
-         props.setProperty(BaseAntTaskProgressObject.ANT_TARGET, getAntTarget());
-         props.setProperty(BaseAntTaskProgressObject.WAIT_TIMEOUT, "0");
-         props.setProperty("goals", getMavenGoals());
-         }
-
-         @Override
-         public void actionPerformed(ActionEvent e) {
-
-         Properties props = setStartProperties(serverProject);
-         setCommonProperties(props);
-
-         new BaseAntTaskProgressObject(null, props).execute();
-
-         }
-
-         public Properties setStartProperties(Project serverProject) {
-
-         if (!BaseUtil.isAntProject(serverProject)) {
-         return setMavenProperies(serverProject);
-         } else {
-         return null;
-         }
-
-         }
-
-         protected Properties setMavenProperies(Project serverProject) {
-         //String cp = BaseUtil.getMavenClassPath(manager);
-         Properties startProperties = new Properties();
-
-         FileObject fo = serverProject.getProjectDirectory().getFileObject("nbdeployment/build.xml");
-         startProperties.setProperty(BaseAntTaskProgressObject.BUILD_XML, fo.getPath());
-
-         FileObject cmJar = SuiteUtil.getCommandManagerJar(serverProject);
-
-         Properties pomProperties = BaseUtil.getPomProperties(cmJar);
-         if (pomProperties != null) {
-
-         String str = pomProperties.getProperty("groupId");
-         str = str.replace(".", "/");
-         str += "/"
-         + pomProperties.getProperty("artifactId")
-         + "/"
-         + pomProperties.getProperty("version")
-         + "/"
-         + cmJar.getNameExt();
-
-         if (cmJar.getParent().getFileObject(str) == null) {
-         startProperties.setProperty("do.deploy-file", "yes");
-         }
-
-         startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_GROUPID,
-         pomProperties.getProperty("groupId"));
-
-         startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_ARTIFACTID,
-         pomProperties.getProperty("artifactId"));
-         startProperties.setProperty(SuiteConstants.COMMAND_MANAGER_VERSION,
-         pomProperties.getProperty("version"));
-         startProperties.setProperty(BaseConstants.COMMAND_MANAGER_JAR_NAME_PROP,
-         pomProperties.getProperty("artifactId") + "-"
-         + pomProperties.getProperty("version")
-         + ".jar"
-         );
-         }
-         //properties.setProperty("target.project.classes",
-         //            "target/classes");
-
-         startProperties.setProperty(SuiteConstants.MAVEN_REPO_LIB_PATH_PROP,
-         SuiteConstants.MAVEN_REPO_LIB_PATH);
-
-         //                startProperties.setProperty(SuiteConstants.MAVEN_RUN_CLASSPATH_PROP, cp);
-         //
-         // We set MAVEN_DEBUG_CLASSPATH_PROP. In future this approach may change
-         //
-         //                properties.setProperty(SuiteConstants.MAVEN_DEBUG_CLASSPATH_PROP, cp);
-         startProperties.setProperty(SuiteConstants.MAVEN_WORK_DIR_PROP, serverProject.getProjectDirectory().getPath());
-         String mainClass = getMavenMainClass(serverProject);
-         if (mainClass != null) {
-         startProperties.setProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP, mainClass);
-         }
-         return startProperties;
-         }
-
-         protected String getMavenMainClass(Project project) {
-         BaseDeploymentManager dm = SuiteManager.getManager(project);
-         String mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
-         if (mainClass != null) {
-         return mainClass;
-         }
-
-         String[] classes = BaseUtil.getMavenMainClasses(project);
-         if (classes.length == 0) {
-         return null;
-         }
-         if (classes.length == 0 || classes.length > 1) {
-         MavenMainClassCustomizer.customize(project);
-         mainClass = dm.getInstanceProperties().getProperty(SuiteConstants.MAVEN_MAIN_CLASS_PROP);
-         } else {
-         mainClass = classes[0];
-         }
-         return mainClass;
-         }
-
-         }//class
-         */
         protected static final class MavenContextAction extends AbstractAction { //implements ProgressListener {
 
             final String command;
@@ -1134,7 +952,7 @@ public class ServerActions {
             }
 
             protected void createPom(SupportedApi api, String copyToDir) {
-                SupportedApiProvider provider = SupportedApiProvider.getInstance(SuiteUtil.getServerId(instanceProject));
+                SupportedApiProvider provider = SupportedApiProvider.getInstance(SuiteUtil.getActualServerId(instanceProject));
                 InputStream is = provider.getDownloadPom(api);
                 PomXmlUtil pomSupport = new PomXmlUtil(is);
                 PomProperties props = pomSupport.getProperties();
@@ -1297,7 +1115,7 @@ public class ServerActions {
             }
 
             protected void createPom(SupportedApi api) {
-                SupportedApiProvider provider = SupportedApiProvider.getInstance(SuiteUtil.getServerId(instanceProject));
+                SupportedApiProvider provider = SupportedApiProvider.getInstance(SuiteUtil.getActualServerId(instanceProject));
                 try (InputStream is = instanceProject.getProjectDirectory()
                         .getFileObject("pom.xml")
                         .getInputStream();) 

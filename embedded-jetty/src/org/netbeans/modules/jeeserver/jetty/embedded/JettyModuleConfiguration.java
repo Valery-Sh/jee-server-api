@@ -103,7 +103,7 @@ public class JettyModuleConfiguration  extends EmbeddedModuleConfiguration {
         FileObject jettyXml = FileUtil.toFileObject(getContextConfigFile());
         try {
             InputSource source = new InputSource(jettyXml.getInputStream());
-            Document doc = XMLUtil.parse(source, false, false, null, new org.netbeans.modules.jeeserver.base.embedded.utils.ParseEntityResolver());
+            Document doc = XMLUtil.parse(source, false, false, null, new org.netbeans.modules.jeeserver.base.deployment.utils.ParseEntityResolver());
             NodeList nl = doc.getDocumentElement().getElementsByTagName("Set");
             if (nl != null) {
                 for (int i = 0; i < nl.getLength(); i++) {
@@ -169,7 +169,7 @@ public class JettyModuleConfiguration  extends EmbeddedModuleConfiguration {
         Properties result = new Properties();
         try {
             InputSource source = new InputSource(jettyXml.getInputStream());
-            Document doc = XMLUtil.parse(source, false, false, null, new org.netbeans.modules.jeeserver.base.embedded.utils.ParseEntityResolver());
+            Document doc = XMLUtil.parse(source, false, false, null, new org.netbeans.modules.jeeserver.base.deployment.utils.ParseEntityResolver());
             NodeList nl = doc.getDocumentElement().getElementsByTagName("Set");
             
             if (nl != null) {

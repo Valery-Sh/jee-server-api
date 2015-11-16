@@ -279,8 +279,8 @@ BaseUtil.out("Jetty9Specifics MAVEB.BASED");
     }
 
     @Override
-    public SupportedApiProvider getSupportedApiProvider() {
-        return new JettySupportedApiProvider();
+    public SupportedApiProvider getSupportedApiProvider(String actualServerId) {
+        return new JettySupportedApiProvider(actualServerId);
     }
 
 }

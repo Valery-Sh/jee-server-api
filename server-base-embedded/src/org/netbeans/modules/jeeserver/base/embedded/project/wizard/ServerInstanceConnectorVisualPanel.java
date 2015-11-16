@@ -266,8 +266,8 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
     }
     void setVersionComboBoxModel() {
         String actualServerId = (String) serverId_ComboBox.getModel().getSelectedItem();
-        String serverId = BaseUtil.getServerIdByAcualId(actualServerId);        
-        DefaultComboBoxModel<String> versionModel = buildVersionComboModel(serverId);
+        //String serverId = BaseUtil.getServerIdByAcualId(actualServerId);        
+        DefaultComboBoxModel<String> versionModel = buildVersionComboModel(actualServerId);
         versionComboBox.setModel(versionModel);
         String version = (String) wiz.getProperty(BaseConstants.SERVER_VERSION_PROP);
         if ( version != null ) {
@@ -277,12 +277,12 @@ public class ServerInstanceConnectorVisualPanel extends InstancePanelVisual impl
         }
         
     }
-    DefaultComboBoxModel<String> buildVersionComboModel(String serverId) {
+    DefaultComboBoxModel<String> buildVersionComboModel(String actualServerId) {
         DefaultComboBoxModel<String> m = new DefaultComboBoxModel<>();
-        if ( SupportedApiProvider.getInstance(serverId) == null ) {
+        if ( SupportedApiProvider.getInstance(actualServerId) == null ) {
             m.addElement(SuiteConstants.UNKNOWN_VERSION);
         } else {
-            String[] versions = SupportedApiProvider.getInstance(serverId).getServerVertions();
+            String[] versions = SupportedApiProvider.getInstance(actualServerId).getServerVertions();
             if ( versions == null ) {
                 m.addElement(SuiteConstants.UNKNOWN_VERSION);
             }

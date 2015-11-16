@@ -138,6 +138,10 @@ public class SuiteUtil extends BaseUtil {
         return SuiteManager.getManager(serverProject).getInstanceProperties()
                 .getProperty(BaseConstants.SERVER_ID_PROP);
     }
+    public static String getActualServerId(Project serverProject) {
+        return SuiteManager.getManager(serverProject).getInstanceProperties()
+                .getProperty(BaseConstants.SERVER_ACTUAL_ID_PROP);
+    }    
     public static StringBuilder getServerInfo(Project server) {
 
         //Properties props = SuiteUtil.loadServerProperties(server);

@@ -1,78 +1,28 @@
 package org.netbeans.modules.jeeserver.jetty.embedded;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import org.netbeans.api.annotations.common.StaticResource;
+import org.netbeans.modules.jeeserver.base.embedded.apisupport.AbstractSupportedApiProvider;
 import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApi;
-import org.netbeans.modules.jeeserver.base.embedded.apisupport.SupportedApiProvider;
 
 /**
  *
  * @author V. Shyshkin
  */
-public class JettySupportedApiProvider implements SupportedApiProvider{
+public class JettySupportedApiProvider extends AbstractSupportedApiProvider{
     
-    @StaticResource
-    private static final String DOWNLOAD_POM = "org/netbeans/modules/jeeserver/jetty/embedded/resources/download-pom.xml";
-//    @StaticResource
-//    private static final String DOWNLOAD_BASE_POM = "org/netbeans/modules/jeeserver/jetty/embedded/resources/download-base-pom.xml";
+    private final String actualServerId;
     
-    
-    public JettySupportedApiProvider() {
+    public JettySupportedApiProvider(String actualServerId) {
+        this.actualServerId = actualServerId;
     }
 
-    
     @Override
-    public List<SupportedApi> getApiList() {
-        List<SupportedApi> list = new ArrayList<>();
-        String[] names = getSupportedApiNames();
-        for (String name : names) {
-            list.add(getSupportedAPI(name));
-        }
-        return list;
-    }
-    
-
-    protected String[] getSupportedApiNames() {
-        List<String> list = new ArrayList<>();
-        for ( String line : apiMaster) {
-            String[] s = line.split("/");
-            list.add(s[0]);
-        }
-        String[] a = new String[list.size()];
-        return list.toArray(a);
-    }
-
-
     protected String[] getMasterLine() {
         return apiMaster;
     }
 
-    public SupportedApi getSupportedAPI(String apiName) {
-        List<String> apiLines = new ArrayList<>();
-        String[] data = getSource();
-        for (String line : data) {
-            String[] splited = line.split(":");
-            if (apiName.toUpperCase().equals(splited[1].toUpperCase())) {
-                apiLines.add(line);
-            }
-        }
-        data = getMasterLine();
-        String masterLine = null; 
-        for (String line : data) {
-            String[] splited = line.split("/");
-            if (apiName.toUpperCase().equals(splited[0].toUpperCase())) {
-                masterLine = line;
-                break;
-            }
-        }
-        return new JettySupportedApi(masterLine,apiLines);
-        
-    }
 
+    @Override
     protected String[] getSource() {
         return source;
     }
@@ -119,30 +69,6 @@ public class JettySupportedApiProvider implements SupportedApiProvider{
         "maven:cdi-weld://org.jboss.weld.servlet/weld-servlet-core/2.2.9.Final/weld-servlet-core-2.2.9.Final.jar",
         "maven:cdi-weld://org.jboss.weld/weld-spi/2.2.SP3/weld-spi-2.2.SP3.jar",};
 
-    @Override
-    public InputStream getDownloadPom(Object... options) {
-/*        if ( options.length > 0 && ( options[0] instanceof SupportedApi) ) {
-            SupportedApi api = (SupportedApi) options[0];
-            if ( "BASE".equals(api.getName().toUpperCase()) ) {
-                return getClass().getClassLoader().getResourceAsStream(DOWNLOAD_BASE_POM);
-            }
-        }
-*/        
-        return getClass().getClassLoader().getResourceAsStream(DOWNLOAD_POM);
-    }
-
-    @Override
-    public Map<String, String> getServerVersionProperties(String version) {
-
-        Map<String,String> map = new HashMap<>();
-        map.put("nb.server.version",version);
-/*        map.put("command.manager.groupId", "org.netbeans.plugin.support.embedded");    
-        map.put("command.manager.artifactId", "jetty-9-embedded-command-manager");    
-*/        
-        map.put("command.manager.version", "[1.3.1-SNAPSHOT,)");            
-
-        return map;
-    }
     
     @Override
     public String[] getServerVertions() {
@@ -155,7 +81,13 @@ public class JettySupportedApiProvider implements SupportedApiProvider{
         };
     }
 
-    public static class JettyDefaultAPIProvider {
+    @Override
+    protected String getCommandManagerVersion() {
+        return "[1.3.1-SNAPSHOT,)";
+    }
 
-    }//
+    @Override
+    protected SupportedApi newApiInstance(String masterLine, List<String> apiLines) {
+        return new JettySupportedApi(masterLine,apiLines);
+    }
 }//class JettySupportedApiProvider

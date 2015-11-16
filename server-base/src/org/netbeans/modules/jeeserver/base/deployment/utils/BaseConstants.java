@@ -24,7 +24,7 @@ import org.netbeans.modules.j2ee.deployment.plugins.api.InstanceProperties;
  */
 public class BaseConstants {
     
-    
+    public static final String NB_SERVER_VERSION = "nb.server.version";    
     public static final String COMMAND_MANAGER_JAR_POSTFIX = "-command-manager";
     public static final String COMMAND_MANAGER_JAR_NAME_PROP = "command.manager.jar.name";
 

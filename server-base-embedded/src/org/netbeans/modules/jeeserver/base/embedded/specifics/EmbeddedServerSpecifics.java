@@ -31,7 +31,7 @@ public interface EmbeddedServerSpecifics extends ServerSpecifics {
     }
     
 //    SupportedApiProvider getSupportedApiProvider(BaseDeploymentManager dm);
-    SupportedApiProvider getSupportedApiProvider();
+    SupportedApiProvider getSupportedApiProvider(String actualServerId);
     
     @Override
     default void iconChange(String uri, boolean newValue) {

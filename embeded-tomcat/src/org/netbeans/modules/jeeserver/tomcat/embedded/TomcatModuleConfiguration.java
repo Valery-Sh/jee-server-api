@@ -107,7 +107,7 @@ public class TomcatModuleConfiguration extends EmbeddedModuleConfiguration {
         FileObject contextXml = FileUtil.toFileObject(getContextConfigFile());
         try {
             InputSource source = new InputSource(contextXml.getInputStream());
-            Document doc = XMLUtil.parse(source, false, false, null, new org.netbeans.modules.jeeserver.base.embedded.utils.ParseEntityResolver());
+            Document doc = XMLUtil.parse(source, false, false, null, new org.netbeans.modules.jeeserver.base.deployment.utils.ParseEntityResolver());
             Element el = doc.getDocumentElement();
             result = el.getAttribute("path");
             el.setAttribute("path", cp);
@@ -159,7 +159,7 @@ public class TomcatModuleConfiguration extends EmbeddedModuleConfiguration {
         Properties result = new Properties();
         try {
             InputSource source = new InputSource(contextXml.getInputStream());
-            Document doc = XMLUtil.parse(source, false, false, null, new org.netbeans.modules.jeeserver.base.embedded.utils.ParseEntityResolver());
+            Document doc = XMLUtil.parse(source, false, false, null, new org.netbeans.modules.jeeserver.base.deployment.utils.ParseEntityResolver());
             Element el = doc.getDocumentElement();
             if (el.getAttribute("path") != null) {
                 result.setProperty("contextPath", el.getAttribute("path"));
